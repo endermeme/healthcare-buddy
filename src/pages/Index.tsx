@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Heart, Activity } from 'lucide-react';
+import { Heart, Activity, Menu, Home, Plus, BookOpen, User } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('60s');
@@ -14,6 +15,13 @@ const Index = () => {
     { value: '6h', label: '6 Hours' },
     { value: '24h', label: '24 Hours' },
   ];
+
+  const handleClick = (section: string) => {
+    toast({
+      title: `Navigating to ${section}`,
+      description: "This feature is coming soon!",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-gray-50">
