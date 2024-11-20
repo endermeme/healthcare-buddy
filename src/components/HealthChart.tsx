@@ -8,7 +8,7 @@ interface HealthChartProps {
 }
 
 export const HealthChart = ({ data }: HealthChartProps) => {
-  const screenWidth = Dimensions.get('window').width - 32; // Accounting for padding
+  const screenWidth = Dimensions.get('window').width - 32;
 
   const chartData = {
     labels: data.map(item => 
