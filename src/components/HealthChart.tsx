@@ -1,40 +1,50 @@
+import React from 'react';
+import { View, Dimensions } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
 import { HealthData } from '@/services/healthData';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
 
 interface HealthChartProps {
   data: HealthData[];
 }
 
 export const HealthChart = ({ data }: HealthChartProps) => {
+  const screenWidth = Dimensions.get('window').width - 32; // Accounting for padding
+
+  const chartData = {
+    labels: data.map(item => 
+      new Date(item.timestamp).toLocaleTimeString('vi-VN', { 
+        timeZone: 'Asia/Ho_Chi_Minh',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    ),
+    datasets: [{
+      data: data.map(item => item.heartRate)
+    }]
+  };
+
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          dataKey="timestamp"
-          tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
-        />
-        <YAxis />
-        <Tooltip
-          labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
-          formatter={(value) => [`${value} BPM`, 'Heart Rate']}
-        />
-        <Line
-          type="monotone"
-          dataKey="heartRate"
-          stroke="#ff4d4f"
-          dot={false}
-          name="Heart Rate"
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <View>
+      <LineChart
+        data={chartData}
+        width={screenWidth}
+        height={350}
+        chartConfig={{
+          backgroundColor: '#ffffff',
+          backgroundGradientFrom: '#ffffff',
+          backgroundGradientTo: '#ffffff',
+          decimalPlaces: 0,
+          color: (opacity = 1) => `rgba(255, 77, 79, ${opacity})`,
+          style: {
+            borderRadius: 16,
+          },
+        }}
+        bezier
+        style={{
+          marginVertical: 8,
+          borderRadius: 16,
+        }}
+      />
+    </View>
   );
 };

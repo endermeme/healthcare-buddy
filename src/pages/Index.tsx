@@ -1,9 +1,8 @@
-import { useState } from 'react';
-import { Heart, Menu, Home, Plus, BookOpen, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { Heart, Plus, BookOpen, User, Home } from 'lucide-react-native';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('60s');
@@ -16,98 +15,211 @@ const Index = () => {
     { value: '24h', label: '24 Hours' },
   ];
 
-  const handleClick = (section: string) => {
-    toast({
-      title: `Navigating to ${section}`,
-      description: "This feature is coming soon!",
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 bg-white shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-200"></div>
-          <span className="font-medium">Jillian Hanson</span>
-        </div>
-        <Button variant="ghost" size="icon">
-          <Menu className="h-6 w-6" />
-        </Button>
-      </header>
+    <View style={styles.container}>
+      <ScrollView>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.profile}>
+            <View style={styles.avatar} />
+            <Text style={styles.name}>Jillian Hanson</Text>
+          </View>
+        </View>
 
-      {/* Main Content */}
-      <main className="p-4 max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Health Monitoring</h1>
-          <p className="text-gray-500 text-sm">Real-time Heart Rate Data</p>
-        </div>
+        {/* Main Content */}
+        <View style={styles.content}>
+          <Text style={styles.title}>Health Monitoring</Text>
+          <Text style={styles.subtitle}>Real-time Heart Rate Data</Text>
 
-        {/* Health Stats Block */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
           {/* Time Range Selector */}
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex gap-2 overflow-x-auto">
-              {timeRanges.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  variant={timeRange === value ? "default" : "outline"}
-                  onClick={() => setTimeRange(value)}
-                  className="whitespace-nowrap"
-                >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeRangeContainer}>
+            {timeRanges.map(({ value, label }) => (
+              <TouchableOpacity
+                key={value}
+                style={[
+                  styles.timeRangeButton,
+                  timeRange === value && styles.timeRangeButtonActive
+                ]}
+                onPress={() => setTimeRange(value)}
+              >
+                <Text style={[
+                  styles.timeRangeText,
+                  timeRange === value && styles.timeRangeTextActive
+                ]}>
                   {label}
-                </Button>
-              ))}
-            </div>
-          </div>
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
-          {/* Stats Grid */}
-          <div className="p-4 bg-gray-50">
-            <div className="bg-stats-health p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <Heart className="text-red-500" />
-                <h2 className="text-lg font-semibold">Heart Rate</h2>
-              </div>
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-3xl font-bold">{currentData?.heartRate || '--'}</span>
-                  <span className="text-gray-500 ml-2">BPM</span>
-                </div>
-                <div className="text-sm text-gray-500">
+          {/* Stats */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <View style={styles.statHeader}>
+                <Heart color="#ff4d4f" size={24} />
+                <Text style={styles.statTitle}>Heart Rate</Text>
+              </View>
+              <View style={styles.statContent}>
+                <Text style={styles.statValue}>
+                  {currentData?.heartRate || '--'}
+                  <Text style={styles.statUnit}> BPM</Text>
+                </Text>
+                <Text style={styles.statAvg}>
                   Avg: {averages.avgHeartRate} BPM
-                </div>
-              </div>
-            </div>
-          </div>
+                </Text>
+              </View>
+            </View>
+          </View>
 
           {/* Chart */}
-          <div className="p-4">
+          <View style={styles.chartContainer}>
             <HealthChart data={history} />
-          </div>
-        </div>
-      </main>
+          </View>
+        </View>
+      </ScrollView>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center p-3">
-        <Button variant="ghost" size="icon" onClick={() => handleClick("Home")}>
-          <Home className="h-6 w-6" />
-        </Button>
-        <Button 
-          className="rounded-full bg-primary text-white -mt-8 p-4 shadow-lg"
-          size="icon"
-          onClick={() => handleClick("Add")}
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={() => handleClick("Health Articles")}>
-          <BookOpen className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={() => handleClick("Profile")}>
-          <User className="h-6 w-6" />
-        </Button>
-      </nav>
-    </div>
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navButton}>
+          <Home size={24} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navButtonMain}>
+          <Plus size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navButton}>
+          <BookOpen size={24} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navButton}>
+          <User size={24} />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    padding: 16,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  profile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#e0e0e0',
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  content: {
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+  },
+  timeRangeContainer: {
+    marginBottom: 16,
+  },
+  timeRangeButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'white',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  timeRangeButtonActive: {
+    backgroundColor: '#1a73e8',
+    borderColor: '#1a73e8',
+  },
+  timeRangeText: {
+    color: '#666',
+  },
+  timeRangeTextActive: {
+    color: 'white',
+  },
+  statsContainer: {
+    marginBottom: 16,
+  },
+  statCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+  },
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  statTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  statContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  statValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  statUnit: {
+    fontSize: 16,
+    color: '#666',
+  },
+  statAvg: {
+    fontSize: 14,
+    color: '#666',
+  },
+  chartContainer: {
+    height: 400,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  navButton: {
+    padding: 8,
+  },
+  navButtonMain: {
+    backgroundColor: '#1a73e8',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -24,
+  },
+});
 
 export default Index;
