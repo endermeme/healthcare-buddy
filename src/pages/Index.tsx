@@ -26,7 +26,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-gray-50">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 bg-white">
+      <header className="flex items-center justify-between p-4 bg-white shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-200"></div>
           <span className="font-medium">Jillian Hanson</span>
@@ -37,64 +37,69 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="p-4">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-1">Health Monitoring</h1>
+      <main className="p-4 max-w-7xl mx-auto">
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold">Health Monitoring</h1>
           <p className="text-gray-500 text-sm">Real-time Health Data</p>
         </div>
 
-        {/* Current Values */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <Heart className="text-red-500" />
-              <h2 className="text-lg font-semibold">Heart Rate</h2>
+        <div className="grid gap-4">
+          {/* Stats and Chart Container */}
+          <div className="bg-white rounded-xl shadow-sm p-4">
+            {/* Time Range Selector */}
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+              {timeRanges.map(({ value, label }) => (
+                <Button
+                  key={value}
+                  variant={timeRange === value ? "default" : "outline"}
+                  onClick={() => setTimeRange(value)}
+                  className="whitespace-nowrap"
+                >
+                  {label}
+                </Button>
+              ))}
             </div>
-            <div className="flex justify-between items-end">
-              <div>
-                <span className="text-3xl font-bold">{currentData?.heartRate || '--'}</span>
-                <span className="text-gray-500 ml-2">BPM</span>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-stats-health p-4 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <Heart className="text-red-500" />
+                  <h2 className="text-lg font-semibold">Heart Rate</h2>
+                </div>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <span className="text-3xl font-bold">{currentData?.heartRate || '--'}</span>
+                    <span className="text-gray-500 ml-2">BPM</span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Avg: {averages.avgHeartRate} BPM
+                  </div>
+                </div>
               </div>
-              <div className="text-sm text-gray-500">
-                Avg: {averages.avgHeartRate} BPM
+
+              <div className="bg-stats-water p-4 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="text-blue-500" />
+                  <h2 className="text-lg font-semibold">Oxygen Level</h2>
+                </div>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <span className="text-3xl font-bold">{currentData?.oxygenLevel || '--'}</span>
+                    <span className="text-gray-500 ml-2">%</span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Avg: {averages.avgOxygenLevel}%
+                  </div>
+                </div>
               </div>
+            </div>
+
+            {/* Chart */}
+            <div className="mt-4">
+              <HealthChart data={history} />
             </div>
           </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <Activity className="text-blue-500" />
-              <h2 className="text-lg font-semibold">Oxygen Level</h2>
-            </div>
-            <div className="flex justify-between items-end">
-              <div>
-                <span className="text-3xl font-bold">{currentData?.oxygenLevel || '--'}</span>
-                <span className="text-gray-500 ml-2">%</span>
-              </div>
-              <div className="text-sm text-gray-500">
-                Avg: {averages.avgOxygenLevel}%
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Time Range Selector */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          {timeRanges.map(({ value, label }) => (
-            <Button
-              key={value}
-              variant={timeRange === value ? "default" : "outline"}
-              onClick={() => setTimeRange(value)}
-              className="whitespace-nowrap"
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
-
-        {/* Chart */}
-        <div className="bg-white p-4 rounded-xl shadow-sm">
-          <HealthChart data={history} />
         </div>
       </main>
 
