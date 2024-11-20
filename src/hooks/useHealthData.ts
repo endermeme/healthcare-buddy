@@ -10,7 +10,8 @@ export const useHealthData = (timeRange: TimeRange) => {
   const { data: currentData } = useQuery({
     queryKey: ['healthData'],
     queryFn: fetchHealthData,
-    refetchInterval: 1000,
+    refetchInterval: 5000, // Poll every 5 seconds
+    staleTime: 4000, // Consider data stale after 4 seconds
   });
 
   useEffect(() => {
