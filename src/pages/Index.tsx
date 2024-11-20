@@ -64,37 +64,41 @@ const Index = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50">
-            <div className="bg-stats-health p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <Heart className="text-red-500" />
-                <h2 className="text-lg font-semibold">Heart Rate</h2>
-              </div>
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-3xl font-bold">{currentData?.heartRate || '--'}</span>
-                  <span className="text-gray-500 ml-2">BPM</span>
+            {currentData?.heartRate !== undefined && (
+              <div className="bg-stats-health p-4 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <Heart className="text-red-500" />
+                  <h2 className="text-lg font-semibold">Heart Rate</h2>
                 </div>
-                <div className="text-sm text-gray-500">
-                  Avg: {averages.avgHeartRate} BPM
+                <div className="flex justify-between items-end">
+                  <div>
+                    <span className="text-3xl font-bold">{currentData.heartRate}</span>
+                    <span className="text-gray-500 ml-2">BPM</span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Avg: {averages.avgHeartRate} BPM
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="bg-stats-water p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <Activity className="text-blue-500" />
-                <h2 className="text-lg font-semibold">Oxygen Level</h2>
-              </div>
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-3xl font-bold">{currentData?.oxygenLevel || '--'}</span>
-                  <span className="text-gray-500 ml-2">%</span>
+            {currentData?.oxygenLevel !== undefined && (
+              <div className="bg-stats-water p-4 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="text-blue-500" />
+                  <h2 className="text-lg font-semibold">Oxygen Level</h2>
                 </div>
-                <div className="text-sm text-gray-500">
-                  Avg: {averages.avgOxygenLevel}%
+                <div className="flex justify-between items-end">
+                  <div>
+                    <span className="text-3xl font-bold">{currentData.oxygenLevel}</span>
+                    <span className="text-gray-500 ml-2">%</span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Avg: {averages.avgOxygenLevel}%
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Chart */}
