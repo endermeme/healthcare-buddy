@@ -3,13 +3,12 @@ import { formatInTimeZone } from 'date-fns-tz';
 
 export interface HealthData {
   heartRate: number;
-  oxygenLevel: number;
   timestamp: string;
 }
 
 const logHealthData = (data: HealthData) => {
   const vietnamTime = formatInTimeZone(new Date(data.timestamp), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
-  const logEntry = `${vietnamTime} - Heart Rate: ${data.heartRate}, Oxygen Level: ${data.oxygenLevel}\n`;
+  const logEntry = `${vietnamTime} - Heart Rate: ${data.heartRate}\n`;
   
   // Send log to server
   axios.post('http://192.168.1.15/log', {
@@ -24,7 +23,6 @@ export const fetchHealthData = async (): Promise<HealthData> => {
   const response = await axios.get('http://192.168.1.15/data');
   const data = {
     heartRate: response.data.heartRate,
-    oxygenLevel: response.data.oxygenLevel,
     timestamp: new Date().toISOString(),
   };
 

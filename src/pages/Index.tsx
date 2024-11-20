@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Heart, Activity, Menu, Home, Plus, BookOpen, User, Droplets } from 'lucide-react';
+import { Heart, Menu, Home, Plus, BookOpen, User } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { WaterIntakeTimeline } from '@/components/WaterIntakeTimeline';
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('60s');
@@ -41,7 +40,7 @@ const Index = () => {
       <main className="p-4 max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Health Monitoring</h1>
-          <p className="text-gray-500 text-sm">Real-time Health Data</p>
+          <p className="text-gray-500 text-sm">Real-time Heart Rate Data</p>
         </div>
 
         {/* Health Stats Block */}
@@ -63,7 +62,7 @@ const Index = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50">
+          <div className="p-4 bg-gray-50">
             <div className="bg-stats-health p-4 rounded-xl">
               <div className="flex items-center gap-2 mb-2">
                 <Heart className="text-red-500" />
@@ -79,22 +78,6 @@ const Index = () => {
                 </div>
               </div>
             </div>
-
-            <div className="bg-stats-water p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <Activity className="text-blue-500" />
-                <h2 className="text-lg font-semibold">Oxygen Level</h2>
-              </div>
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-3xl font-bold">{currentData?.oxygenLevel || '--'}</span>
-                  <span className="text-gray-500 ml-2">%</span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  Avg: {averages.avgOxygenLevel}%
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Chart */}
@@ -102,24 +85,12 @@ const Index = () => {
             <HealthChart data={history} />
           </div>
         </div>
-
-        {/* Water Intake Timeline */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Droplets className="h-6 w-6 text-blue-500" />
-            <h2 className="text-xl font-semibold">Daily Water Intake</h2>
-          </div>
-          <WaterIntakeTimeline />
-        </div>
       </main>
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center p-3">
         <Button variant="ghost" size="icon" onClick={() => handleClick("Home")}>
           <Home className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={() => handleClick("Activity")}>
-          <Activity className="h-6 w-6" />
         </Button>
         <Button 
           className="rounded-full bg-primary text-white -mt-8 p-4 shadow-lg"

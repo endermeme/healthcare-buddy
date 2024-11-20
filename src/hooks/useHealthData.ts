@@ -30,19 +30,17 @@ export const useHealthData = (timeRange: TimeRange) => {
   }, [currentData, timeRange]);
 
   const getAverages = () => {
-    if (history.length === 0) return { avgHeartRate: 0, avgOxygenLevel: 0 };
+    if (history.length === 0) return { avgHeartRate: 0 };
 
     const sum = history.reduce(
       (acc, curr) => ({
         heartRate: acc.heartRate + curr.heartRate,
-        oxygenLevel: acc.oxygenLevel + curr.oxygenLevel,
       }),
-      { heartRate: 0, oxygenLevel: 0 }
+      { heartRate: 0 }
     );
 
     return {
       avgHeartRate: Math.round(sum.heartRate / history.length),
-      avgOxygenLevel: Math.round(sum.oxygenLevel / history.length),
     };
   };
 

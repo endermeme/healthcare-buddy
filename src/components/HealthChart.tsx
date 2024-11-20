@@ -3,8 +3,6 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  Bar,
-  ComposedChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -18,33 +16,25 @@ interface HealthChartProps {
 export const HealthChart = ({ data }: HealthChartProps) => {
   return (
     <ResponsiveContainer width="100%" height={400}>
-      <ComposedChart data={data}>
+      <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="timestamp"
-          tickFormatter={(time) => new Date(time).toLocaleTimeString()}
+          tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
         />
-        <YAxis yAxisId="left" />
-        <YAxis yAxisId="right" orientation="right" />
+        <YAxis />
         <Tooltip
-          labelFormatter={(label) => new Date(label).toLocaleString()}
-          formatter={(value, name) => [value, name === 'heartRate' ? 'Heart Rate' : 'Oxygen Level']}
+          labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+          formatter={(value) => [`${value} BPM`, 'Heart Rate']}
         />
         <Line
-          yAxisId="left"
           type="monotone"
           dataKey="heartRate"
           stroke="#ff4d4f"
           dot={false}
           name="Heart Rate"
         />
-        <Bar
-          yAxisId="right"
-          dataKey="oxygenLevel"
-          fill="#4096ff"
-          name="Oxygen Level"
-        />
-      </ComposedChart>
+      </LineChart>
     </ResponsiveContainer>
   );
 };
