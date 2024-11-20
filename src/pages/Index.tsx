@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Heart, Activity, Menu, Home, Plus, BookOpen, User } from 'lucide-react';
+import { Heart, Activity, Menu, Home, Plus, BookOpen, User, Droplets } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import { WaterIntakeTimeline } from '@/components/WaterIntakeTimeline';
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('60s');
@@ -38,16 +39,16 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="p-4 max-w-7xl mx-auto">
-        <div className="mb-4">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold">Health Monitoring</h1>
           <p className="text-gray-500 text-sm">Real-time Health Data</p>
         </div>
 
-        <div className="grid gap-4">
-          {/* Stats and Chart Container */}
-          <div className="bg-white rounded-xl shadow-sm p-4">
-            {/* Time Range Selector */}
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+        {/* Health Stats Block */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+          {/* Time Range Selector */}
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex gap-2 overflow-x-auto">
               {timeRanges.map(({ value, label }) => (
                 <Button
                   key={value}
@@ -59,47 +60,56 @@ const Index = () => {
                 </Button>
               ))}
             </div>
+          </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-stats-health p-4 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <Heart className="text-red-500" />
-                  <h2 className="text-lg font-semibold">Heart Rate</h2>
-                </div>
-                <div className="flex justify-between items-end">
-                  <div>
-                    <span className="text-3xl font-bold">{currentData?.heartRate || '--'}</span>
-                    <span className="text-gray-500 ml-2">BPM</span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    Avg: {averages.avgHeartRate} BPM
-                  </div>
-                </div>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50">
+            <div className="bg-stats-health p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Heart className="text-red-500" />
+                <h2 className="text-lg font-semibold">Heart Rate</h2>
               </div>
-
-              <div className="bg-stats-water p-4 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="text-blue-500" />
-                  <h2 className="text-lg font-semibold">Oxygen Level</h2>
+              <div className="flex justify-between items-end">
+                <div>
+                  <span className="text-3xl font-bold">{currentData?.heartRate || '--'}</span>
+                  <span className="text-gray-500 ml-2">BPM</span>
                 </div>
-                <div className="flex justify-between items-end">
-                  <div>
-                    <span className="text-3xl font-bold">{currentData?.oxygenLevel || '--'}</span>
-                    <span className="text-gray-500 ml-2">%</span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    Avg: {averages.avgOxygenLevel}%
-                  </div>
+                <div className="text-sm text-gray-500">
+                  Avg: {averages.avgHeartRate} BPM
                 </div>
               </div>
             </div>
 
-            {/* Chart */}
-            <div className="mt-4">
-              <HealthChart data={history} />
+            <div className="bg-stats-water p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Activity className="text-blue-500" />
+                <h2 className="text-lg font-semibold">Oxygen Level</h2>
+              </div>
+              <div className="flex justify-between items-end">
+                <div>
+                  <span className="text-3xl font-bold">{currentData?.oxygenLevel || '--'}</span>
+                  <span className="text-gray-500 ml-2">%</span>
+                </div>
+                <div className="text-sm text-gray-500">
+                  Avg: {averages.avgOxygenLevel}%
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Chart */}
+          <div className="p-4">
+            <HealthChart data={history} />
+          </div>
+        </div>
+
+        {/* Water Intake Timeline */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Droplets className="h-6 w-6 text-blue-500" />
+            <h2 className="text-xl font-semibold">Daily Water Intake</h2>
+          </div>
+          <WaterIntakeTimeline />
         </div>
       </main>
 
