@@ -1,6 +1,13 @@
-import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { HealthData } from '@/services/healthData';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 interface HealthChartProps {
   data: HealthData[];
@@ -8,34 +15,26 @@ interface HealthChartProps {
 
 export const HealthChart = ({ data }: HealthChartProps) => {
   return (
-    <div className="w-full h-[350px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="timestamp"
-            tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', {
-              timeZone: 'Asia/Ho_Chi_Minh',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          />
-          <YAxis />
-          <Tooltip 
-            labelFormatter={(label) => new Date(label).toLocaleTimeString('vi-VN', {
-              timeZone: 'Asia/Ho_Chi_Minh',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          />
-          <Line 
-            type="monotone" 
-            dataKey="heartRate" 
-            stroke="#ff4d4f" 
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <ResponsiveContainer width="100%" height={400}>
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis
+          dataKey="timestamp"
+          tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+        />
+        <YAxis />
+        <Tooltip
+          labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+          formatter={(value) => [`${value} BPM`, 'Heart Rate']}
+        />
+        <Line
+          type="monotone"
+          dataKey="heartRate"
+          stroke="#ff4d4f"
+          dot={false}
+          name="Heart Rate"
+        />
+      </LineChart>
+    </ResponsiveContainer>
   );
 };

@@ -1,68 +1,111 @@
-import React, { useState } from 'react';
-import { Heart } from 'lucide-react';
+import { useState } from 'react';
+import { Heart, Menu, Home, Plus, BookOpen, User } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('60s');
   const { currentData, history, averages } = useHealthData(timeRange);
 
-  const timeRanges = [
-    { value: '60s' as TimeRange, label: '1 Minute' },
-    { value: '1h' as TimeRange, label: '1 Hour' },
-    { value: '6h' as TimeRange, label: '6 Hours' },
-    { value: '24h' as TimeRange, label: '24 Hours' },
+  const timeRanges: { value: TimeRange; label: string }[] = [
+    { value: '60s', label: '1 Minute' },
+    { value: '1h', label: '1 Hour' },
+    { value: '6h', label: '6 Hours' },
+    { value: '24h', label: '24 Hours' },
   ];
 
+  const handleClick = (section: string) => {
+    toast({
+      title: `Navigating to ${section}`,
+      description: "This feature is coming soon!",
+    });
+  };
+
   return (
-    <div className="min-h-screen">
-      <header className="bg-white border-b border-gray-200 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50">
+      {/* Header */}
+      <header className="flex items-center justify-between p-4 bg-white shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-200" />
-          <span className="text-lg font-medium">Jillian Hanson</span>
+          <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+          <span className="font-medium">Jillian Hanson</span>
         </div>
+        <Button variant="ghost" size="icon">
+          <Menu className="h-6 w-6" />
+        </Button>
       </header>
 
-      <main className="p-4">
-        <h1 className="text-2xl font-bold mb-1">Health Monitoring</h1>
-        <p className="text-gray-600 mb-4">Real-time Heart Rate Data</p>
-
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          {timeRanges.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => setTimeRange(value)}
-              className={`px-4 py-2 rounded-lg border ${
-                timeRange === value
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-300'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+      {/* Main Content */}
+      <main className="p-4 max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">Health Monitoring</h1>
+          <p className="text-gray-500 text-sm">Real-time Heart Rate Data</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <Heart className="text-red-500" size={24} />
-            <span className="text-lg font-semibold">Heart Rate</span>
-          </div>
-          <div className="flex justify-between items-end">
-            <div className="text-3xl font-bold">
-              {currentData?.heartRate || '--'}
-              <span className="text-base text-gray-600 ml-1">BPM</span>
+        {/* Health Stats Block */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+          {/* Time Range Selector */}
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex gap-2 overflow-x-auto">
+              {timeRanges.map(({ value, label }) => (
+                <Button
+                  key={value}
+                  variant={timeRange === value ? "default" : "outline"}
+                  onClick={() => setTimeRange(value)}
+                  className="whitespace-nowrap"
+                >
+                  {label}
+                </Button>
+              ))}
             </div>
-            <div className="text-sm text-gray-600">
-              Avg: {averages.avgHeartRate} BPM
-            </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <HealthChart data={history} />
+          {/* Stats Grid */}
+          <div className="p-4 bg-gray-50">
+            <div className="bg-stats-health p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Heart className="text-red-500" />
+                <h2 className="text-lg font-semibold">Heart Rate</h2>
+              </div>
+              <div className="flex justify-between items-end">
+                <div>
+                  <span className="text-3xl font-bold">{currentData?.heartRate || '--'}</span>
+                  <span className="text-gray-500 ml-2">BPM</span>
+                </div>
+                <div className="text-sm text-gray-500">
+                  Avg: {averages.avgHeartRate} BPM
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Chart */}
+          <div className="p-4">
+            <HealthChart data={history} />
+          </div>
         </div>
       </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center p-3">
+        <Button variant="ghost" size="icon" onClick={() => handleClick("Home")}>
+          <Home className="h-6 w-6" />
+        </Button>
+        <Button 
+          className="rounded-full bg-primary text-white -mt-8 p-4 shadow-lg"
+          size="icon"
+          onClick={() => handleClick("Add")}
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={() => handleClick("Health Articles")}>
+          <BookOpen className="h-6 w-6" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={() => handleClick("Profile")}>
+          <User className="h-6 w-6" />
+        </Button>
+      </nav>
     </div>
   );
 };
