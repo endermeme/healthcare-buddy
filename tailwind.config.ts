@@ -33,6 +33,12 @@ export default {
           DEFAULT: "#8E9196",
           hover: "#6E59A5",
         },
+        stats: {
+          water: "#E3F2FD",
+          steps: "#E8F5E9",
+          calories: "#FFF3E0",
+          health: "#F3E5F5",
+        }
       },
       keyframes: {
         "scale-up": {
