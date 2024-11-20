@@ -1,113 +1,70 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { Heart } from 'lucide-react-native';
+import { Heart } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
-import { ProfileHeader } from '@/components/ProfileHeader';
-import { TimeRangeSelector } from '@/components/TimeRangeSelector';
-import { BottomNavigation } from '@/components/BottomNavigation';
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('60s');
   const { currentData, history, averages } = useHealthData(timeRange);
 
+  const timeRanges = [
+    { value: '60s' as TimeRange, label: '1 Minute' },
+    { value: '1h' as TimeRange, label: '1 Hour' },
+    { value: '6h' as TimeRange, label: '6 Hours' },
+    { value: '24h' as TimeRange, label: '24 Hours' },
+  ];
+
   return (
-    <View style={styles.container}>
-      <ScrollView>
-        <ProfileHeader />
-        <View style={styles.content}>
-          <Text style={styles.title}>Health Monitoring</Text>
-          <Text style={styles.subtitle}>Real-time Heart Rate Data</Text>
+    <div className="min-h-screen">
+      <header className="bg-white border-b border-gray-200 p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200" />
+          <span className="text-lg font-medium">Jillian Hanson</span>
+        </div>
+      </header>
 
-          <TimeRangeSelector timeRange={timeRange} setTimeRange={setTimeRange} />
+      <main className="p-4">
+        <h1 className="text-2xl font-bold mb-1">Health Monitoring</h1>
+        <p className="text-gray-600 mb-4">Real-time Heart Rate Data</p>
 
-          <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
-              <View style={styles.statHeader}>
-                <Heart color="#ff4d4f" size={24} />
-                <Text style={styles.statTitle}>Heart Rate</Text>
-              </View>
-              <View style={styles.statContent}>
-                <Text style={styles.statValue}>
-                  {currentData?.heartRate || '--'}
-                  <Text style={styles.statUnit}> BPM</Text>
-                </Text>
-                <Text style={styles.statAvg}>
-                  Avg: {averages.avgHeartRate} BPM
-                </Text>
-              </View>
-            </View>
-          </View>
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+          {timeRanges.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setTimeRange(value)}
+              className={`px-4 py-2 rounded-lg border ${
+                timeRange === value
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-600 border-gray-300'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
-          <View style={styles.chartContainer}>
-            <HealthChart data={history} />
-          </View>
-        </View>
-      </ScrollView>
-      <BottomNavigation />
-    </View>
+        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Heart className="text-red-500" size={24} />
+            <span className="text-lg font-semibold">Heart Rate</span>
+          </div>
+          <div className="flex justify-between items-end">
+            <div className="text-3xl font-bold">
+              {currentData?.heartRate || '--'}
+              <span className="text-base text-gray-600 ml-1">BPM</span>
+            </div>
+            <div className="text-sm text-gray-600">
+              Avg: {averages.avgHeartRate} BPM
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <HealthChart data={history} />
+        </div>
+      </main>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    padding: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 16,
-  },
-  statsContainer: {
-    marginBottom: 16,
-  },
-  statCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-  },
-  statHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  statTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  statContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  statUnit: {
-    fontSize: 16,
-    color: '#666',
-  },
-  statAvg: {
-    fontSize: 14,
-    color: '#666',
-  },
-  chartContainer: {
-    height: 400,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-  },
-});
 
 export default Index;
