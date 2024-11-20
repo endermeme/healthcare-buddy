@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { formatInTimeZone } from 'date-fns-tz';
+import { toast } from '@/components/ui/use-toast';
 
 export interface HealthData {
   heartRate: number;
@@ -20,14 +21,30 @@ const logHealthData = (data: HealthData) => {
 };
 
 export const fetchHealthData = async (): Promise<HealthData> => {
-  const response = await axios.get('http://192.168.1.15/data');
-  const data = {
-    heartRate: response.data.heartRate,
-    timestamp: new Date().toISOString(),
-  };
+  try {
+    console.log('Attempting to fetch data from http://192.168.1.15/data');
+    const response = await axios.get('http://192.168.1.15/data');
+    console.log('Received response:', response.data);
+    
+    if (!response.data || typeof response.data.heartRate !== 'number') {
+      throw new Error('Invalid data format received');
+    }
 
-  // Log the data
-  logHealthData(data);
+    const data = {
+      heartRate: response.data.heartRate,
+      timestamp: new Date().toISOString(),
+    };
 
-  return data;
+    // Log the data
+    logHealthData(data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching health data:', error);
+    toast({
+      title: "Connection Error",
+      description: "Could not connect to the heart rate sensor. Please check if the device is online.",
+      variant: "destructive",
+    });
+    throw error;
+  }
 };
