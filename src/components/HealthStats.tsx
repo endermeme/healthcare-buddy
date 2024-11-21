@@ -2,7 +2,7 @@ import { HealthData } from '@/services/healthData';
 import { Heart, Droplets } from 'lucide-react';
 
 interface HealthStatsProps {
-  data: HealthData;
+  data: HealthData | null;
   averages: {
     avgHeartRate: number;
     avgBloodOxygen: number;
@@ -23,7 +23,7 @@ export const HealthStats = ({ data, averages }: HealthStatsProps) => {
             <span className="text-gray-500 ml-2">BPM</span>
           </div>
           <div className="text-sm text-gray-500">
-            Avg: {averages.avgHeartRate} BPM
+            {data ? `Avg: ${averages.avgHeartRate} BPM` : ''}
           </div>
         </div>
       </div>
@@ -39,7 +39,7 @@ export const HealthStats = ({ data, averages }: HealthStatsProps) => {
             <span className="text-gray-500 ml-2">%</span>
           </div>
           <div className="text-sm text-gray-500">
-            Avg: {averages.avgBloodOxygen}%
+            {data ? `Avg: ${averages.avgBloodOxygen}%` : ''}
           </div>
         </div>
       </div>

@@ -4,8 +4,8 @@ import { getWaterRecommendation } from '@/services/healthData';
 import { Droplet } from 'lucide-react';
 
 interface WaterIntakeProgressProps {
-  heartRate: number;
-  bloodOxygen: number;
+  heartRate: number | null;
+  bloodOxygen: number | null;
 }
 
 export const WaterIntakeProgress = ({ heartRate, bloodOxygen }: WaterIntakeProgressProps) => {
@@ -15,9 +15,11 @@ export const WaterIntakeProgress = ({ heartRate, bloodOxygen }: WaterIntakeProgr
 
   useEffect(() => {
     const fetchRecommendation = async () => {
-      const result = await getWaterRecommendation(heartRate, bloodOxygen);
-      setRecommendation(result.recommendation);
-      setTargetGlasses(Math.max(8, result.glassesCount)); // Minimum 8 glasses
+      if (heartRate && bloodOxygen) {
+        const result = await getWaterRecommendation(heartRate, bloodOxygen);
+        setRecommendation(result.recommendation);
+        setTargetGlasses(Math.max(8, result.glassesCount));
+      }
     };
 
     fetchRecommendation();

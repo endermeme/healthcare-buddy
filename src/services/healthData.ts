@@ -20,7 +20,7 @@ const logHealthData = (data: HealthData) => {
   });
 };
 
-export const fetchHealthData = async (): Promise<HealthData> => {
+export const fetchHealthData = async (): Promise<HealthData | null> => {
   try {
     console.log('Attempting to fetch data from http://192.168.1.15/data');
     const response = await axios.get('http://192.168.1.15/data');
@@ -32,7 +32,7 @@ export const fetchHealthData = async (): Promise<HealthData> => {
 
     const data = {
       heartRate: response.data.heartRate,
-      bloodOxygen: response.data.bloodOxygen || 98, // Default value if not provided
+      bloodOxygen: response.data.bloodOxygen,
       timestamp: new Date().toISOString(),
     };
 
@@ -45,7 +45,7 @@ export const fetchHealthData = async (): Promise<HealthData> => {
       description: "Could not connect to the health sensors. Please check if the device is online.",
       variant: "destructive",
     });
-    throw error;
+    return null;
   }
 };
 
@@ -80,7 +80,7 @@ export const getWaterRecommendation = async (heartRate: number, bloodOxygen: num
     console.error('Error getting water recommendation:', error);
     return {
       recommendation: "Stay hydrated by drinking water regularly",
-      glassesCount: 1,
+      glassesCount: 8,
     };
   }
 };
