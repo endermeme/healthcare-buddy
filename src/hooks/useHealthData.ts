@@ -10,8 +10,8 @@ export const useHealthData = (timeRange: TimeRange) => {
   const { data: currentData } = useQuery({
     queryKey: ['healthData'],
     queryFn: fetchHealthData,
-    refetchInterval: 5000, // Poll every 5 seconds
-    staleTime: 4000, // Consider data stale after 4 seconds
+    refetchInterval: 5000,
+    staleTime: 4000,
   });
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export const useHealthData = (timeRange: TimeRange) => {
         
         const updatedHistory = [...prev, currentData]
           .filter(data => new Date(data.timestamp) > timeLimit)
-          .slice(-1000); // Keep last 1000 records max
+          .slice(-1000);
 
         return updatedHistory;
       });
@@ -30,17 +30,22 @@ export const useHealthData = (timeRange: TimeRange) => {
   }, [currentData, timeRange]);
 
   const getAverages = () => {
-    if (history.length === 0) return { avgHeartRate: 0 };
+    if (history.length === 0) return { 
+      avgHeartRate: 0,
+      avgBloodOxygen: 0,
+    };
 
     const sum = history.reduce(
       (acc, curr) => ({
         heartRate: acc.heartRate + curr.heartRate,
+        bloodOxygen: acc.bloodOxygen + curr.bloodOxygen,
       }),
-      { heartRate: 0 }
+      { heartRate: 0, bloodOxygen: 0 }
     );
 
     return {
       avgHeartRate: Math.round(sum.heartRate / history.length),
+      avgBloodOxygen: Math.round(sum.bloodOxygen / history.length),
     };
   };
 

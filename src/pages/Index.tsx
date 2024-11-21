@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Heart, Menu, Home, Plus, BookOpen, User } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
+import { HealthStats } from '@/components/HealthStats';
+import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
@@ -40,7 +42,7 @@ const Index = () => {
       <main className="p-4 max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Health Monitoring</h1>
-          <p className="text-gray-500 text-sm">Real-time Heart Rate Data</p>
+          <p className="text-gray-500 text-sm">Real-time Health Data</p>
         </div>
 
         {/* Health Stats Block */}
@@ -62,22 +64,14 @@ const Index = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="p-4 bg-gray-50">
-            <div className="bg-stats-health p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <Heart className="text-red-500" />
-                <h2 className="text-lg font-semibold">Heart Rate</h2>
-              </div>
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-3xl font-bold">{currentData?.heartRate || '--'}</span>
-                  <span className="text-gray-500 ml-2">BPM</span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  Avg: {averages.avgHeartRate} BPM
-                </div>
-              </div>
-            </div>
+          <div className="p-4">
+            <HealthStats 
+              data={currentData} 
+              averages={{
+                avgHeartRate: averages.avgHeartRate,
+                avgBloodOxygen: averages.avgBloodOxygen || 98,
+              }} 
+            />
           </div>
 
           {/* Chart */}
@@ -85,6 +79,16 @@ const Index = () => {
             <HealthChart data={history} />
           </div>
         </div>
+
+        {/* Water Intake Progress */}
+        {currentData && (
+          <div className="mb-6">
+            <WaterIntakeProgress
+              heartRate={currentData.heartRate}
+              bloodOxygen={currentData.bloodOxygen}
+            />
+          </div>
+        )}
       </main>
 
       {/* Bottom Navigation */}
