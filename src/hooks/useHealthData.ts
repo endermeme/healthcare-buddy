@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchHealthData, HealthData } from '@/services/healthData';
+import { addHealthLog, clearOldLogs } from '@/services/logService';
+import { toast } from '@/components/ui/use-toast';
 
 export type TimeRange = '5m' | '15m' | '30m' | '1h';
 
@@ -12,7 +14,24 @@ export const useHealthData = (timeRange: TimeRange) => {
     queryFn: fetchHealthData,
     refetchInterval: 5000,
     staleTime: 4000,
+    onSuccess: (data) => {
+      if (data) {
+        const shareableLink = addHealthLog(data.heartRate, data.bloodOxygen);
+        if (shareableLink) {
+          toast({
+            title: "Dữ liệu đã được ghi log",
+            description: `Link theo dõi: ${shareableLink}`,
+          });
+        }
+      }
+    },
   });
+
+  // Clear old logs every hour
+  useEffect(() => {
+    const interval = setInterval(clearOldLogs, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (currentData) {
