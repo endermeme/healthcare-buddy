@@ -13,8 +13,8 @@ interface ApiResponse {
   spo2: number;
 }
 
+const API_ENDPOINT = 'http://192.168.1.15/data';
 const LOG_ENDPOINT = 'http://192.168.1.15/log';
-const DATA_ENDPOINT = 'http://192.168.1.15/data';
 const VIEW_LOGS_ENDPOINT = 'http://192.168.1.15/view-logs';
 
 const logHealthData = (data: HealthData) => {
@@ -24,7 +24,6 @@ const logHealthData = (data: HealthData) => {
     'yyyy-MM-dd HH:mm:ss'
   );
   
-  // Create a minimal log entry with just the essential data
   const logEntry = `${vietnamTime},${data.heartRate},${data.bloodOxygen}\n`;
   
   axios.post(LOG_ENDPOINT, {
@@ -37,9 +36,7 @@ const logHealthData = (data: HealthData) => {
 
 export const fetchHealthData = async (): Promise<HealthData | null> => {
   try {
-    console.log('Attempting to fetch data from', DATA_ENDPOINT);
-    const response = await axios.get<ApiResponse>(DATA_ENDPOINT);
-    console.log('Received response:', response.data);
+    const response = await axios.get<ApiResponse>(API_ENDPOINT);
     
     if (!response.data || typeof response.data.heartRate !== 'number') {
       throw new Error('Invalid data format received');
