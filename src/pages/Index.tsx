@@ -49,33 +49,38 @@ const Index = () => {
           <p className="text-xs text-gray-500">Dữ liệu theo thời gian thực</p>
         </div>
 
-        {/* Time Range Selector */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          {timeRanges.map(({ value, label }) => (
-            <Button
-              key={value}
-              variant={timeRange === value ? "default" : "outline"}
-              onClick={() => setTimeRange(value)}
-              className="h-8 px-3 text-xs"
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
+        {/* Combined Stats Container */}
+        <div className="rounded-lg bg-white p-4 space-y-4">
+          {/* Time Range Selector */}
+          <div className="flex flex-wrap gap-2">
+            {timeRanges.map(({ value, label }) => (
+              <Button
+                key={value}
+                variant={timeRange === value ? "default" : "outline"}
+                onClick={() => setTimeRange(value)}
+                className="h-8 px-3 text-xs"
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
 
-        {/* Stats Grid */}
-        <div className="space-y-4 sm:space-y-6">
+          {/* Health Stats */}
           <HealthStats data={currentData} averages={averages} />
           
-          <div className="rounded-lg bg-white p-4">
+          {/* Chart */}
+          <div className="pt-2">
             <HealthChart data={history} />
           </div>
 
+          {/* Water Intake Progress */}
           {currentData && (
-            <WaterIntakeProgress
-              heartRate={currentData.heartRate}
-              bloodOxygen={currentData.bloodOxygen}
-            />
+            <div className="pt-2">
+              <WaterIntakeProgress
+                heartRate={currentData.heartRate}
+                bloodOxygen={currentData.bloodOxygen}
+              />
+            </div>
           )}
         </div>
       </main>
