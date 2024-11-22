@@ -29,26 +29,28 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white shadow-sm">
-        <div className="flex h-14 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gray-200"></div>
-            <span className="text-sm font-medium">Jillian Hanson</span>
+        <div className="mx-auto max-w-7xl">
+          <div className="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-gray-200"></div>
+              <span className="text-sm font-medium">Jillian Hanson</span>
+            </div>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Menu className="h-5 w-5" />
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Menu className="h-5 w-5" />
-          </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-lg px-4 pb-20 pt-4">
+      <main className="mx-auto max-w-7xl px-4 pb-20 pt-4 sm:px-6 lg:px-8">
         <div className="mb-4">
           <h1 className="text-lg font-bold">Theo dõi sức khoẻ</h1>
           <p className="text-xs text-gray-500">Dữ liệu theo thời gian thực</p>
         </div>
 
         {/* Time Range Selector */}
-        <div className="mb-4 flex gap-2">
+        <div className="mb-4 flex flex-wrap gap-2">
           {timeRanges.map(({ value, label }) => (
             <Button
               key={value}
@@ -62,7 +64,7 @@ const Index = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="space-y-4">
+        <div className="space-y-4 sm:space-y-6">
           <HealthStats data={currentData} averages={averages} />
           
           <div className="rounded-lg bg-white p-4">
@@ -80,7 +82,7 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
-        <div className="mx-auto flex max-w-lg items-center justify-around px-4 py-2">
+        <div className="mx-auto flex max-w-7xl items-center justify-around px-4 py-2 sm:px-6 lg:px-8">
           <Button variant="ghost" size="icon" onClick={() => handleClick("Trang chủ")}>
             <Home className="h-5 w-5" />
           </Button>
