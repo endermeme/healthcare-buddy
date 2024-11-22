@@ -6,13 +6,6 @@ import { HealthStats } from '@/components/HealthStats';
 import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('60s');
@@ -44,31 +37,20 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 pb-20 pt-4 sm:px-6 lg:px-8">
-        <div className="mb-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-lg font-bold">Theo dõi sức khoẻ</h1>
-            <p className="text-xs text-gray-500">Dữ liệu theo thời gian thực</p>
-          </div>
-          <Select
-            value={timeRange}
-            onValueChange={(value: TimeRange) => setTimeRange(value)}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Chọn thời gian" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="60s">1 phút</SelectItem>
-              <SelectItem value="1h">1 giờ</SelectItem>
-              <SelectItem value="6h">6 giờ</SelectItem>
-              <SelectItem value="24h">24 giờ</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="mb-4">
+          <h1 className="text-lg font-bold">Theo dõi sức khoẻ</h1>
+          <p className="text-xs text-gray-500">Dữ liệu theo thời gian thực</p>
         </div>
 
         {/* Combined Stats Container */}
         <div className="rounded-lg bg-white p-4">
           {/* Health Stats */}
-          <HealthStats data={currentData} averages={averages} />
+          <HealthStats 
+            data={currentData} 
+            averages={averages}
+            timeRange={timeRange}
+            onTimeRangeChange={setTimeRange}
+          />
           
           {/* Chart */}
           <div className="mt-6">

@@ -1,5 +1,13 @@
 import { HealthData } from '@/services/healthData';
 import { Heart, Droplets } from 'lucide-react';
+import { TimeRange } from '@/hooks/useHealthData';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface HealthStatsProps {
   data: HealthData | null;
@@ -7,15 +15,33 @@ interface HealthStatsProps {
     avgHeartRate: number;
     avgBloodOxygen: number;
   };
+  timeRange: TimeRange;
+  onTimeRangeChange: (value: TimeRange) => void;
 }
 
-export const HealthStats = ({ data, averages }: HealthStatsProps) => {
+export const HealthStats = ({ data, averages, timeRange, onTimeRangeChange }: HealthStatsProps) => {
   return (
     <div className="grid grid-cols-2 gap-8 max-w-2xl mx-auto px-8">
-      <div className="health-card bg-white shadow-md">
-        <div className="flex items-center gap-1.5">
-          <Heart className="h-4 w-4 text-red-500" />
-          <h3 className="text-sm font-medium">Nhịp tim</h3>
+      <div className="relative health-card bg-white shadow-md">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Heart className="h-4 w-4 text-red-500" />
+            <h3 className="text-sm font-medium">Nhịp tim</h3>
+          </div>
+          <Select
+            value={timeRange}
+            onValueChange={onTimeRangeChange}
+          >
+            <SelectTrigger className="w-[100px] h-7 text-xs">
+              <SelectValue placeholder="Chọn thời gian" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="60s">1 phút</SelectItem>
+              <SelectItem value="1h">1 giờ</SelectItem>
+              <SelectItem value="6h">6 giờ</SelectItem>
+              <SelectItem value="24h">24 giờ</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="mt-1.5 flex items-end justify-between">
           <div className="flex items-baseline gap-1">
