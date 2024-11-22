@@ -36,65 +36,39 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-lg space-y-6 p-6">
-        {/* Health Stats with Time Range Controls */}
-        <div className="rounded-xl bg-white p-6 shadow-sm">
-          <div className="space-y-6">
-            <HealthStats 
-              data={currentData} 
-              averages={averages}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-            />
-            
-            {/* Time Range Controls */}
-            <div className="flex justify-center gap-2">
-              <Button
-                variant={timeRange === '60s' ? 'default' : 'outline'}
-                onClick={() => setTimeRange('60s')}
-                className="text-sm"
-              >
-                60s
-              </Button>
-              <Button
-                variant={timeRange === '1h' ? 'default' : 'outline'}
-                onClick={() => setTimeRange('1h')}
-                className="text-sm"
-              >
-                1h
-              </Button>
-              <Button
-                variant={timeRange === '6h' ? 'default' : 'outline'}
-                onClick={() => setTimeRange('6h')}
-                className="text-sm"
-              >
-                6h
-              </Button>
-              <Button
-                variant={timeRange === '24h' ? 'default' : 'outline'}
-                onClick={() => setTimeRange('24h')}
-                className="text-sm"
-              >
-                24h
-              </Button>
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6 py-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Health Stats and Chart Section */}
+          <div className="md:col-span-2 space-y-6">
+            <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm">
+              <div className="space-y-6">
+                <HealthStats 
+                  data={currentData} 
+                  averages={averages}
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
+                />
+                
+                {/* Chart */}
+                <div className="mt-6">
+                  <HealthChart data={history} />
+                </div>
+              </div>
             </div>
-            
-            {/* Chart */}
-            <div className="mt-4">
-              <HealthChart data={history} />
-            </div>
+          </div>
+
+          {/* Water Intake Section */}
+          <div className="lg:col-span-1">
+            {currentData && (
+              <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm">
+                <WaterIntakeProgress
+                  heartRate={currentData.heartRate}
+                  bloodOxygen={currentData.bloodOxygen}
+                />
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Water Intake Progress */}
-        {currentData && (
-          <div className="rounded-xl">
-            <WaterIntakeProgress
-              heartRate={currentData.heartRate}
-              bloodOxygen={currentData.bloodOxygen}
-            />
-          </div>
-        )}
       </main>
 
       {/* Bottom Navigation */}
