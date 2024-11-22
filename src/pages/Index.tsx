@@ -37,19 +37,53 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="mx-auto max-w-lg space-y-6 p-6">
-        {/* Health Stats */}
+        {/* Health Stats with Time Range Controls */}
         <div className="rounded-xl bg-white p-6 shadow-sm">
-          <HealthStats 
-            data={currentData} 
-            averages={averages}
-            timeRange={timeRange}
-            onTimeRangeChange={setTimeRange}
-          />
-        </div>
-        
-        {/* Chart */}
-        <div className="rounded-xl bg-white p-6 shadow-sm">
-          <HealthChart data={history} />
+          <div className="space-y-6">
+            <HealthStats 
+              data={currentData} 
+              averages={averages}
+              timeRange={timeRange}
+              onTimeRangeChange={setTimeRange}
+            />
+            
+            {/* Time Range Controls */}
+            <div className="flex justify-center gap-2">
+              <Button
+                variant={timeRange === '60s' ? 'default' : 'outline'}
+                onClick={() => setTimeRange('60s')}
+                className="text-sm"
+              >
+                60s
+              </Button>
+              <Button
+                variant={timeRange === '1h' ? 'default' : 'outline'}
+                onClick={() => setTimeRange('1h')}
+                className="text-sm"
+              >
+                1h
+              </Button>
+              <Button
+                variant={timeRange === '6h' ? 'default' : 'outline'}
+                onClick={() => setTimeRange('6h')}
+                className="text-sm"
+              >
+                6h
+              </Button>
+              <Button
+                variant={timeRange === '24h' ? 'default' : 'outline'}
+                onClick={() => setTimeRange('24h')}
+                className="text-sm"
+              >
+                24h
+              </Button>
+            </div>
+            
+            {/* Chart */}
+            <div className="mt-4">
+              <HealthChart data={history} />
+            </div>
+          </div>
         </div>
 
         {/* Water Intake Progress */}
