@@ -11,35 +11,35 @@ interface HealthStatsProps {
 
 export const HealthStats = ({ data, averages }: HealthStatsProps) => {
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="health-card bg-stats-health">
-        <div className="flex items-center gap-2 mb-2">
-          <Heart className="text-red-500" />
-          <h3 className="font-semibold">Heart Rate</h3>
+    <div className="grid grid-cols-2 gap-3">
+      <div className="health-card bg-white p-3">
+        <div className="flex items-center gap-1.5">
+          <Heart className="h-4 w-4 text-red-500" />
+          <h3 className="text-sm font-medium">Nhịp tim</h3>
         </div>
-        <div className="flex justify-between items-end">
-          <div>
-            <span className="text-3xl font-bold">{data?.heartRate || '--'}</span>
-            <span className="text-gray-500 ml-2">BPM</span>
+        <div className="mt-1.5 flex items-end justify-between">
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-bold tabular-nums">{data?.heartRate || '--'}</span>
+            <span className="text-xs text-gray-500">BPM</span>
           </div>
-          <div className="text-sm text-gray-500">
-            {data ? `Avg: ${averages.avgHeartRate} BPM` : ''}
+          <div className="text-xs text-gray-500 tabular-nums">
+            {data ? `TB: ${averages.avgHeartRate}` : ''}
           </div>
         </div>
       </div>
 
-      <div className="health-card bg-stats-health">
-        <div className="flex items-center gap-2 mb-2">
-          <Droplets className="text-blue-500" />
-          <h3 className="font-semibold">Blood Oxygen</h3>
+      <div className="health-card bg-white p-3">
+        <div className="flex items-center gap-1.5">
+          <Droplets className="h-4 w-4 text-blue-500" />
+          <h3 className="text-sm font-medium">SpO2</h3>
         </div>
-        <div className="flex justify-between items-end">
-          <div>
-            <span className="text-3xl font-bold">{data?.bloodOxygen || '--'}</span>
-            <span className="text-gray-500 ml-2">%</span>
+        <div className="mt-1.5 flex items-end justify-between">
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-bold tabular-nums">{data?.bloodOxygen || '--'}</span>
+            <span className="text-xs text-gray-500">%</span>
           </div>
-          <div className="text-sm text-gray-500">
-            {data ? `Avg: ${averages.avgBloodOxygen}%` : ''}
+          <div className="text-xs text-gray-500 tabular-nums">
+            {data ? `TB: ${averages.avgBloodOxygen}%` : ''}
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, Menu, Home, Plus, BookOpen, User } from 'lucide-react';
+import { Menu, Home, Plus, BookOpen, User } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
@@ -12,103 +12,92 @@ const Index = () => {
   const { currentData, history, averages } = useHealthData(timeRange);
 
   const timeRanges: { value: TimeRange; label: string }[] = [
-    { value: '60s', label: '1 Minute' },
-    { value: '1h', label: '1 Hour' },
-    { value: '6h', label: '6 Hours' },
-    { value: '24h', label: '24 Hours' },
+    { value: '60s', label: '1p' },
+    { value: '1h', label: '1h' },
+    { value: '6h', label: '6h' },
+    { value: '24h', label: '24h' },
   ];
 
   const handleClick = (section: string) => {
     toast({
-      title: `Navigating to ${section}`,
-      description: "This feature is coming soon!",
+      title: `Đang chuyển tới ${section}`,
+      description: "Tính năng này sẽ sớm ra mắt!",
     });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 bg-white shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-200"></div>
-          <span className="font-medium">Jillian Hanson</span>
+      <header className="sticky top-0 z-10 bg-white shadow-sm">
+        <div className="flex h-14 items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-gray-200"></div>
+            <span className="text-sm font-medium">Jillian Hanson</span>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
-        <Button variant="ghost" size="icon">
-          <Menu className="h-6 w-6" />
-        </Button>
       </header>
 
       {/* Main Content */}
-      <main className="p-4 max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Health Monitoring</h1>
-          <p className="text-gray-500 text-sm">Real-time Health Data</p>
+      <main className="mx-auto max-w-lg px-4 pb-20 pt-4">
+        <div className="mb-4">
+          <h1 className="text-lg font-bold">Theo dõi sức khoẻ</h1>
+          <p className="text-xs text-gray-500">Dữ liệu theo thời gian thực</p>
         </div>
 
-        {/* Health Stats Block */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-          {/* Time Range Selector */}
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex gap-2 overflow-x-auto">
-              {timeRanges.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  variant={timeRange === value ? "default" : "outline"}
-                  onClick={() => setTimeRange(value)}
-                  className="whitespace-nowrap"
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </div>
+        {/* Time Range Selector */}
+        <div className="mb-4 flex gap-2">
+          {timeRanges.map(({ value, label }) => (
+            <Button
+              key={value}
+              variant={timeRange === value ? "default" : "outline"}
+              onClick={() => setTimeRange(value)}
+              className="h-8 px-3 text-xs"
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
 
-          {/* Stats Grid */}
-          <div className="p-4">
-            <HealthStats 
-              data={currentData} 
-              averages={{
-                avgHeartRate: averages.avgHeartRate,
-                avgBloodOxygen: averages.avgBloodOxygen || 98,
-              }} 
-            />
-          </div>
-
-          {/* Chart */}
-          <div className="p-4">
+        {/* Stats Grid */}
+        <div className="space-y-4">
+          <HealthStats data={currentData} averages={averages} />
+          
+          <div className="rounded-lg bg-white p-4">
             <HealthChart data={history} />
           </div>
-        </div>
 
-        {/* Water Intake Progress */}
-        {currentData && (
-          <div className="mb-6">
+          {currentData && (
             <WaterIntakeProgress
               heartRate={currentData.heartRate}
               bloodOxygen={currentData.bloodOxygen}
             />
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center p-3">
-        <Button variant="ghost" size="icon" onClick={() => handleClick("Home")}>
-          <Home className="h-6 w-6" />
-        </Button>
-        <Button 
-          className="rounded-full bg-primary text-white -mt-8 p-4 shadow-lg"
-          size="icon"
-          onClick={() => handleClick("Add")}
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={() => handleClick("Health Articles")}>
-          <BookOpen className="h-6 w-6" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={() => handleClick("Profile")}>
-          <User className="h-6 w-6" />
-        </Button>
+      <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
+        <div className="mx-auto flex max-w-lg items-center justify-around px-4 py-2">
+          <Button variant="ghost" size="icon" onClick={() => handleClick("Trang chủ")}>
+            <Home className="h-5 w-5" />
+          </Button>
+          <Button 
+            className="rounded-full bg-primary text-white shadow-lg"
+            size="icon"
+            onClick={() => handleClick("Thêm")}
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => handleClick("Bài viết")}>
+            <BookOpen className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => handleClick("Hồ sơ")}>
+            <User className="h-5 w-5" />
+          </Button>
+        </div>
       </nav>
     </div>
   );
