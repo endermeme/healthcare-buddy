@@ -24,42 +24,38 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
           stroke="#94a3b8"
           fontSize={12}
-          tickCount={6}
-          axisLine={true}
-          tickLine={true}
+          interval="preserveStartEnd"
+          minTickGap={50}
           style={{
             strokeWidth: 1,
-            opacity: 0.7
           }}
         />
         <YAxis 
           yAxisId="heartRate" 
           stroke="#94a3b8"
           fontSize={12}
-          tickCount={5}
-          axisLine={true}
-          tickLine={true}
-          style={{
-            strokeWidth: 1,
-            opacity: 0.7
-          }}
           domain={[60, 100]}
           ticks={[60, 70, 80, 90, 100]}
+          tickLine={true}
+          axisLine={true}
+          style={{
+            strokeWidth: 1,
+          }}
+          interval={0}
         />
         <YAxis 
           yAxisId="bloodOxygen" 
           orientation="right" 
           stroke="#94a3b8"
           fontSize={12}
-          tickCount={5}
-          axisLine={true}
+          domain={[90, 100]}
+          ticks={[90, 95, 100]}
           tickLine={true}
+          axisLine={true}
           style={{
             strokeWidth: 1,
-            opacity: 0.7
           }}
-          domain={[90, 100]}
-          ticks={[90, 92, 94, 96, 98, 100]}
+          interval={0}
         />
         <Tooltip
           contentStyle={{
