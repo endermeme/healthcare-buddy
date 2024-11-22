@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { formatInTimeZone } from 'date-fns-tz';
 import { toast } from '@/components/ui/use-toast';
 
 export interface HealthData {
@@ -14,25 +13,6 @@ interface ApiResponse {
 }
 
 const API_ENDPOINT = 'http://192.168.1.15/data';
-const LOG_ENDPOINT = 'http://192.168.1.15/log';
-const VIEW_LOGS_ENDPOINT = 'http://192.168.1.15/view-logs';
-
-const logHealthData = (data: HealthData) => {
-  const vietnamTime = formatInTimeZone(
-    new Date(data.timestamp), 
-    'Asia/Ho_Chi_Minh', 
-    'yyyy-MM-dd HH:mm:ss'
-  );
-  
-  const logEntry = `${vietnamTime},${data.heartRate},${data.bloodOxygen}\n`;
-  
-  axios.post(LOG_ENDPOINT, {
-    data: logEntry,
-    shouldRotate: new Date().getHours() === 23 && new Date().getMinutes() === 59
-  }).catch(error => {
-    console.error('Failed to log health data:', error);
-  });
-};
 
 export const fetchHealthData = async (): Promise<HealthData | null> => {
   try {
@@ -48,7 +28,6 @@ export const fetchHealthData = async (): Promise<HealthData | null> => {
       timestamp: new Date().toISOString(),
     };
 
-    logHealthData(data);
     return data;
   } catch (error) {
     console.error('Error fetching health data:', error);
@@ -59,10 +38,6 @@ export const fetchHealthData = async (): Promise<HealthData | null> => {
     });
     return null;
   }
-};
-
-export const getViewLogsUrl = (): string => {
-  return VIEW_LOGS_ENDPOINT;
 };
 
 interface WaterRecommendation {
