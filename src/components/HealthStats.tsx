@@ -32,14 +32,14 @@ export const HealthStats = ({ data, averages, timeRange, onTimeRangeChange }: He
             value={timeRange}
             onValueChange={onTimeRangeChange}
           >
-            <SelectTrigger className="w-[80px] h-7 text-xs">
+            <SelectTrigger className="w-[100px] h-7 text-xs">
               <SelectValue placeholder="Thời gian" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="60s">1 phút</SelectItem>
+              <SelectItem value="5m">5 phút</SelectItem>
+              <SelectItem value="15m">15 phút</SelectItem>
+              <SelectItem value="30m">30 phút</SelectItem>
               <SelectItem value="1h">1 giờ</SelectItem>
-              <SelectItem value="6h">6 giờ</SelectItem>
-              <SelectItem value="24h">24 giờ</SelectItem>
             </SelectContent>
           </Select>
         </div>

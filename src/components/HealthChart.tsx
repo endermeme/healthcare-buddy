@@ -46,7 +46,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             stroke="#94a3b8"
             fontSize={12}
             tickCount={10}
-            domain={['dataMin - 20', 'dataMax + 20']}
+            domain={[0, 'dataMax + 20']}
             dx={-10}
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}
@@ -57,7 +57,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             stroke="#94a3b8"
             fontSize={12}
             tickCount={10}
-            domain={['dataMin - 10', 'dataMax + 10']}
+            domain={[0, 100]}
             dx={10}
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}

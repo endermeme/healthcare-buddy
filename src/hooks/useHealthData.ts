@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchHealthData, HealthData } from '@/services/healthData';
 
-export type TimeRange = '24h' | '6h' | '1h' | '60s';
+export type TimeRange = '5m' | '15m' | '30m' | '1h';
 
 export const useHealthData = (timeRange: TimeRange) => {
   const [history, setHistory] = useState<HealthData[]>([]);
@@ -58,13 +58,13 @@ export const useHealthData = (timeRange: TimeRange) => {
 
 const getTimeRangeInMs = (range: TimeRange): number => {
   switch (range) {
-    case '24h':
-      return 24 * 60 * 60 * 1000;
-    case '6h':
-      return 6 * 60 * 60 * 1000;
+    case '5m':
+      return 5 * 60 * 1000;
+    case '15m':
+      return 15 * 60 * 1000;
+    case '30m':
+      return 30 * 60 * 1000;
     case '1h':
       return 60 * 60 * 1000;
-    case '60s':
-      return 60 * 1000;
   }
 };
