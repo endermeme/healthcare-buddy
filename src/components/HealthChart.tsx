@@ -15,11 +15,11 @@ interface HealthChartProps {
 
 export const HealthChart = ({ data }: HealthChartProps) => {
   return (
-    <div className="w-full h-[400px] md:h-[500px] lg:h-[600px] p-4">
+    <div className="w-full h-[400px] md:h-[500px] lg:h-[600px] p-2 md:p-6">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={data}
-          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          margin={{ top: 30, right: 40, left: 30, bottom: 30 }}
         >
           <CartesianGrid 
             strokeDasharray="3 3" 
