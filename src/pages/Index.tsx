@@ -50,32 +50,34 @@ const Index = () => {
         </div>
 
         {/* Combined Stats Container */}
-        <div className="rounded-lg bg-white p-4 space-y-4">
-          {/* Time Range Selector */}
-          <div className="flex flex-wrap gap-2">
-            {timeRanges.map(({ value, label }) => (
-              <Button
-                key={value}
-                variant={timeRange === value ? "default" : "outline"}
-                onClick={() => setTimeRange(value)}
-                className="h-8 px-3 text-xs"
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
-
+        <div className="rounded-lg bg-white p-4">
           {/* Health Stats */}
           <HealthStats data={currentData} averages={averages} />
           
+          {/* Time Range Selector */}
+          <div className="flex justify-center my-6">
+            <div className="inline-flex flex-wrap gap-2 justify-center">
+              {timeRanges.map(({ value, label }) => (
+                <Button
+                  key={value}
+                  variant={timeRange === value ? "default" : "outline"}
+                  onClick={() => setTimeRange(value)}
+                  className="h-8 px-3 text-xs"
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Chart */}
-          <div className="pt-2">
+          <div className="mt-6">
             <HealthChart data={history} />
           </div>
 
           {/* Water Intake Progress */}
           {currentData && (
-            <div className="pt-2">
+            <div className="mt-6">
               <WaterIntakeProgress
                 heartRate={currentData.heartRate}
                 bloodOxygen={currentData.bloodOxygen}
