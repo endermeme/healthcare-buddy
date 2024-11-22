@@ -1,6 +1,5 @@
 import { HealthData } from '@/services/healthData';
 import {
-  CartesianGrid,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -16,15 +15,34 @@ interface HealthChartProps {
 export const HealthChart = ({ data }: HealthChartProps) => {
   return (
     <ResponsiveContainer width="100%" height={400}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
+      <LineChart 
+        data={data}
+        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+      >
         <XAxis
           dataKey="timestamp"
           tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+          stroke="#94a3b8"
+          fontSize={12}
         />
-        <YAxis yAxisId="heartRate" />
-        <YAxis yAxisId="bloodOxygen" orientation="right" />
+        <YAxis 
+          yAxisId="heartRate" 
+          stroke="#94a3b8"
+          fontSize={12}
+        />
+        <YAxis 
+          yAxisId="bloodOxygen" 
+          orientation="right" 
+          stroke="#94a3b8"
+          fontSize={12}
+        />
         <Tooltip
+          contentStyle={{
+            backgroundColor: 'white',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            padding: '8px 12px',
+          }}
           labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
           formatter={(value, name) => {
             if (name === 'Heart Rate') return [`${value} BPM`, name];
@@ -36,6 +54,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           type="monotone"
           dataKey="heartRate"
           stroke="#ff4d4f"
+          strokeWidth={2}
           dot={false}
           name="Heart Rate"
         />
@@ -44,6 +63,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           type="monotone"
           dataKey="bloodOxygen"
           stroke="#4096ff"
+          strokeWidth={2}
           dot={false}
           name="Blood Oxygen"
         />

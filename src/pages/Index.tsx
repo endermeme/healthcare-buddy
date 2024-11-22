@@ -36,9 +36,9 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-lg px-4 py-4 space-y-4">
+      <main className="mx-auto max-w-lg space-y-6 p-6">
         {/* Health Stats */}
-        <div className="rounded-xl bg-white p-4 shadow-sm">
+        <div className="rounded-xl bg-white p-6 shadow-sm">
           <HealthStats 
             data={currentData} 
             averages={averages}
@@ -48,7 +48,7 @@ const Index = () => {
         </div>
         
         {/* Chart */}
-        <div className="rounded-xl bg-white p-4 shadow-sm">
+        <div className="rounded-xl bg-white p-6 shadow-sm">
           <HealthChart data={history} />
         </div>
 
