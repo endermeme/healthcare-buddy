@@ -25,11 +25,11 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           stroke="#94a3b8"
           fontSize={12}
           tickCount={6}
-          axisLine={false}
-          tickLine={false}
+          axisLine={true}
+          tickLine={true}
           style={{
-            strokeDasharray: "5 5",
-            opacity: 0.3
+            strokeWidth: 1,
+            opacity: 0.7
           }}
         />
         <YAxis 
@@ -37,12 +37,14 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           stroke="#94a3b8"
           fontSize={12}
           tickCount={5}
-          axisLine={false}
-          tickLine={false}
+          axisLine={true}
+          tickLine={true}
           style={{
-            strokeDasharray: "5 5",
-            opacity: 0.3
+            strokeWidth: 1,
+            opacity: 0.7
           }}
+          domain={[60, 100]}
+          ticks={[60, 70, 80, 90, 100]}
         />
         <YAxis 
           yAxisId="bloodOxygen" 
@@ -50,12 +52,14 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           stroke="#94a3b8"
           fontSize={12}
           tickCount={5}
-          axisLine={false}
-          tickLine={false}
+          axisLine={true}
+          tickLine={true}
           style={{
-            strokeDasharray: "5 5",
-            opacity: 0.3
+            strokeWidth: 1,
+            opacity: 0.7
           }}
+          domain={[90, 100]}
+          ticks={[90, 92, 94, 96, 98, 100]}
         />
         <Tooltip
           contentStyle={{
