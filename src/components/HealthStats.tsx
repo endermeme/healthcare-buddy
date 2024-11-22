@@ -21,9 +21,9 @@ interface HealthStatsProps {
 
 export const HealthStats = ({ data, averages, timeRange, onTimeRangeChange }: HealthStatsProps) => {
   return (
-    <div className="grid grid-cols-2 gap-8 max-w-2xl mx-auto px-8">
-      <div className="relative health-card bg-white shadow-md">
-        <div className="flex items-center justify-between">
+    <div className="grid grid-cols-2 gap-4">
+      <div className="health-card bg-stats-health">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             <Heart className="h-4 w-4 text-red-500" />
             <h3 className="text-sm font-medium">Nhịp tim</h3>
@@ -32,8 +32,8 @@ export const HealthStats = ({ data, averages, timeRange, onTimeRangeChange }: He
             value={timeRange}
             onValueChange={onTimeRangeChange}
           >
-            <SelectTrigger className="w-[100px] h-7 text-xs">
-              <SelectValue placeholder="Chọn thời gian" />
+            <SelectTrigger className="w-[80px] h-7 text-xs">
+              <SelectValue placeholder="Thời gian" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="60s">1 phút</SelectItem>
@@ -43,9 +43,9 @@ export const HealthStats = ({ data, averages, timeRange, onTimeRangeChange }: He
             </SelectContent>
           </Select>
         </div>
-        <div className="mt-1.5 flex items-end justify-between">
+        <div className="flex items-end justify-between">
           <div className="flex items-baseline gap-1">
-            <span className="text-xl font-bold tabular-nums sm:text-2xl">{data?.heartRate || '--'}</span>
+            <span className="text-2xl font-bold tabular-nums">{data?.heartRate || '--'}</span>
             <span className="text-xs text-gray-500">BPM</span>
           </div>
           <div className="text-xs text-gray-500 tabular-nums">
@@ -54,14 +54,14 @@ export const HealthStats = ({ data, averages, timeRange, onTimeRangeChange }: He
         </div>
       </div>
 
-      <div className="health-card bg-white shadow-md">
-        <div className="flex items-center gap-1.5">
+      <div className="health-card bg-stats-water">
+        <div className="flex items-center gap-1.5 mb-2">
           <Droplets className="h-4 w-4 text-blue-500" />
           <h3 className="text-sm font-medium">SpO2</h3>
         </div>
-        <div className="mt-1.5 flex items-end justify-between">
+        <div className="flex items-end justify-between">
           <div className="flex items-baseline gap-1">
-            <span className="text-xl font-bold tabular-nums sm:text-2xl">{data?.bloodOxygen || '--'}</span>
+            <span className="text-2xl font-bold tabular-nums">{data?.bloodOxygen || '--'}</span>
             <span className="text-xs text-gray-500">%</span>
           </div>
           <div className="text-xs text-gray-500 tabular-nums">
