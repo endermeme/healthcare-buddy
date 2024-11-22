@@ -21,14 +21,16 @@ export const HealthChart = ({ data }: HealthChartProps) => {
       >
         <XAxis
           dataKey="timestamp"
-          tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+          tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Ho_Chi_Minh'
+          })}
           stroke="#94a3b8"
           fontSize={12}
-          interval="preserveStartEnd"
-          minTickGap={50}
-          style={{
-            strokeWidth: 1,
-          }}
+          interval={Math.ceil(data.length / 6)}
+          tickLine={false}
+          axisLine={true}
         />
         <YAxis 
           yAxisId="heartRate" 
@@ -36,12 +38,9 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           fontSize={12}
           domain={[60, 100]}
           ticks={[60, 70, 80, 90, 100]}
-          tickLine={true}
+          tickLine={false}
           axisLine={true}
-          style={{
-            strokeWidth: 1,
-          }}
-          interval={0}
+          orientation="left"
         />
         <YAxis 
           yAxisId="bloodOxygen" 
@@ -49,13 +48,9 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           stroke="#94a3b8"
           fontSize={12}
           domain={[90, 100]}
-          ticks={[90, 95, 100]}
-          tickLine={true}
+          ticks={[90, 100]}
+          tickLine={false}
           axisLine={true}
-          style={{
-            strokeWidth: 1,
-          }}
-          interval={0}
         />
         <Tooltip
           contentStyle={{
@@ -64,7 +59,12 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             borderRadius: '8px',
             padding: '8px 12px',
           }}
-          labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+          labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: 'Asia/Ho_Chi_Minh'
+          })}
           formatter={(value, name) => {
             if (name === 'Heart Rate') return [`${value} BPM`, name];
             return [`${value}%`, name];
@@ -74,8 +74,8 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           yAxisId="heartRate"
           type="monotone"
           dataKey="heartRate"
-          stroke="#ff4d4f"
-          strokeWidth={2}
+          stroke="#ef4444"
+          strokeWidth={2.5}
           dot={false}
           name="Heart Rate"
         />
@@ -83,8 +83,8 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           yAxisId="bloodOxygen"
           type="monotone"
           dataKey="bloodOxygen"
-          stroke="#4096ff"
-          strokeWidth={2}
+          stroke="#3b82f6"
+          strokeWidth={2.5}
           dot={false}
           name="Blood Oxygen"
         />
