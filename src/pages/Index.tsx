@@ -6,17 +6,17 @@ import { HealthStats } from '@/components/HealthStats';
 import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('60s');
   const { currentData, history, averages } = useHealthData(timeRange);
-
-  const timeRanges: { value: TimeRange; label: string }[] = [
-    { value: '60s', label: '1p' },
-    { value: '1h', label: '1h' },
-    { value: '6h', label: '6h' },
-    { value: '24h', label: '24h' },
-  ];
 
   const handleClick = (section: string) => {
     toast({
@@ -44,9 +44,25 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 pb-20 pt-4 sm:px-6 lg:px-8">
-        <div className="mb-4">
-          <h1 className="text-lg font-bold">Theo dõi sức khoẻ</h1>
-          <p className="text-xs text-gray-500">Dữ liệu theo thời gian thực</p>
+        <div className="mb-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-lg font-bold">Theo dõi sức khoẻ</h1>
+            <p className="text-xs text-gray-500">Dữ liệu theo thời gian thực</p>
+          </div>
+          <Select
+            value={timeRange}
+            onValueChange={(value: TimeRange) => setTimeRange(value)}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Chọn thời gian" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="60s">1 phút</SelectItem>
+              <SelectItem value="1h">1 giờ</SelectItem>
+              <SelectItem value="6h">6 giờ</SelectItem>
+              <SelectItem value="24h">24 giờ</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Combined Stats Container */}
@@ -54,22 +70,6 @@ const Index = () => {
           {/* Health Stats */}
           <HealthStats data={currentData} averages={averages} />
           
-          {/* Time Range Selector */}
-          <div className="flex justify-center my-6">
-            <div className="inline-flex flex-wrap gap-2 justify-center">
-              {timeRanges.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  variant={timeRange === value ? "default" : "outline"}
-                  onClick={() => setTimeRange(value)}
-                  className="h-8 px-3 text-xs"
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
           {/* Chart */}
           <div className="mt-6">
             <HealthChart data={history} />
