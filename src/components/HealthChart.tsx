@@ -27,37 +27,41 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             timeZone: 'Asia/Ho_Chi_Minh'
           })}
           stroke="#94a3b8"
-          fontSize={12}
-          interval={Math.ceil(data.length / 6)}
+          fontSize={14}
+          interval={Math.ceil(data.length / 5)}
           tickLine={false}
           axisLine={true}
         />
         <YAxis 
           yAxisId="heartRate" 
           stroke="#94a3b8"
-          fontSize={12}
+          fontSize={14}
           domain={[60, 100]}
           ticks={[60, 70, 80, 90, 100]}
           tickLine={false}
           axisLine={true}
           orientation="left"
+          tickCount={5}
         />
         <YAxis 
           yAxisId="bloodOxygen" 
           orientation="right" 
           stroke="#94a3b8"
-          fontSize={12}
+          fontSize={14}
           domain={[90, 100]}
-          ticks={[90, 100]}
+          ticks={[90, 95, 100]}
           tickLine={false}
           axisLine={true}
+          tickCount={3}
         />
         <Tooltip
           contentStyle={{
             backgroundColor: 'white',
             border: '1px solid #e2e8f0',
             borderRadius: '8px',
-            padding: '8px 12px',
+            padding: '12px 16px',
+            fontSize: '14px',
+            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
           }}
           labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', {
             hour: '2-digit',
@@ -75,8 +79,9 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           type="monotone"
           dataKey="heartRate"
           stroke="#ef4444"
-          strokeWidth={2.5}
-          dot={false}
+          strokeWidth={3}
+          dot={true}
+          activeDot={{ r: 6 }}
           name="Heart Rate"
         />
         <Line
@@ -84,8 +89,9 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           type="monotone"
           dataKey="bloodOxygen"
           stroke="#3b82f6"
-          strokeWidth={2.5}
-          dot={false}
+          strokeWidth={3}
+          dot={true}
+          activeDot={{ r: 6 }}
           name="Blood Oxygen"
         />
       </LineChart>
