@@ -7,6 +7,7 @@ import {
   YAxis,
   CartesianGrid,
 } from 'recharts';
+import { HealthData } from '@/services/healthData';
 
 interface HealthChartProps {
   data: HealthData[];
