@@ -1,11 +1,17 @@
 import { useState } from 'react';
-import { Menu, Home, Plus, BookOpen, User } from 'lucide-react';
+import { Menu, Home, Plus, BookOpen } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
 import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
@@ -15,6 +21,14 @@ const Index = () => {
     toast({
       title: `Đang chuyển tới ${section}`,
       description: "Tính năng này sẽ sớm ra mắt!",
+    });
+  };
+
+  const handleTimeRangeChange = (range: TimeRange) => {
+    setTimeRange(range);
+    toast({
+      title: "Đã thay đổi khoảng thời gian",
+      description: `Hiển thị dữ liệu trong ${range}`,
     });
   };
 
@@ -74,9 +88,27 @@ const Index = () => {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
         <div className="mx-auto flex items-center justify-around px-4 py-2">
-          <Button variant="ghost" size="icon" className="text-primary" onClick={() => handleClick("Trang chủ")}>
-            <Home className="h-5 w-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Home className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => handleTimeRangeChange('5m')}>
+                5 phút
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleTimeRangeChange('15m')}>
+                15 phút
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleTimeRangeChange('30m')}>
+                30 phút
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleTimeRangeChange('1h')}>
+                1 giờ
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button 
             className="rounded-full bg-primary text-white shadow-lg hover:bg-primary-hover"
             size="icon"
@@ -86,9 +118,6 @@ const Index = () => {
           </Button>
           <Button variant="ghost" size="icon" onClick={() => handleClick("Bài viết")}>
             <BookOpen className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => handleClick("Hồ sơ")}>
-            <User className="h-5 w-5" />
           </Button>
         </div>
       </nav>
