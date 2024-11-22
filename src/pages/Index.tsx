@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
 const Index = () => {
-  const [timeRange, setTimeRange] = useState<TimeRange>('60s');
+  const [timeRange, setTimeRange] = useState<TimeRange>('5m');
   const { currentData, history, averages } = useHealthData(timeRange);
 
   const handleClick = (section: string) => {
