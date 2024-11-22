@@ -6,6 +6,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  CartesianGrid,
 } from 'recharts';
 
 interface HealthChartProps {
@@ -19,6 +20,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
         data={data}
         margin={{ top: 40, right: 40, left: 20, bottom: 20 }}
       >
+        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
         <XAxis
           dataKey="timestamp"
           tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { 
@@ -77,7 +79,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           dataKey="heartRate"
           stroke="#ff4d4f"
           strokeWidth={2.5}
-          dot={{ r: 4, strokeWidth: 2 }}
+          dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
           activeDot={{ r: 6, strokeWidth: 2 }}
           name="Heart Rate"
           connectNulls
@@ -88,7 +90,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           dataKey="bloodOxygen"
           stroke="#4096ff"
           strokeWidth={2.5}
-          dot={{ r: 4, strokeWidth: 2 }}
+          dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
           activeDot={{ r: 6, strokeWidth: 2 }}
           name="Blood Oxygen"
           connectNulls
