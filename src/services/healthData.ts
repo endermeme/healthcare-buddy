@@ -8,13 +8,28 @@ export interface HealthData {
   timestamp: string;
 }
 
+interface ApiResponse {
+  heartRate: number;
+  spo2: number;
+}
+
+const LOG_ENDPOINT = 'http://192.168.1.15/log';
+const DATA_ENDPOINT = 'http://192.168.1.15/data';
+const VIEW_LOGS_ENDPOINT = 'http://192.168.1.15/view-logs';
+
 const logHealthData = (data: HealthData) => {
-  const vietnamTime = formatInTimeZone(new Date(data.timestamp), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
-  const logEntry = `${vietnamTime} - Heart Rate: ${data.heartRate}, Blood Oxygen: ${data.bloodOxygen}\n`;
+  const vietnamTime = formatInTimeZone(
+    new Date(data.timestamp), 
+    'Asia/Ho_Chi_Minh', 
+    'yyyy-MM-dd HH:mm:ss'
+  );
   
-  axios.post('http://192.168.1.15/log', {
-    timestamp: vietnamTime,
-    data: logEntry
+  // Create a minimal log entry with just the essential data
+  const logEntry = `${vietnamTime},${data.heartRate},${data.bloodOxygen}\n`;
+  
+  axios.post(LOG_ENDPOINT, {
+    data: logEntry,
+    shouldRotate: new Date().getHours() === 23 && new Date().getMinutes() === 59
   }).catch(error => {
     console.error('Failed to log health data:', error);
   });
@@ -22,17 +37,17 @@ const logHealthData = (data: HealthData) => {
 
 export const fetchHealthData = async (): Promise<HealthData | null> => {
   try {
-    console.log('Attempting to fetch data from http://192.168.1.15/data');
-    const response = await axios.get('http://192.168.1.15/data');
+    console.log('Attempting to fetch data from', DATA_ENDPOINT);
+    const response = await axios.get<ApiResponse>(DATA_ENDPOINT);
     console.log('Received response:', response.data);
     
     if (!response.data || typeof response.data.heartRate !== 'number') {
       throw new Error('Invalid data format received');
     }
 
-    const data = {
+    const data: HealthData = {
       heartRate: response.data.heartRate,
-      bloodOxygen: response.data.bloodOxygen,
+      bloodOxygen: response.data.spo2,
       timestamp: new Date().toISOString(),
     };
 
@@ -41,12 +56,16 @@ export const fetchHealthData = async (): Promise<HealthData | null> => {
   } catch (error) {
     console.error('Error fetching health data:', error);
     toast({
-      title: "Connection Error",
-      description: "Could not connect to the health sensors. Please check if the device is online.",
+      title: "Lỗi kết nối",
+      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
       variant: "destructive",
     });
     return null;
   }
+};
+
+export const getViewLogsUrl = (): string => {
+  return VIEW_LOGS_ENDPOINT;
 };
 
 interface WaterRecommendation {
@@ -54,7 +73,10 @@ interface WaterRecommendation {
   glassesCount: number;
 }
 
-export const getWaterRecommendation = async (heartRate: number, bloodOxygen: number): Promise<WaterRecommendation> => {
+export const getWaterRecommendation = async (
+  heartRate: number, 
+  bloodOxygen: number
+): Promise<WaterRecommendation> => {
   try {
     const prompt = `Based on a heart rate of ${heartRate} BPM and blood oxygen level of ${bloodOxygen}%, how many glasses of water should the person drink in the next hour? Provide a short recommendation and the number of glasses. Format your response as JSON with 'recommendation' and 'glassesCount' fields.`;
 
