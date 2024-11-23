@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
 
 export interface HealthData {
@@ -7,33 +6,50 @@ export interface HealthData {
   timestamp: string;
 }
 
-interface ApiResponse {
-  heartRate: number;
-  spo2: number;
-}
+let bluetoothDevice: BluetoothDevice | null = null;
+let bluetoothCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
 
-const API_ENDPOINT = 'http://192.168.1.15/data';
+export const connectToDevice = async (device: BluetoothDevice) => {
+  try {
+    bluetoothDevice = device;
+    const server = await device.gatt?.connect();
+    if (!server) throw new Error('No GATT server');
+    
+    const service = await server.getPrimaryService('generic_access');
+    bluetoothCharacteristic = await service.getCharacteristic('gap.device_name');
+    
+    return true;
+  } catch (error) {
+    console.error('Connection error:', error);
+    toast({
+      title: "Lỗi kết nối",
+      description: "Không thể kết nối với thiết bị. Vui lòng thử lại.",
+      variant: "destructive",
+    });
+    return false;
+  }
+};
 
 export const fetchHealthData = async (): Promise<HealthData | null> => {
   try {
-    const response = await axios.get<ApiResponse>(API_ENDPOINT);
-    
-    if (!response.data || typeof response.data.heartRate !== 'number') {
-      throw new Error('Invalid data format received');
+    if (!bluetoothCharacteristic) {
+      throw new Error('Chưa kết nối với thiết bị');
     }
 
-    const data: HealthData = {
-      heartRate: response.data.heartRate,
-      bloodOxygen: response.data.spo2,
+    const value = await bluetoothCharacteristic.readValue();
+    const decoder = new TextDecoder('utf-8');
+    const data = JSON.parse(decoder.decode(value));
+
+    return {
+      heartRate: data.heartRate,
+      bloodOxygen: data.spo2,
       timestamp: new Date().toISOString(),
     };
-
-    return data;
   } catch (error) {
     console.error('Error fetching health data:', error);
     toast({
-      title: "Lỗi kết nối",
-      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
+      title: "Lỗi đọc dữ liệu",
+      description: "Không thể đọc dữ liệu từ cảm biến. Vui lòng kiểm tra kết nối.",
       variant: "destructive",
     });
     return null;
