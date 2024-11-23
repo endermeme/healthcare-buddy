@@ -7,6 +7,7 @@ import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { getDailyLogs } from '@/services/logService';
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import {
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
   const { currentData, history, averages } = useHealthData(timeRange);
+  const navigate = useNavigate();
 
   const handleClick = (section: string) => {
     toast({
@@ -147,7 +149,7 @@ const Index = () => {
           <Button 
             className="rounded-full bg-primary text-white shadow-lg hover:bg-primary-hover"
             size="icon"
-            onClick={() => handleClick("AI Chatbot")}
+            onClick={() => navigate('/chat')}
           >
             <MessageSquare className="h-5 w-5" />
           </Button>
