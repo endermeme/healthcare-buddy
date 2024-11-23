@@ -1,22 +1,18 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Index from './pages/Index';
+import { useState } from 'react';
 import ScanDevices from './pages/ScanDevices';
-
-const Stack = createNativeStackNavigator();
-const queryClient = new QueryClient();
+import Index from './pages/Index';
 
 const App = () => {
+  const [currentPage, setCurrentPage] = useState<'scan' | 'monitor'>('scan');
+
   return (
-    <NavigationContainer>
-      <QueryClientProvider client={queryClient}>
-        <Stack.Navigator initialRouteName="Scan">
-          <Stack.Screen name="Scan" component={ScanDevices} />
-          <Stack.Screen name="Monitor" component={Index} />
-        </Stack.Navigator>
-      </QueryClientProvider>
-    </NavigationContainer>
+    <div className="container mx-auto px-4 py-8">
+      {currentPage === 'scan' ? (
+        <ScanDevices onConnect={() => setCurrentPage('monitor')} />
+      ) : (
+        <Index onBack={() => setCurrentPage('scan')} />
+      )}
+    </div>
   );
 };
 
