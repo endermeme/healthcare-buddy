@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Home, Plus, BookOpen, History } from 'lucide-react';
+import { Menu, Home, MessageSquare, BookOpen, History } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
@@ -147,9 +147,9 @@ const Index = () => {
           <Button 
             className="rounded-full bg-primary text-white shadow-lg hover:bg-primary-hover"
             size="icon"
-            onClick={() => handleClick("Thêm")}
+            onClick={() => handleClick("AI Chatbot")}
           >
-            <Plus className="h-5 w-5" />
+            <MessageSquare className="h-5 w-5" />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => handleClick("Bài viết")}>
             <BookOpen className="h-5 w-5" />
