@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { useHealthData } from '../hooks/useHealthData';
 import { LineChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState('5m');

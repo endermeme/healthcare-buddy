@@ -27,7 +27,6 @@ const ScanDevices = ({ navigation }) => {
       }
     });
 
-    // Dừng quét sau 5 giây
     setTimeout(() => {
       manager.stopDeviceScan();
       setIsScanning(false);
@@ -42,6 +41,21 @@ const ScanDevices = ({ navigation }) => {
       Alert.alert('Lỗi', 'Không thể kết nối với thiết bị.');
     }
   };
+
+  const renderDevice = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.deviceCard}
+      onPress={() => connectToDevice(item)}
+    >
+      <View>
+        <Text style={styles.deviceName}>{item.name}</Text>
+        <Text style={styles.deviceInfo}>ESP32 Sensor</Text>
+      </View>
+      <TouchableOpacity style={styles.connectButton}>
+        <Text style={styles.connectButtonText}>Kết nối</Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
@@ -63,20 +77,7 @@ const ScanDevices = ({ navigation }) => {
       <FlatList
         data={devices}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.deviceCard}
-            onPress={() => connectToDevice(item)}
-          >
-            <View>
-              <Text style={styles.deviceName}>{item.name}</Text>
-              <Text style={styles.deviceInfo}>ESP32 Sensor</Text>
-            </View>
-            <TouchableOpacity style={styles.connectButton}>
-              <Text style={styles.connectButtonText}>Kết nối</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        renderItem={renderDevice}
       />
     </View>
   );
