@@ -1,127 +1,154 @@
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
-import { Loader2, Bluetooth, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { BleManager } from 'react-native-ble-plx';
 
-interface ScannedDevice {
-  device: BluetoothDevice;
-  name: string;
-}
+const manager = new BleManager();
 
-const ScanDevices = () => {
+const ScanDevices = ({ navigation }) => {
   const [isScanning, setIsScanning] = useState(false);
-  const [devices, setDevices] = useState<ScannedDevice[]>([]);
-  const [isBluetoothSupported, setIsBluetoothSupported] = useState(true);
+  const [devices, setDevices] = useState([]);
 
-  useEffect(() => {
-    // Kiểm tra hỗ trợ Bluetooth
-    if (!navigator.bluetooth) {
-      setIsBluetoothSupported(false);
-      toast({
-        title: "Trình duyệt không hỗ trợ",
-        description: "Vui lòng sử dụng Chrome, Edge hoặc Opera để có thể quét thiết bị Bluetooth.",
-        variant: "destructive",
-      });
-    }
-  }, []);
+  const startScanning = () => {
+    setIsScanning(true);
+    manager.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+        Alert.alert('Lỗi', 'Không thể quét thiết bị Bluetooth.');
+        setIsScanning(false);
+        return;
+      }
 
-  const startScanning = async () => {
-    if (!navigator.bluetooth) {
-      toast({
-        title: "Không thể quét",
-        description: "Trình duyệt của bạn không hỗ trợ Bluetooth.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setIsScanning(true);
-      const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: ['generic_access']
-      });
-
-      if (device.name) {
-        setDevices(prev => [...prev, { device, name: device.name }]);
-        toast({
-          title: "Tìm thấy thiết bị",
-          description: `Đã kết nối với ${device.name}`,
+      if (device?.name) {
+        setDevices(prev => {
+          if (!prev.find(d => d.id === device.id)) {
+            return [...prev, device];
+          }
+          return prev;
         });
       }
-    } catch (error) {
-      console.error('Bluetooth Error:', error);
-      toast({
-        title: "Lỗi",
-        description: "Không thể quét thiết bị Bluetooth. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    } finally {
+    });
+
+    // Dừng quét sau 5 giây
+    setTimeout(() => {
+      manager.stopDeviceScan();
       setIsScanning(false);
+    }, 5000);
+  };
+
+  const connectToDevice = async (device) => {
+    try {
+      await manager.connectToDevice(device.id);
+      navigation.navigate('Monitor');
+    } catch (error) {
+      Alert.alert('Lỗi', 'Không thể kết nối với thiết bị.');
     }
   };
 
-  if (!isBluetoothSupported) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-md mx-auto">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Trình duyệt của bạn không hỗ trợ Bluetooth. Vui lòng sử dụng Chrome, Edge hoặc Opera.
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-md mx-auto space-y-4">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">Quét Thiết Bị</h1>
-          <p className="text-gray-600">Tìm kiếm các thiết bị cảm biến ở gần</p>
-        </div>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Quét Thiết Bị</Text>
+        <Text style={styles.subtitle}>Tìm kiếm các thiết bị cảm biến ở gần</Text>
+      </View>
 
-        <Button 
-          className="w-full"
-          onClick={startScanning}
-          disabled={isScanning}
-        >
-          {isScanning ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang quét...
-            </>
-          ) : (
-            <>
-              <Bluetooth className="mr-2 h-4 w-4" />
-              Bắt đầu quét
-            </>
-          )}
-        </Button>
+      <TouchableOpacity 
+        style={[styles.button, isScanning && styles.buttonDisabled]}
+        onPress={startScanning}
+        disabled={isScanning}
+      >
+        <Text style={styles.buttonText}>
+          {isScanning ? 'Đang quét...' : 'Bắt đầu quét'}
+        </Text>
+      </TouchableOpacity>
 
-        <div className="space-y-2">
-          {devices.map((device, index) => (
-            <Card key={index} className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">{device.name}</h3>
-                  <p className="text-sm text-gray-500">ESP32 Sensor</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Kết nối
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
+      <FlatList
+        data={devices}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity 
+            style={styles.deviceCard}
+            onPress={() => connectToDevice(item)}
+          >
+            <View>
+              <Text style={styles.deviceName}>{item.name}</Text>
+              <Text style={styles.deviceInfo}>ESP32 Sensor</Text>
+            </View>
+            <TouchableOpacity style={styles.connectButton}>
+              <Text style={styles.connectButtonText}>Kết nối</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+  },
+  button: {
+    backgroundColor: '#9b87f5',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  deviceCard: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  deviceName: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  deviceInfo: {
+    fontSize: 14,
+    color: '#666',
+  },
+  connectButton: {
+    backgroundColor: '#9b87f5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  connectButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});
 
 export default ScanDevices;

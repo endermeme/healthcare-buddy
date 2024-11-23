@@ -1,28 +1,22 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import ScanDevices from "./pages/ScanDevices";
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Index from './pages/Index';
+import ScanDevices from './pages/ScanDevices';
 
+const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <NavigationContainer>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Routes>
-            <Route path="/scan" element={<ScanDevices />} />
-            <Route path="/monitor" element={<Index />} />
-            <Route path="/" element={<Navigate to="/scan" replace />} />
-          </Routes>
-          <Toaster />
-          <Sonner />
-        </TooltipProvider>
+        <Stack.Navigator initialRouteName="Scan">
+          <Stack.Screen name="Scan" component={ScanDevices} />
+          <Stack.Screen name="Monitor" component={Index} />
+        </Stack.Navigator>
       </QueryClientProvider>
-    </BrowserRouter>
+    </NavigationContainer>
   );
 };
 

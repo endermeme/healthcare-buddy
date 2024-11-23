@@ -1,128 +1,124 @@
-import { useState } from 'react';
-import { Menu, Home, Plus, BookOpen } from 'lucide-react';
-import { useHealthData, TimeRange } from '@/hooks/useHealthData';
-import { HealthChart } from '@/components/HealthChart';
-import { HealthStats } from '@/components/HealthStats';
-import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useHealthData } from '../hooks/useHealthData';
+import { LineChart } from 'react-native-chart-kit';
+import { Dimensions } from 'react-native';
 
 const Index = () => {
-  const [timeRange, setTimeRange] = useState<TimeRange>('5m');
+  const [timeRange, setTimeRange] = useState('5m');
   const { currentData, history, averages } = useHealthData(timeRange);
 
-  const handleClick = (section: string) => {
-    toast({
-      title: `Đang chuyển tới ${section}`,
-      description: "Tính năng này sẽ sớm ra mắt!",
-    });
-  };
-
-  const handleTimeRangeChange = (range: TimeRange) => {
-    setTimeRange(range);
-    toast({
-      title: "Đã thay đổi khoảng thời gian",
-      description: `Hiển thị dữ liệu trong ${range}`,
-    });
+  const chartData = {
+    labels: history.map(item => {
+      const date = new Date(item.timestamp);
+      return `${date.getHours()}:${date.getMinutes()}`;
+    }),
+    datasets: [
+      {
+        data: history.map(item => item.heartRate),
+        color: () => '#ff4d4f',
+        strokeWidth: 2,
+      },
+      {
+        data: history.map(item => item.bloodOxygen),
+        color: () => '#4096ff',
+        strokeWidth: 2,
+      },
+    ],
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm">
-        <div className="mx-auto">
-          <div className="flex h-14 items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary/10"></div>
-              <span className="text-sm font-medium">Health Monitor</span>
-            </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
+    <ScrollView style={styles.container}>
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Nhịp tim</Text>
+          <Text style={styles.statValue}>
+            {currentData?.heartRate || '--'} BPM
+          </Text>
+          <Text style={styles.statAverage}>
+            TB: {averages.avgHeartRate}
+          </Text>
+        </View>
 
-      {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6 py-6">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Health Stats and Chart Section */}
-          <div className="md:col-span-2 space-y-6">
-            <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm">
-              <div className="space-y-6">
-                <HealthStats 
-                  data={currentData} 
-                  averages={averages}
-                  timeRange={timeRange}
-                  onTimeRangeChange={setTimeRange}
-                />
-                
-                {/* Chart */}
-                <div className="mt-6">
-                  <HealthChart data={history} />
-                </div>
-              </div>
-            </div>
-          </div>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>SpO2</Text>
+          <Text style={styles.statValue}>
+            {currentData?.bloodOxygen || '--'}%
+          </Text>
+          <Text style={styles.statAverage}>
+            TB: {averages.avgBloodOxygen}%
+          </Text>
+        </View>
+      </View>
 
-          {/* Water Intake Section */}
-          <div className="lg:col-span-1">
-            {currentData && (
-              <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm">
-                <WaterIntakeProgress
-                  heartRate={currentData.heartRate}
-                  bloodOxygen={currentData.bloodOxygen}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </main>
-
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
-        <div className="mx-auto flex items-center justify-around px-4 py-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Home className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleTimeRangeChange('5m')}>
-                5 phút
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTimeRangeChange('15m')}>
-                15 phút
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTimeRangeChange('30m')}>
-                30 phút
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTimeRangeChange('1h')}>
-                1 giờ
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button 
-            className="rounded-full bg-primary text-white shadow-lg hover:bg-primary-hover"
-            size="icon"
-            onClick={() => handleClick("Thêm")}
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => handleClick("Bài viết")}>
-            <BookOpen className="h-5 w-5" />
-          </Button>
-        </div>
-      </nav>
-    </div>
+      <View style={styles.chartContainer}>
+        <LineChart
+          data={chartData}
+          width={Dimensions.get('window').width - 32}
+          height={220}
+          chartConfig={{
+            backgroundColor: '#ffffff',
+            backgroundGradientFrom: '#ffffff',
+            backgroundGradientTo: '#ffffff',
+            decimalPlaces: 0,
+            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            style: {
+              borderRadius: 16,
+            },
+          }}
+          bezier
+          style={styles.chart}
+        />
+      </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    padding: 16,
+    gap: 16,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  statAverage: {
+    fontSize: 12,
+    color: '#666',
+  },
+  chartContainer: {
+    padding: 16,
+    backgroundColor: 'white',
+    margin: 16,
+    borderRadius: 12,
+  },
+  chart: {
+    marginVertical: 8,
+    borderRadius: 16,
+  },
+});
 
 export default Index;
