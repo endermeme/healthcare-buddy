@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Menu, Home, Plus, BookOpen } from 'lucide-react';
+import { Menu, Home, Plus, BookOpen, History } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
 import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import { getDailyLogs } from '@/services/logService';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,29 @@ const Index = () => {
     });
   };
 
+  const showLogs = () => {
+    const logs = getDailyLogs();
+    const dates = Object.keys(logs);
+    if (dates.length === 0) {
+      toast({
+        title: "Chưa có log nào",
+        description: "Dữ liệu sẽ được tự động ghi log khi có",
+      });
+      return;
+    }
+
+    const latestDate = dates[dates.length - 1];
+    const latestLogs = logs[latestDate];
+    
+    toast({
+      title: `Log gần nhất (${latestDate})`,
+      description: latestLogs.map(log => 
+        `${new Date(log.timestamp).toLocaleTimeString()}: ${log.heartRate} BPM, ${log.bloodOxygen}% SpO2`
+      ).join('\n'),
+      duration: 5000,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       {/* Header */}
@@ -42,9 +66,33 @@ const Index = () => {
               <div className="h-8 w-8 rounded-full bg-primary/10"></div>
               <span className="text-sm font-medium">Health Monitor</span>
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Menu className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    {timeRange}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleTimeRangeChange('5m')}>
+                    5 phút
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleTimeRangeChange('15m')}>
+                    15 phút
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleTimeRangeChange('30m')}>
+                    30 phút
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleTimeRangeChange('1h')}>
+                    1 giờ
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button variant="outline" size="sm" onClick={showLogs}>
+                <History className="h-4 w-4 mr-2" />
+                Lịch sử
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -88,27 +136,9 @@ const Index = () => {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
         <div className="mx-auto flex items-center justify-around px-4 py-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Home className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleTimeRangeChange('5m')}>
-                5 phút
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTimeRangeChange('15m')}>
-                15 phút
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTimeRangeChange('30m')}>
-                30 phút
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTimeRangeChange('1h')}>
-                1 giờ
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button variant="ghost" size="icon">
+            <Home className="h-5 w-5" />
+          </Button>
           <Button 
             className="rounded-full bg-primary text-white shadow-lg hover:bg-primary-hover"
             size="icon"

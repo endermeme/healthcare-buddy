@@ -1,13 +1,6 @@
 import { HealthData } from '@/services/healthData';
 import { Heart, Droplets } from 'lucide-react';
 import { TimeRange } from '@/hooks/useHealthData';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface HealthStatsProps {
   data: HealthData | null;
@@ -19,29 +12,13 @@ interface HealthStatsProps {
   onTimeRangeChange: (value: TimeRange) => void;
 }
 
-export const HealthStats = ({ data, averages, timeRange, onTimeRangeChange }: HealthStatsProps) => {
+export const HealthStats = ({ data, averages }: HealthStatsProps) => {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="health-card bg-stats-health">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
-            <Heart className="h-4 w-4 text-red-500" />
-            <h3 className="text-sm font-medium">Nhịp tim</h3>
-          </div>
-          <Select
-            value={timeRange}
-            onValueChange={onTimeRangeChange}
-          >
-            <SelectTrigger className="w-[100px] h-7 text-xs">
-              <SelectValue placeholder="Thời gian" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5m">5 phút</SelectItem>
-              <SelectItem value="15m">15 phút</SelectItem>
-              <SelectItem value="30m">30 phút</SelectItem>
-              <SelectItem value="1h">1 giờ</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-1.5 mb-2">
+          <Heart className="h-4 w-4 text-red-500" />
+          <h3 className="text-sm font-medium">Nhịp tim</h3>
         </div>
         <div className="flex items-end justify-between">
           <div className="flex items-baseline gap-1">
