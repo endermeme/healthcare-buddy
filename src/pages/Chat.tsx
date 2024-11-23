@@ -3,8 +3,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Activity, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getDailyLogs } from '@/services/logService';
 
 const genAI = new GoogleGenerativeAI('AIzaSyD43V6kDfzyue2KNumQlzvDj1oN6jLtaUg');
 
@@ -17,6 +18,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<'health' | 'general'>('general');
   const navigate = useNavigate();
 
   const handleSend = async () => {
@@ -29,7 +31,24 @@ const Chat = () => {
 
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const result = await model.generateContent(userMessage);
+      
+      let prompt = userMessage;
+      if (mode === 'health') {
+        const logs = getDailyLogs();
+        const latestDate = Object.keys(logs).sort().reverse()[0];
+        const latestLogs = logs[latestDate] || [];
+        const latestLog = latestLogs[latestLogs.length - 1];
+        
+        prompt = `Context: Latest health data from ${latestDate}:
+Heart Rate: ${latestLog?.heartRate || 'N/A'} BPM
+Blood Oxygen: ${latestLog?.bloodOxygen || 'N/A'}%
+
+User Question: ${userMessage}
+
+Please provide health advice based on this data.`;
+      }
+
+      const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
 
@@ -55,6 +74,26 @@ const Chat = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <span className="text-sm font-medium">AI Assistant</span>
+          <div className="ml-auto flex gap-2">
+            <Button
+              variant={mode === 'health' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMode('health')}
+              className="flex items-center gap-2"
+            >
+              <Activity className="h-4 w-4" />
+              Sức khỏe
+            </Button>
+            <Button
+              variant={mode === 'general' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMode('general')}
+              className="flex items-center gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Chung
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -95,7 +134,7 @@ const Chat = () => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Nhập tin nhắn..."
+            placeholder={mode === 'health' ? "Hỏi về sức khỏe..." : "Nhập tin nhắn..."}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             className="flex-1"
           />
