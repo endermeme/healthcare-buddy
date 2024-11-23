@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Bluetooth } from "lucide-react";
+import { Loader2, Bluetooth, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ScannedDevice {
   device: BluetoothDevice;
@@ -12,14 +13,34 @@ interface ScannedDevice {
 const ScanDevices = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [devices, setDevices] = useState<ScannedDevice[]>([]);
+  const [isBluetoothSupported, setIsBluetoothSupported] = useState(true);
+
+  useEffect(() => {
+    // Kiểm tra hỗ trợ Bluetooth
+    if (!navigator.bluetooth) {
+      setIsBluetoothSupported(false);
+      toast({
+        title: "Trình duyệt không hỗ trợ",
+        description: "Vui lòng sử dụng Chrome, Edge hoặc Opera để có thể quét thiết bị Bluetooth.",
+        variant: "destructive",
+      });
+    }
+  }, []);
 
   const startScanning = async () => {
+    if (!navigator.bluetooth) {
+      toast({
+        title: "Không thể quét",
+        description: "Trình duyệt của bạn không hỗ trợ Bluetooth.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsScanning(true);
       const device = await navigator.bluetooth.requestDevice({
-        filters: [
-          { namePrefix: 'ESP32_BT_API' }
-        ],
+        acceptAllDevices: true,
         optionalServices: ['generic_access']
       });
 
@@ -41,6 +62,21 @@ const ScanDevices = () => {
       setIsScanning(false);
     }
   };
+
+  if (!isBluetoothSupported) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-md mx-auto">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Trình duyệt của bạn không hỗ trợ Bluetooth. Vui lòng sử dụng Chrome, Edge hoặc Opera.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
