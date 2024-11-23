@@ -20,8 +20,8 @@ export const useHealthData = (timeRange: TimeRange) => {
           const shareableLink = addHealthLog(data.heartRate, data.bloodOxygen);
           if (shareableLink) {
             toast({
-              title: "Dữ liệu đã được ghi log",
-              description: `Link theo dõi: ${shareableLink}`,
+              title: "Data logged",
+              description: `Monitor link: ${shareableLink}`,
             });
           }
         }
@@ -29,7 +29,6 @@ export const useHealthData = (timeRange: TimeRange) => {
     },
   });
 
-  // Clear old logs every hour
   useEffect(() => {
     const interval = setInterval(clearOldLogs, 60 * 60 * 1000);
     return () => clearInterval(interval);
