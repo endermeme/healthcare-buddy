@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
 
 export interface HealthData {
@@ -6,37 +7,37 @@ export interface HealthData {
   timestamp: string;
 }
 
-let bluetoothDevice: BluetoothDevice | null = null;
-let bluetoothCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
+interface ApiResponse {
+  heartRate: number;
+  spo2: number;
+}
 
-export const connectToDevice = async (device: BluetoothDevice) => {
-  try {
-    bluetoothDevice = device;
-    const server = await device.gatt?.connect();
-    if (!server) throw new Error('No GATT server');
-    
-    const service = await server.getPrimaryService('generic_access');
-    bluetoothCharacteristic = await service.getCharacteristic('gap.device_name');
-    
-    return true;
-  } catch (error) {
-    console.error('Connection error:', error);
-    toast({
-      title: "Lỗi kết nối",
-      description: "Không thể kết nối với thiết bị. Vui lòng thử lại.",
-      variant: "destructive",
-    });
-    return false;
-  }
-};
+const API_ENDPOINT = 'http://192.168.1.15/data';
 
 export const fetchHealthData = async (): Promise<HealthData | null> => {
-  // Temporarily return mock data instead of real Bluetooth data
-  return {
-    heartRate: Math.floor(Math.random() * (100 - 60) + 60), // Random between 60-100
-    bloodOxygen: Math.floor(Math.random() * (100 - 95) + 95), // Random between 95-100
-    timestamp: new Date().toISOString(),
-  };
+  try {
+    const response = await axios.get<ApiResponse>(API_ENDPOINT);
+    
+    if (!response.data || typeof response.data.heartRate !== 'number') {
+      throw new Error('Invalid data format received');
+    }
+
+    const data: HealthData = {
+      heartRate: response.data.heartRate,
+      bloodOxygen: response.data.spo2,
+      timestamp: new Date().toISOString(),
+    };
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching health data:', error);
+    toast({
+      title: "Lỗi kết nối",
+      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
+      variant: "destructive",
+    });
+    return null;
+  }
 };
 
 interface WaterRecommendation {

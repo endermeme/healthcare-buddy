@@ -14,21 +14,20 @@ export const useHealthData = (timeRange: TimeRange) => {
     queryFn: fetchHealthData,
     refetchInterval: 5000,
     staleTime: 4000,
-    meta: {
-      onSuccess: (data: HealthData | null) => {
-        if (data) {
-          const shareableLink = addHealthLog(data.heartRate, data.bloodOxygen);
-          if (shareableLink) {
-            toast({
-              title: "Data logged",
-              description: `Monitor link: ${shareableLink}`,
-            });
-          }
+    onSuccess: (data) => {
+      if (data) {
+        const shareableLink = addHealthLog(data.heartRate, data.bloodOxygen);
+        if (shareableLink) {
+          toast({
+            title: "Dữ liệu đã được ghi log",
+            description: `Link theo dõi: ${shareableLink}`,
+          });
         }
-      },
+      }
     },
   });
 
+  // Clear old logs every hour
   useEffect(() => {
     const interval = setInterval(clearOldLogs, 60 * 60 * 1000);
     return () => clearInterval(interval);
