@@ -31,29 +31,12 @@ export const connectToDevice = async (device: BluetoothDevice) => {
 };
 
 export const fetchHealthData = async (): Promise<HealthData | null> => {
-  try {
-    if (!bluetoothCharacteristic) {
-      throw new Error('Chưa kết nối với thiết bị');
-    }
-
-    const value = await bluetoothCharacteristic.readValue();
-    const decoder = new TextDecoder('utf-8');
-    const data = JSON.parse(decoder.decode(value));
-
-    return {
-      heartRate: data.heartRate,
-      bloodOxygen: data.spo2,
-      timestamp: new Date().toISOString(),
-    };
-  } catch (error) {
-    console.error('Error fetching health data:', error);
-    toast({
-      title: "Lỗi đọc dữ liệu",
-      description: "Không thể đọc dữ liệu từ cảm biến. Vui lòng kiểm tra kết nối.",
-      variant: "destructive",
-    });
-    return null;
-  }
+  // Temporarily return mock data instead of real Bluetooth data
+  return {
+    heartRate: Math.floor(Math.random() * (100 - 60) + 60), // Random between 60-100
+    bloodOxygen: Math.floor(Math.random() * (100 - 95) + 95), // Random between 95-100
+    timestamp: new Date().toISOString(),
+  };
 };
 
 interface WaterRecommendation {

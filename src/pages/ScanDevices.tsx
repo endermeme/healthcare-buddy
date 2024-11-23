@@ -8,24 +8,21 @@ interface ScanDevicesProps {
 
 const ScanDevices = ({ onConnect }: ScanDevicesProps) => {
   const [isScanning, setIsScanning] = useState(false);
-  const [devices, setDevices] = useState([
-    { id: '1', name: 'Device 1' },
-    { id: '2', name: 'Device 2' }
-  ]);
 
   const startScanning = () => {
     setIsScanning(true);
-    // Simulate device scanning
+    // Simulate scanning delay then auto-connect
     setTimeout(() => {
       setIsScanning(false);
-    }, 2000);
+      onConnect();
+    }, 1500);
   };
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Scan Devices</h1>
-        <p className="text-gray-500">Search for nearby sensor devices</p>
+        <h1 className="text-2xl font-bold">Kết nối thiết bị</h1>
+        <p className="text-gray-500">Nhấn nút bên dưới để tiếp tục</p>
       </div>
 
       <Button 
@@ -33,23 +30,8 @@ const ScanDevices = ({ onConnect }: ScanDevicesProps) => {
         disabled={isScanning}
         className="w-full"
       >
-        {isScanning ? 'Scanning...' : 'Start Scan'}
+        {isScanning ? 'Đang kết nối...' : 'Kết nối'}
       </Button>
-
-      <div className="space-y-4">
-        {devices.map((device) => (
-          <Card key={device.id}>
-            <CardHeader>
-              <CardTitle className="text-lg">{device.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={onConnect}>
-                Connect
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
     </div>
   );
 };
