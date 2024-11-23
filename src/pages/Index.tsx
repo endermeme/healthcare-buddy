@@ -35,7 +35,8 @@ const Index = () => {
 
   const showLogs = () => {
     const logs = getDailyLogs();
-    const dates = Object.keys(logs);
+    const dates = Object.keys(logs).sort().reverse(); // Sắp xếp ngày từ mới đến cũ
+    
     if (dates.length === 0) {
       toast({
         title: "Chưa có log nào",
@@ -44,15 +45,19 @@ const Index = () => {
       return;
     }
 
-    const latestDate = dates[dates.length - 1];
-    const latestLogs = logs[latestDate];
-    
+    // Hiển thị log của 7 ngày gần nhất
+    const recentLogs = dates.slice(0, 7);
+    const logMessages = recentLogs.map(date => {
+      const dayLogs = logs[date];
+      const logCount = dayLogs.length;
+      const lastLog = dayLogs[dayLogs.length - 1];
+      return `${date} (${logCount} logs):\nLast: ${new Date(lastLog.timestamp).toLocaleTimeString()} - ${lastLog.heartRate}BPM, ${lastLog.bloodOxygen}%`;
+    }).join('\n\n');
+
     toast({
-      title: `Log gần nhất (${latestDate})`,
-      description: latestLogs.map(log => 
-        `${new Date(log.timestamp).toLocaleTimeString()}: ${log.heartRate} BPM, ${log.bloodOxygen}% SpO2`
-      ).join('\n'),
-      duration: 5000,
+      title: "Lịch sử log 7 ngày gần nhất",
+      description: logMessages,
+      duration: 7000,
     });
   };
 
