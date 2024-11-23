@@ -21,7 +21,23 @@ export const useHealthData = (timeRange: TimeRange) => {
           if (shareableLink) {
             toast({
               title: "Dữ liệu đã được ghi log",
-              description: `Link theo dõi: ${shareableLink}`,
+              description: (
+                <div className="mt-2 space-y-2">
+                  <p>Link theo dõi của bạn đã sẵn sàng:</p>
+                  <a 
+                    href={shareableLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline break-all"
+                  >
+                    {shareableLink}
+                  </a>
+                  <p className="text-sm text-gray-500">
+                    (Click vào link trên để xem chi tiết)
+                  </p>
+                </div>
+              ),
+              duration: 10000, // Hiển thị lâu hơn để người dùng có thời gian đọc
             });
           }
         }
