@@ -4,14 +4,14 @@ import { Card } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, Bluetooth } from "lucide-react";
 
-interface BluetoothDevice {
+interface ScannedDevice {
   device: BluetoothDevice;
   name: string;
 }
 
 const ScanDevices = () => {
   const [isScanning, setIsScanning] = useState(false);
-  const [devices, setDevices] = useState<BluetoothDevice[]>([]);
+  const [devices, setDevices] = useState<ScannedDevice[]>([]);
 
   const startScanning = async () => {
     try {
