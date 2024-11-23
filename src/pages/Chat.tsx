@@ -21,6 +21,48 @@ const Chat = () => {
   const [mode, setMode] = useState<'health' | 'general'>('general');
   const navigate = useNavigate();
 
+  const getHealthContext = () => {
+    const logs = getDailyLogs();
+    const dates = Object.keys(logs).sort().reverse();
+    if (dates.length === 0) return null;
+
+    const latestDate = dates[0];
+    const latestLogs = logs[latestDate] || [];
+    const latestLog = latestLogs[latestLogs.length - 1];
+    
+    if (!latestLog) return null;
+
+    // Phân tích chỉ số nhịp tim
+    const heartRateAnalysis = () => {
+      const rate = latestLog.heartRate;
+      if (rate < 60) return "nhịp tim thấp (nhịp chậm)";
+      if (rate > 100) return "nhịp tim cao (nhịp nhanh)";
+      return "nhịp tim bình thường";
+    };
+
+    // Phân tích chỉ số SpO2
+    const spo2Analysis = () => {
+      const spo2 = latestLog.bloodOxygen;
+      if (spo2 >= 95) return "mức oxy máu tốt";
+      if (spo2 >= 90) return "mức oxy máu ở ngưỡng cần theo dõi";
+      return "mức oxy máu thấp, cần chú ý";
+    };
+
+    return `Context: Dữ liệu sức khỏe mới nhất (${latestDate}):
+
+Chỉ số hiện tại:
+- Nhịp tim: ${latestLog.heartRate} BPM (${heartRateAnalysis()})
+- SpO2: ${latestLog.bloodOxygen}% (${spo2Analysis()})
+
+Thông tin tham khảo:
+- Nhịp tim bình thường: 60-100 BPM
+- SpO2 bình thường: ≥95%
+- SpO2 cần theo dõi: 90-94%
+- SpO2 nguy hiểm: <90%
+
+User Question: `;
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -34,18 +76,12 @@ const Chat = () => {
       
       let prompt = userMessage;
       if (mode === 'health') {
-        const logs = getDailyLogs();
-        const latestDate = Object.keys(logs).sort().reverse()[0];
-        const latestLogs = logs[latestDate] || [];
-        const latestLog = latestLogs[latestLogs.length - 1];
-        
-        prompt = `Context: Latest health data from ${latestDate}:
-Heart Rate: ${latestLog?.heartRate || 'N/A'} BPM
-Blood Oxygen: ${latestLog?.bloodOxygen || 'N/A'}%
+        const healthContext = getHealthContext();
+        if (healthContext) {
+          prompt = `${healthContext}${userMessage}
 
-User Question: ${userMessage}
-
-Please provide health advice based on this data.`;
+Hãy phân tích các chỉ số sức khỏe trên và đưa ra lời khuyên cụ thể. Nếu có bất kỳ chỉ số nào bất thường, hãy giải thích nguyên nhân có thể và đề xuất các biện pháp cải thiện.`;
+        }
       }
 
       const result = await model.generateContent(prompt);
