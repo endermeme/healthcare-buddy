@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchHealthData, HealthData } from '@/services/healthData';
-import { addHealthLog, clearOldLogs } from '@/services/logService';
+import { addHealthLog, clearOldLogs, LogHistoryIcon } from '@/services/logService';
 import { toast } from '@/components/ui/use-toast';
 
 export type TimeRange = '5m' | '15m' | '30m' | '1h';
@@ -17,12 +17,12 @@ export const useHealthData = (timeRange: TimeRange) => {
     meta: {
       onSuccess: (data: HealthData | null) => {
         if (data) {
-          const shareableLink = addHealthLog(data.heartRate, data.bloodOxygen);
-          if (shareableLink) {
+          const logDate = addHealthLog(data.heartRate, data.bloodOxygen);
+          if (logDate) {
             toast({
               title: "Dữ liệu đã được ghi log",
-              description: `Link theo dõi của bạn: ${shareableLink}\n\nClick vào link trên để xem chi tiết.`,
-              duration: 10000,
+              description: `Đã ghi log cho ngày ${logDate}:\nNhịp tim: ${data.heartRate} BPM\nỐc-xy máu: ${data.bloodOxygen}%`,
+              duration: 5000,
             });
           }
         }
@@ -30,7 +30,7 @@ export const useHealthData = (timeRange: TimeRange) => {
     }
   });
 
-  // Clear old logs every hour
+  // Xóa log cũ mỗi giờ
   useEffect(() => {
     const interval = setInterval(clearOldLogs, 60 * 60 * 1000);
     return () => clearInterval(interval);
@@ -75,6 +75,7 @@ export const useHealthData = (timeRange: TimeRange) => {
     currentData,
     history,
     averages: getAverages(),
+    LogHistoryIcon, // Export icon for use in UI
   };
 };
 

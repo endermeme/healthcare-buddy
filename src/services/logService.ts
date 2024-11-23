@@ -1,3 +1,5 @@
+import { History } from 'lucide-react';
+
 interface HealthLog {
   timestamp: string;
   heartRate: number;
@@ -9,14 +11,14 @@ interface DailyLogs {
 }
 
 const LOG_STORAGE_KEY = 'health_logs';
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Helper to get date string in YYYY-MM-DD format
+// Helper để lấy chuỗi ngày dạng YYYY-MM-DD
 const getDateString = (date: Date) => {
   return date.toISOString().split('T')[0];
 };
 
-// Get all logs grouped by date
+// Lấy tất cả log theo ngày
 export const getDailyLogs = (): DailyLogs => {
   try {
     const storedLogs = localStorage.getItem(LOG_STORAGE_KEY);
@@ -37,15 +39,15 @@ export const getDailyLogs = (): DailyLogs => {
   }
 };
 
-// Get logs for a specific date
+// Lấy log cho một ngày cụ thể
 export const getLogsForDate = (date: string): HealthLog[] => {
   const allLogs = getDailyLogs();
   return allLogs[date] || [];
 };
 
-// Add new health log
+// Thêm log mới
 export const addHealthLog = (heartRate: number, bloodOxygen: number): string | undefined => {
-  // Only log if values are within valid ranges
+  // Chỉ ghi log nếu giá trị hợp lệ
   if (heartRate < 50 || heartRate > 120 || bloodOxygen < 80 || bloodOxygen > 100) {
     return undefined;
   }
@@ -56,33 +58,31 @@ export const addHealthLog = (heartRate: number, bloodOxygen: number): string | u
   const currentLogs = getDailyLogs();
   const todayLogs = currentLogs[dateStr] || [];
 
-  // Add new log
+  // Thêm log mới
   const newLog: HealthLog = {
     timestamp: now.toISOString(),
     heartRate,
     bloodOxygen,
   };
 
-  // Update today's logs
+  // Cập nhật log cho ngày hiện tại
   todayLogs.push(newLog);
   currentLogs[dateStr] = todayLogs;
 
-  // Convert back to array format for storage
+  // Chuyển về dạng mảng để lưu trữ
   const allLogs = Object.values(currentLogs).flat();
   localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(allLogs));
 
-  // Create shareable link with date
-  const baseUrl = window.location.origin;
-  return `${baseUrl}/health-logs?date=${dateStr}`;
+  return dateStr;
 };
 
-// Clear logs older than specified days
-export const clearOldLogs = (daysToKeep: number = 30) => {
+// Xóa log cũ hơn 1 tuần
+export const clearOldLogs = () => {
   const allLogs = getDailyLogs();
   const now = new Date();
-  const cutoffDate = new Date(now.getTime() - (daysToKeep * ONE_DAY_MS));
+  const cutoffDate = new Date(now.getTime() - ONE_WEEK_MS);
   
-  // Filter out old logs
+  // Lọc bỏ log cũ
   const filteredLogs = Object.entries(allLogs)
     .filter(([dateStr]) => new Date(dateStr) >= cutoffDate)
     .reduce((acc: DailyLogs, [date, logs]) => {
@@ -90,12 +90,15 @@ export const clearOldLogs = (daysToKeep: number = 30) => {
       return acc;
     }, {});
 
-  // Convert back to array format and save
+  // Chuyển về dạng mảng và lưu
   const logsArray = Object.values(filteredLogs).flat();
   localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(logsArray));
 };
 
-// Get statistics for a specific date
+// Biểu tượng lịch sử
+export const LogHistoryIcon = History;
+
+// Lấy thống kê cho một ngày
 export const getDailyStats = (date: string) => {
   const logs = getLogsForDate(date);
   
@@ -103,16 +106,15 @@ export const getDailyStats = (date: string) => {
     return null;
   }
 
-  const stats = logs.reduce((acc, log) => {
-    acc.totalHeartRate += log.heartRate;
-    acc.totalBloodOxygen += log.bloodOxygen;
-    acc.count += 1;
-    acc.minHeartRate = Math.min(acc.minHeartRate, log.heartRate);
-    acc.maxHeartRate = Math.max(acc.maxHeartRate, log.heartRate);
-    acc.minBloodOxygen = Math.min(acc.minBloodOxygen, log.bloodOxygen);
-    acc.maxBloodOxygen = Math.max(acc.maxBloodOxygen, log.bloodOxygen);
-    return acc;
-  }, {
+  const stats = logs.reduce((acc, log) => ({
+    totalHeartRate: acc.totalHeartRate + log.heartRate,
+    totalBloodOxygen: acc.totalBloodOxygen + log.bloodOxygen,
+    count: acc.count + 1,
+    minHeartRate: Math.min(acc.minHeartRate, log.heartRate),
+    maxHeartRate: Math.max(acc.maxHeartRate, log.heartRate),
+    minBloodOxygen: Math.min(acc.minBloodOxygen, log.bloodOxygen),
+    maxBloodOxygen: Math.max(acc.maxBloodOxygen, log.bloodOxygen),
+  }), {
     totalHeartRate: 0,
     totalBloodOxygen: 0,
     count: 0,
