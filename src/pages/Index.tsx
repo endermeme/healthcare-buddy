@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Home, MessageSquare, BookOpen, History } from 'lucide-react';
+import { Menu, History } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
@@ -7,7 +7,6 @@ import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { getDailyLogs } from '@/services/logService';
-import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,14 +17,6 @@ import {
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
   const { currentData, history, averages } = useHealthData(timeRange);
-  const navigate = useNavigate();
-
-  const handleClick = (section: string) => {
-    toast({
-      title: `Đang chuyển tới ${section}`,
-      description: "Tính năng này sẽ sớm ra mắt!",
-    });
-  };
 
   const handleTimeRangeChange = (range: TimeRange) => {
     setTimeRange(range);
@@ -37,7 +28,7 @@ const Index = () => {
 
   const showLogs = () => {
     const logs = getDailyLogs();
-    const dates = Object.keys(logs).sort().reverse(); // Sắp xếp ngày từ mới đến cũ
+    const dates = Object.keys(logs).sort().reverse();
     
     if (dates.length === 0) {
       toast({
@@ -47,7 +38,6 @@ const Index = () => {
       return;
     }
 
-    // Hiển thị log của 7 ngày gần nhất
     const recentLogs = dates.slice(0, 7);
     const logMessages = recentLogs.map(date => {
       const dayLogs = logs[date];
@@ -64,7 +54,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white shadow-sm">
         <div className="mx-auto">
@@ -139,25 +129,6 @@ const Index = () => {
           </div>
         </div>
       </main>
-
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
-        <div className="mx-auto flex items-center justify-around px-4 py-2">
-          <Button variant="ghost" size="icon">
-            <Home className="h-5 w-5" />
-          </Button>
-          <Button 
-            className="rounded-full bg-primary text-white shadow-lg hover:bg-primary-hover"
-            size="icon"
-            onClick={() => navigate('/chat')}
-          >
-            <MessageSquare className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => handleClick("Bài viết")}>
-            <BookOpen className="h-5 w-5" />
-          </Button>
-        </div>
-      </nav>
     </div>
   );
 };
