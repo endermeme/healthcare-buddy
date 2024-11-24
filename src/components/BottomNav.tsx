@@ -19,8 +19,8 @@ export const BottomNav = () => {
   };
 
   return (
-    <nav className="fixed bottom-4 left-4 right-4">
-      <div className="mx-auto max-w-lg rounded-full bg-white shadow-lg border">
+    <nav className="fixed bottom-0 left-0 right-0">
+      <div className="mx-auto max-w-lg bg-white shadow-lg border-t">
         <div className="flex items-center justify-around px-4 py-2">
           <Button 
             variant={location.pathname === '/' ? 'default' : 'ghost'} 
@@ -33,7 +33,7 @@ export const BottomNav = () => {
           <Button 
             variant={location.pathname === '/chat' ? 'default' : 'ghost'}
             className={`${location.pathname === '/chat' ? 'bg-primary text-white' : ''} 
-              h-14 w-14 rounded-full shadow-lg hover:scale-105 transition-all duration-200 -mt-4`}
+              h-12 w-12 rounded-full shadow-lg hover:scale-105 transition-all duration-200`}
             size="icon"
             onClick={() => handleClick('/chat')}
           >
