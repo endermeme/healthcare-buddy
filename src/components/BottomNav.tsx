@@ -30,7 +30,7 @@ export const BottomNav = () => {
         </Button>
         <Button 
           variant={location.pathname === '/chat' ? 'default' : 'ghost'}
-          className={location.pathname === '/chat' ? 'bg-primary text-white' : ''}
+          className={`${location.pathname === '/chat' ? 'bg-primary text-white scale-110 shadow-lg' : ''} transition-all duration-200`}
           size="icon"
           onClick={() => handleClick('/chat')}
         >
