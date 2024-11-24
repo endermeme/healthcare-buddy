@@ -19,30 +19,35 @@ export const BottomNav = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
-      <div className="mx-auto flex items-center justify-around px-4 py-2">
-        <Button 
-          variant={location.pathname === '/' ? 'default' : 'ghost'} 
-          size="icon"
-          onClick={() => handleClick('/')}
-        >
-          <Home className="h-5 w-5" />
-        </Button>
-        <Button 
-          variant={location.pathname === '/chat' ? 'default' : 'ghost'}
-          className={`${location.pathname === '/chat' ? 'bg-primary text-white scale-110 shadow-lg' : ''} transition-all duration-200`}
-          size="icon"
-          onClick={() => handleClick('/chat')}
-        >
-          <MessageSquare className="h-5 w-5" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => handleClick('posts')}
-        >
-          <BookOpen className="h-5 w-5" />
-        </Button>
+    <nav className="fixed bottom-4 left-4 right-4">
+      <div className="mx-auto max-w-lg rounded-full bg-white shadow-lg border">
+        <div className="flex items-center justify-around px-4 py-2">
+          <Button 
+            variant={location.pathname === '/' ? 'default' : 'ghost'} 
+            size="icon"
+            onClick={() => handleClick('/')}
+            className="h-10 w-10"
+          >
+            <Home className="h-5 w-5" />
+          </Button>
+          <Button 
+            variant={location.pathname === '/chat' ? 'default' : 'ghost'}
+            className={`${location.pathname === '/chat' ? 'bg-primary text-white' : ''} 
+              h-14 w-14 rounded-full shadow-lg hover:scale-105 transition-all duration-200 -mt-4`}
+            size="icon"
+            onClick={() => handleClick('/chat')}
+          >
+            <MessageSquare className="h-6 w-6" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-10 w-10"
+            onClick={() => handleClick('posts')}
+          >
+            <BookOpen className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
     </nav>
   );
