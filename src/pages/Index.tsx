@@ -15,8 +15,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// ... keep existing code (component definition and other imports)
-
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
   const { currentData, history, averages } = useHealthData(timeRange);
