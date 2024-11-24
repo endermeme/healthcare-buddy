@@ -34,6 +34,7 @@ export const LogViewer = () => {
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
   const [currentDayLogs, setCurrentDayLogs] = useState<HourlyLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<HourlyLog | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Generate last 7 days
@@ -93,6 +94,11 @@ export const LogViewer = () => {
     });
   };
 
+  const handleLogClick = (log: HourlyLog) => {
+    setSelectedLog(log);
+    setDialogOpen(true);
+  };
+
   return (
     <div className="space-y-4 p-4 bg-white rounded-lg shadow">
       <div className="flex justify-between items-center">
@@ -132,7 +138,7 @@ export const LogViewer = () => {
             <Card 
               key={log.hour} 
               className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={() => setSelectedLog(log)}
+              onClick={() => handleLogClick(log)}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -153,7 +159,7 @@ export const LogViewer = () => {
         </div>
       </ScrollArea>
 
-      <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
