@@ -4,6 +4,7 @@ import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
 import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
+import { LogViewer } from '@/components/LogViewer';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { getDailyLogs } from '@/services/logService';
@@ -13,6 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+// ... keep existing code (component definition and other imports)
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
@@ -127,6 +130,11 @@ const Index = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Log Viewer Section */}
+        <div className="mt-6">
+          <LogViewer />
         </div>
       </main>
     </div>
