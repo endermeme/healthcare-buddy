@@ -120,7 +120,7 @@ const Index = () => {
           {/* Water Intake Section */}
           <div className="lg:col-span-1">
             {currentData && (
-              <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm">
+              <div className="rounded-xl bg-white shadow-sm">
                 <WaterIntakeProgress
                   heartRate={currentData.heartRate}
                   bloodOxygen={currentData.bloodOxygen}
