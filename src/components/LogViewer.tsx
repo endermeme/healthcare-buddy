@@ -101,10 +101,10 @@ export const LogViewer = () => {
 
   return (
     <div className="space-y-4 p-4 bg-white rounded-lg shadow">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-[180px] justify-between">
+            <Button variant="outline" className="w-full sm:w-[180px] justify-between">
               {format(selectedDate, 'dd/MM/yyyy', { locale: vi })}
               <ChevronDown className="h-4 w-4 opacity-50" />
             </Button>
@@ -120,14 +120,24 @@ export const LogViewer = () => {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-        <div className="space-x-2">
-          <Button variant="outline" size="sm" onClick={handleAddToFavorites}>
-            <Star className="h-4 w-4 mr-2" />
-            Lưu yêu thích
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleAddToFavorites}
+            className="flex-1 sm:flex-initial"
+          >
+            <Star className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Lưu yêu thích</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={handleDownload}>
-            <Download className="h-4 w-4 mr-2" />
-            Tải về
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownload}
+            className="flex-1 sm:flex-initial"
+          >
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Tải về</span>
           </Button>
         </div>
       </div>
