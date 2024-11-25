@@ -15,7 +15,7 @@ interface HealthChartProps {
 
 export const HealthChart = ({ data }: HealthChartProps) => {
   return (
-    <div className="w-full h-[300px] sm:h-[400px] md:h-[450px] lg:h-[500px] p-2 sm:p-4 md:p-6">
+    <div className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px] p-1 sm:p-2 md:p-4">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={data}
