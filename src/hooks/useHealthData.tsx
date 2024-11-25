@@ -4,20 +4,10 @@ import { fetchHealthData, HealthData } from '@/services/healthData';
 import { addHealthLog, clearOldLogs, LogHistoryIcon } from '@/services/logService';
 import { toast } from '@/components/ui/use-toast';
 
-export type TimeRange = '10m' | '1h' | '1d';
-
-type HistoryMap = {
-  '10m': HealthData[];
-  '1h': HealthData[];
-  '1d': HealthData[];
-};
+export type TimeRange = '5m' | '15m' | '30m' | '1h';
 
 export const useHealthData = (timeRange: TimeRange) => {
-  const [historyMap, setHistoryMap] = useState<HistoryMap>({
-    '10m': [],
-    '1h': [],
-    '1d': [],
-  });
+  const [history, setHistory] = useState<HealthData[]>([]);
 
   const { data: currentData } = useQuery({
     queryKey: ['healthData'],
@@ -40,6 +30,7 @@ export const useHealthData = (timeRange: TimeRange) => {
     }
   });
 
+  // Xóa log cũ mỗi giờ
   useEffect(() => {
     const interval = setInterval(clearOldLogs, 60 * 60 * 1000);
     return () => clearInterval(interval);
@@ -47,30 +38,18 @@ export const useHealthData = (timeRange: TimeRange) => {
 
   useEffect(() => {
     if (currentData) {
-      const now = new Date();
-      
-      setHistoryMap(prev => {
-        const newHistoryMap = { ...prev };
-        const ranges: TimeRange[] = ['10m', '1h', '1d'];
+      setHistory(prev => {
+        const now = new Date();
+        const timeLimit = new Date(now.getTime() - getTimeRangeInMs(timeRange));
         
-        ranges.forEach(range => {
-          const timeLimit = new Date(now.getTime() - getTimeRangeInMs(range));
-          const currentHistory = prev[range];
-          
-          // Add new data point
-          const updatedHistory = [...currentHistory, currentData]
-            .filter(data => new Date(data.timestamp) > timeLimit)
-            .slice(-1000); // Limit to last 1000 points
-            
-          newHistoryMap[range] = updatedHistory;
-        });
-        
-        return newHistoryMap;
+        const updatedHistory = [...prev, currentData]
+          .filter(data => new Date(data.timestamp) > timeLimit)
+          .slice(-1000);
+
+        return updatedHistory;
       });
     }
-  }, [currentData]);
-
-  const history = historyMap[timeRange];
+  }, [currentData, timeRange]);
 
   const getAverages = () => {
     if (history.length === 0) return { 
@@ -96,17 +75,19 @@ export const useHealthData = (timeRange: TimeRange) => {
     currentData,
     history,
     averages: getAverages(),
-    LogHistoryIcon,
+    LogHistoryIcon, // Export icon for use in UI
   };
 };
 
 const getTimeRangeInMs = (range: TimeRange): number => {
   switch (range) {
-    case '10m':
-      return 10 * 60 * 1000;
+    case '5m':
+      return 5 * 60 * 1000;
+    case '15m':
+      return 15 * 60 * 1000;
+    case '30m':
+      return 30 * 60 * 1000;
     case '1h':
       return 60 * 60 * 1000;
-    case '1d':
-      return 24 * 60 * 60 * 1000;
   }
 };

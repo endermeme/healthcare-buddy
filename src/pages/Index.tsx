@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Index = () => {
-  const [timeRange, setTimeRange] = useState<TimeRange>('10m');
+  const [timeRange, setTimeRange] = useState<TimeRange>('5m');
   const { currentData, history, averages } = useHealthData(timeRange);
 
   const handleTimeRangeChange = (range: TimeRange) => {
@@ -61,7 +61,7 @@ const Index = () => {
       const dayLogs = logs[date];
       const logCount = dayLogs.length;
       const lastLog = dayLogs[dayLogs.length - 1];
-      return `${date} (${logCount} logs):\nLast: ${new Date(lastLog.timestamp).toLocaleTimeString()} - ${lastLog.logs[0]?.heartRate ?? '--'}BPM, ${lastLog.logs[0]?.bloodOxygen ?? '--'}%`;
+      return `${date} (${logCount} logs):\nLast: ${new Date(lastLog.timestamp).toLocaleTimeString()} - ${lastLog.heartRate}BPM, ${lastLog.bloodOxygen}%`;
     }).join('\n\n');
 
     toast({
@@ -85,19 +85,21 @@ const Index = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
-                    {timeRange === '10m' ? '10 phút' : 
-                     timeRange === '1h' ? '1 giờ' : '1 ngày'}
+                    {timeRange}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleTimeRangeChange('10m')}>
-                    10 phút
+                  <DropdownMenuItem onClick={() => handleTimeRangeChange('5m')}>
+                    5 phút
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleTimeRangeChange('15m')}>
+                    15 phút
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleTimeRangeChange('30m')}>
+                    30 phút
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleTimeRangeChange('1h')}>
                     1 giờ
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTimeRangeChange('1d')}>
-                    1 ngày
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -123,7 +125,7 @@ const Index = () => {
                   timeRange={timeRange}
                   onTimeRangeChange={setTimeRange}
                 />
-                <HealthChart data={history} timeRange={timeRange} />
+                <HealthChart data={history} />
               </div>
             </div>
           </div>
