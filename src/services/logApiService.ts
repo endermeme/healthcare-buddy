@@ -19,11 +19,11 @@ const LOG_STORAGE_KEY = 'health_minute_logs';
 
 export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
   try {
-    const response = await axios.get(API_URL);
+    const response = await axios.get<MinuteLog[]>(API_URL);
     const validLogs = response.data.filter((log: MinuteLog) => log.bloodOxygen > 60);
     
     // Group logs by minute
-    const groupedLogs = validLogs.reduce((acc: { [key: string]: MinuteLog[] }, log: MinuteLog) => {
+    const groupedLogs = validLogs.reduce<Record<string, MinuteLog[]>>((acc, log) => {
       const minute = new Date(log.timestamp).toLocaleTimeString('vi-VN', {
         hour: '2-digit',
         minute: '2-digit'
@@ -37,7 +37,7 @@ export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
     }, {});
 
     // Calculate averages and format entries
-    const entries: LogEntry[] = Object.entries(groupedLogs).map(([minute, logs]) => {
+    const entries: LogEntry[] = Object.entries(groupedLogs).map(([minute, logs]): LogEntry => {
       const avgHeartRate = Math.round(
         logs.reduce((sum, log) => sum + log.heartRate, 0) / logs.length
       );
