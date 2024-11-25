@@ -38,6 +38,11 @@ export default {
           steps: "#E8F5E9",
           calories: "#FFF3E0",
           health: "#F3E5F5",
+        },
+        dark: {
+          background: "#1a1a1a",
+          card: "#2d2d2d",
+          text: "#ffffff",
         }
       },
       keyframes: {

@@ -12,14 +12,22 @@
     font-family: 'Inter', sans-serif;
   }
 
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+
   body {
-    @apply bg-gray-50;
+    @apply bg-gray-50 dark:bg-dark-background dark:text-dark-text transition-colors duration-200;
   }
 }
 
 @layer components {
   .health-card {
-    @apply relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:shadow-lg;
+    @apply relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:shadow-lg dark:bg-dark-card dark:text-dark-text;
   }
 
   .health-card:hover {
@@ -27,6 +35,6 @@
   }
 
   .health-icon {
-    @apply mb-4 rounded-full bg-primary-light p-4 text-primary;
+    @apply mb-4 rounded-full bg-primary-light p-4 text-primary dark:bg-opacity-10;
   }
 }
