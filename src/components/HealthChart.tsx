@@ -25,7 +25,7 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
   const transformedData = data.map(d => ({
     ...d,
     validHeartRate: d.bloodOxygen > 0 ? d.heartRate : null,
-    invalidHeartRate: d.bloodOxygen === 0 ? 0 : null,
+    invalidHeartRate: d.bloodOxygen === 0 ? d.heartRate : null,
   }));
 
   const getTickCount = () => {
@@ -62,10 +62,10 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px]">
-        <ScrollArea className="h-full">
-          <div className="min-w-[1200px] h-full pr-4">
+    <div className="w-full space-y-4">
+      <div className="relative w-full h-[500px] border rounded-lg bg-white">
+        <ScrollArea className="w-full h-full">
+          <div className="min-w-[800px] h-full p-4">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart 
                 data={transformedData}
@@ -138,22 +138,22 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
                 <Line
                   yAxisId="heartRate"
                   type="monotone"
-                  dataKey="invalidHeartRate"
-                  stroke="#22c55e"
+                  dataKey="validHeartRate"
+                  stroke="#ff4d4f"
                   strokeWidth={2}
                   dot={false}
-                  name="Invalid Heart Rate"
+                  name="Valid Heart Rate"
                   connectNulls
                   isAnimationActive={false}
                 />
                 <Line
                   yAxisId="heartRate"
                   type="monotone"
-                  dataKey="validHeartRate"
-                  stroke="#ff4d4f"
+                  dataKey="invalidHeartRate"
+                  stroke="#22c55e"
                   strokeWidth={2}
                   dot={false}
-                  name="Valid Heart Rate"
+                  name="Invalid Heart Rate"
                   connectNulls
                   isAnimationActive={false}
                 />
