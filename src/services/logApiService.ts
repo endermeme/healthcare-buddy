@@ -9,10 +9,13 @@ export interface MinuteLog {
 }
 
 export interface LogEntry {
+  timestamp: string;
   minute: string;
   logs: MinuteLog[];
   avgHeartRate: number;
   avgBloodOxygen: number;
+  heartRate: number;
+  bloodOxygen: number;
   analysis?: any;
   isComplete?: boolean;
 }
@@ -75,11 +78,15 @@ export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
             ...existingEntry,
             avgHeartRate,
             avgBloodOxygen,
+            timestamp: logs[0].timestamp,
+            heartRate: logs[0].heartRate,
+            bloodOxygen: logs[0].bloodOxygen
           };
         }
         
         return {
           minute,
+          timestamp: logs[0].timestamp,
           logs,
           avgHeartRate: Math.round(
             logs.reduce((sum, log) => sum + log.heartRate, 0) / logs.length
@@ -87,6 +94,8 @@ export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
           avgBloodOxygen: Math.round(
             logs.reduce((sum, log) => sum + log.bloodOxygen, 0) / logs.length
           ),
+          heartRate: logs[0].heartRate,
+          bloodOxygen: logs[0].bloodOxygen,
           isComplete: false,
         };
       })
@@ -109,4 +118,41 @@ export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
 export const getStoredLogs = (): LogEntry[] => {
   const stored = localStorage.getItem(LOG_STORAGE_KEY);
   return stored ? JSON.parse(stored) : [];
+};
+
+export const downloadLog = (date: string, format: 'txt' | 'csv' = 'csv') => {
+  const logs = getStoredLogs();
+  let content = '';
+  
+  if (format === 'csv') {
+    content = 'Timestamp,Heart Rate,Blood Oxygen,Analysis\n';
+    logs.forEach(hourLog => {
+      hourLog.logs.forEach(log => {
+        content += `${log.timestamp},${log.heartRate},${log.bloodOxygen},${hourLog.analysis?.analysis.health_summary || ''}\n`;
+      });
+    });
+  } else {
+    logs.forEach(hourLog => {
+      content += `=== ${hourLog.timestamp} ===\n`;
+      hourLog.logs.forEach(log => {
+        content += `Time: ${new Date(log.timestamp).toLocaleTimeString()}\n`;
+        content += `Heart Rate: ${log.heartRate} BPM\n`;
+        content += `Blood Oxygen: ${log.bloodOxygen}%\n\n`;
+      });
+      if (hourLog.analysis) {
+        content += `Analysis:\n${hourLog.analysis.analysis.health_summary}\n`;
+        content += `Recommendation: ${hourLog.analysis.analysis.recommendation}\n\n`;
+      }
+    });
+  }
+
+  const blob = new Blob([content], { type: format === 'csv' ? 'text/csv' : 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `health_log_${date}.${format}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 };
