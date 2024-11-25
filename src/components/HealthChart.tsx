@@ -63,115 +63,117 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
 
   return (
     <div className="space-y-4">
-      <ScrollArea className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px] relative">
-        <div className="min-w-[1200px] h-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart 
-              data={transformedData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-            >
-              <CartesianGrid 
-                strokeDasharray="3 3" 
-                stroke="#e2e8f0" 
-                horizontal={true}
-                vertical={false}
-              />
-              <XAxis
-                dataKey="timestamp"
-                tickFormatter={formatXAxisTick}
-                stroke="#94a3b8"
-                fontSize={12}
-                dy={10}
-                tickLine={false}
-                axisLine={{ strokeWidth: 1 }}
-                padding={{ left: 20, right: 20 }}
-                interval="preserveStartEnd"
-                minTickGap={60}
-                height={50}
-                ticks={Array.from({ length: getTickCount() }, (_, i) => {
-                  const firstTimestamp = new Date(data[0]?.timestamp || Date.now()).getTime();
-                  const lastTimestamp = new Date(data[data.length - 1]?.timestamp || Date.now()).getTime();
-                  return firstTimestamp + (i * (lastTimestamp - firstTimestamp) / (getTickCount() - 1));
-                })}
-              />
-              <YAxis 
-                yAxisId="heartRate" 
-                stroke="#94a3b8"
-                fontSize={12}
-                tickCount={8}
-                domain={[0, yAxisMax]}
-                dx={0}
-                tickLine={false}
-                axisLine={{ strokeWidth: 1 }}
-              />
-              <YAxis 
-                yAxisId="bloodOxygen" 
-                orientation="right" 
-                stroke="#94a3b8"
-                fontSize={12}
-                tickCount={8}
-                domain={[0, yAxisMax]}
-                dx={0}
-                tickLine={false}
-                axisLine={{ strokeWidth: 1 }}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  padding: '12px 16px',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                }}
-                labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', { 
-                  timeZone: 'Asia/Ho_Chi_Minh',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-                formatter={(value, name) => {
-                  if (name === 'validHeartRate') return [`${value} BPM`, 'Nhịp tim (có SpO2)'];
-                  if (name === 'invalidHeartRate') return [`${value} BPM`, 'Nhịp tim (không có SpO2)'];
-                  return [`${value}%`, 'SpO2'];
-                }}
-              />
-              <Line
-                yAxisId="heartRate"
-                type="monotone"
-                dataKey="invalidHeartRate"
-                stroke="#22c55e"
-                strokeWidth={2}
-                dot={false}
-                name="Invalid Heart Rate"
-                connectNulls
-                isAnimationActive={false}
-              />
-              <Line
-                yAxisId="heartRate"
-                type="monotone"
-                dataKey="validHeartRate"
-                stroke="#ff4d4f"
-                strokeWidth={2}
-                dot={false}
-                name="Valid Heart Rate"
-                connectNulls
-                isAnimationActive={false}
-              />
-              <Line
-                yAxisId="bloodOxygen"
-                type="monotone"
-                dataKey="bloodOxygen"
-                stroke="#4096ff"
-                strokeWidth={2}
-                dot={false}
-                name="Blood Oxygen"
-                connectNulls
-                isAnimationActive={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      <div className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px]">
+        <ScrollArea className="h-full">
+          <div className="min-w-[1200px] h-full pr-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart 
+                data={transformedData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+              >
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  stroke="#e2e8f0" 
+                  horizontal={true}
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="timestamp"
+                  tickFormatter={formatXAxisTick}
+                  stroke="#94a3b8"
+                  fontSize={12}
+                  dy={10}
+                  tickLine={false}
+                  axisLine={{ strokeWidth: 1 }}
+                  padding={{ left: 20, right: 20 }}
+                  interval="preserveStartEnd"
+                  minTickGap={60}
+                  height={50}
+                  ticks={Array.from({ length: getTickCount() }, (_, i) => {
+                    const firstTimestamp = new Date(data[0]?.timestamp || Date.now()).getTime();
+                    const lastTimestamp = new Date(data[data.length - 1]?.timestamp || Date.now()).getTime();
+                    return firstTimestamp + (i * (lastTimestamp - firstTimestamp) / (getTickCount() - 1));
+                  })}
+                />
+                <YAxis 
+                  yAxisId="heartRate" 
+                  stroke="#94a3b8"
+                  fontSize={12}
+                  tickCount={8}
+                  domain={[0, yAxisMax]}
+                  dx={0}
+                  tickLine={false}
+                  axisLine={{ strokeWidth: 1 }}
+                />
+                <YAxis 
+                  yAxisId="bloodOxygen" 
+                  orientation="right" 
+                  stroke="#94a3b8"
+                  fontSize={12}
+                  tickCount={8}
+                  domain={[0, yAxisMax]}
+                  dx={0}
+                  tickLine={false}
+                  axisLine={{ strokeWidth: 1 }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                  }}
+                  labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', { 
+                    timeZone: 'Asia/Ho_Chi_Minh',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                  formatter={(value, name) => {
+                    if (name === 'validHeartRate') return [`${value} BPM`, 'Nhịp tim (có SpO2)'];
+                    if (name === 'invalidHeartRate') return [`${value} BPM`, 'Nhịp tim (không có SpO2)'];
+                    return [`${value}%`, 'SpO2'];
+                  }}
+                />
+                <Line
+                  yAxisId="heartRate"
+                  type="monotone"
+                  dataKey="invalidHeartRate"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  dot={false}
+                  name="Invalid Heart Rate"
+                  connectNulls
+                  isAnimationActive={false}
+                />
+                <Line
+                  yAxisId="heartRate"
+                  type="monotone"
+                  dataKey="validHeartRate"
+                  stroke="#ff4d4f"
+                  strokeWidth={2}
+                  dot={false}
+                  name="Valid Heart Rate"
+                  connectNulls
+                  isAnimationActive={false}
+                />
+                <Line
+                  yAxisId="bloodOxygen"
+                  type="monotone"
+                  dataKey="bloodOxygen"
+                  stroke="#4096ff"
+                  strokeWidth={2}
+                  dot={false}
+                  name="Blood Oxygen"
+                  connectNulls
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </div>
       
       <div className="flex justify-center gap-6 text-sm">
         <div className="flex items-center gap-2">
