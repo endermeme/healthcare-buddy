@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, History } from 'lucide-react';
+import { Menu, History, RefreshCw } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
@@ -8,6 +8,7 @@ import { LogViewer } from '@/components/LogViewer';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { getDailyLogs } from '@/services/logService';
+import axios from 'axios';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,22 @@ const Index = () => {
       title: "Đã thay đổi khoảng thời gian",
       description: `Hiển thị dữ liệu trong ${range}`,
     });
+  };
+
+  const handleGetLogsNow = async () => {
+    try {
+      const response = await axios.get('http://192.168.1.15/logdemo');
+      toast({
+        title: "Đã lấy log thành công",
+        description: `Số lượng log: ${response.data.length}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Lỗi khi lấy log",
+        description: "Không thể kết nối đến máy chủ",
+        variant: "destructive",
+      });
+    }
   };
 
   const showLogs = () => {
@@ -65,6 +82,10 @@ const Index = () => {
               <span className="text-sm font-medium">Health Monitor</span>
             </div>
             <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleGetLogsNow}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Lấy log ngay
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
