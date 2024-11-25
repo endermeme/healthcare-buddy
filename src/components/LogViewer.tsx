@@ -21,14 +21,32 @@ export const LogViewer = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
+    // Hàm load logs từ API
     const loadLogs = async () => {
       const fetchedLogs = await fetchAndStoreLogs();
       setLogs(fetchedLogs);
     };
 
+    // Gọi lần đầu khi component mount
     loadLogs();
-    const interval = setInterval(loadLogs, 60000); // Refresh every minute
-    return () => clearInterval(interval);
+
+    // Tính toán thời gian còn lại đến phút tiếp theo
+    const now = new Date();
+    const secondsUntilNextMinute = 60 - now.getSeconds();
+    
+    // Đợi đến đầu phút tiếp theo rồi mới bắt đầu interval
+    const initialTimeout = setTimeout(() => {
+      loadLogs(); // Load logs tại thời điểm bắt đầu phút mới
+      
+      // Sau đó set interval để load mỗi phút
+      const interval = setInterval(loadLogs, 60000);
+      
+      // Cleanup interval khi component unmount
+      return () => clearInterval(interval);
+    }, secondsUntilNextMinute * 1000);
+
+    // Cleanup timeout khi component unmount
+    return () => clearTimeout(initialTimeout);
   }, []);
 
   const handleLogClick = (log: LogEntry) => {
