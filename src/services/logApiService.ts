@@ -25,14 +25,15 @@ const LOG_STORAGE_KEY = 'health_minute_logs';
 
 export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
   try {
+    const storedLogs = getStoredLogs();
+    if (storedLogs.length > 0) {
+      return storedLogs;
+    }
+
     const response = await axios.get<MinuteLog[]>(API_URL);
-    console.log('API Response:', response.data);
-    
     const validLogs = response.data.filter(log => 
       log.heartRate > 0 && log.bloodOxygen > 0
     );
-    
-    const existingEntries = getStoredLogs();
     
     const groupedLogs = validLogs.reduce<Record<string, MinuteLog[]>>((acc, log) => {
       const minute = new Date(log.timestamp).toLocaleTimeString('vi-VN', {
@@ -49,63 +50,41 @@ export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
 
     const entries: LogEntry[] = await Promise.all(
       Object.entries(groupedLogs).map(async ([minute, logs]) => {
-        const existingEntry = existingEntries.find(entry => entry.minute === minute);
-        
-        if (existingEntry) {
-          existingEntry.logs = [...existingEntry.logs, ...logs];
-          const avgHeartRate = Math.round(
-            existingEntry.logs.reduce((sum, log) => sum + log.heartRate, 0) / existingEntry.logs.length
+        const avgHeartRate = Math.round(
+          logs.reduce((sum, log) => sum + log.heartRate, 0) / logs.length
+        );
+        const avgBloodOxygen = Math.round(
+          logs.reduce((sum, log) => sum + log.bloodOxygen, 0) / logs.length
+        );
+
+        let analysis;
+        try {
+          analysis = await analyzeHealthData(
+            logs.map(l => l.heartRate),
+            logs.map(l => l.bloodOxygen),
+            minute
           );
-          const avgBloodOxygen = Math.round(
-            existingEntry.logs.reduce((sum, log) => sum + log.bloodOxygen, 0) / existingEntry.logs.length
-          );
-          
-          if (!existingEntry.analysis && existingEntry.logs.length >= 10) {
-            try {
-              const analysis = await analyzeHealthData(
-                existingEntry.logs.map(l => l.heartRate),
-                existingEntry.logs.map(l => l.bloodOxygen),
-                minute
-              );
-              existingEntry.analysis = analysis;
-              existingEntry.isComplete = true;
-            } catch (error) {
-              console.error('Error analyzing health data:', error);
-            }
-          }
-          
-          return {
-            ...existingEntry,
-            avgHeartRate,
-            avgBloodOxygen,
-            timestamp: logs[0].timestamp,
-            heartRate: logs[0].heartRate,
-            bloodOxygen: logs[0].bloodOxygen
-          };
+        } catch (error) {
+          console.error('Error analyzing health data:', error);
         }
-        
+
         return {
           minute,
           timestamp: logs[0].timestamp,
           logs,
-          avgHeartRate: Math.round(
-            logs.reduce((sum, log) => sum + log.heartRate, 0) / logs.length
-          ),
-          avgBloodOxygen: Math.round(
-            logs.reduce((sum, log) => sum + log.bloodOxygen, 0) / logs.length
-          ),
+          avgHeartRate,
+          avgBloodOxygen,
           heartRate: logs[0].heartRate,
           bloodOxygen: logs[0].bloodOxygen,
-          isComplete: false,
+          analysis,
+          isComplete: true
         };
       })
     );
 
-    const sortedEntries = entries.sort((a, b) => {
-      const timeA = new Date(`1970/01/01 ${a.minute}`);
-      const timeB = new Date(`1970/01/01 ${b.minute}`);
-      return timeB.getTime() - timeA.getTime();
-    });
+    const sortedEntries = entries.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
 
     localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(sortedEntries));
     return sortedEntries;
@@ -116,8 +95,13 @@ export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
 };
 
 export const getStoredLogs = (): LogEntry[] => {
-  const stored = localStorage.getItem(LOG_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
+  try {
+    const stored = localStorage.getItem(LOG_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error reading stored logs:', error);
+    return [];
+  }
 };
 
 export const downloadLog = (date: string, format: 'txt' | 'csv' = 'csv') => {
