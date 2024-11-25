@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { HealthData } from '@/services/healthData';
 import { TimeRange } from '@/hooks/useHealthData';
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface HealthChartProps {
   data: HealthData[];
@@ -64,7 +64,7 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
   return (
     <div className="space-y-4">
       <ScrollArea className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px] relative">
-        <div className="min-w-[1200px] h-full pr-8">
+        <div className="min-w-[1200px] h-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart 
               data={transformedData}
@@ -170,6 +170,7 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
             </LineChart>
           </ResponsiveContainer>
         </div>
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
       
       <div className="flex justify-center gap-6 text-sm">
