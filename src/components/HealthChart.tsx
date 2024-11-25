@@ -63,7 +63,7 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
 
   return (
     <div className="space-y-4">
-      <ScrollArea className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px] relative" orientation="horizontal">
+      <ScrollArea className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px] relative">
         <div className="min-w-[1200px] h-full pr-8">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart 
