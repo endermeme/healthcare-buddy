@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import { HealthData } from '@/services/healthData';
 import { TimeRange } from '@/hooks/useHealthData';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface HealthChartProps {
   data: HealthData[];
@@ -21,23 +22,18 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
   const maxValue = Math.max(maxHeartRate, maxBloodOxygen);
   const yAxisMax = Math.ceil((maxValue + 10) / 10) * 10;
 
-  // Transform data to include validity state
   const transformedData = data.map(d => ({
     ...d,
     validHeartRate: d.bloodOxygen > 0 ? d.heartRate : null,
-    invalidHeartRate: d.bloodOxygen === 0 ? 0 : null, // Set to 0 for bottom line
+    invalidHeartRate: d.bloodOxygen === 0 ? 0 : null,
   }));
 
   const getTickCount = () => {
     switch (timeRange) {
-      case '10m':
-        return 10;
-      case '1h':
-        return 12;
-      case '1d':
-        return 24;
-      default:
-        return 10;
+      case '10m': return 10;
+      case '1h': return 12;
+      case '1d': return 24;
+      default: return 10;
     }
   };
 
@@ -45,11 +41,6 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
     const date = new Date(timestamp);
     switch (timeRange) {
       case '10m':
-        return date.toLocaleTimeString('vi-VN', {
-          timeZone: 'Asia/Ho_Chi_Minh',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
       case '1h':
         return date.toLocaleTimeString('vi-VN', {
           timeZone: 'Asia/Ho_Chi_Minh',
@@ -72,12 +63,12 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px] overflow-x-auto">
-        <div className="min-w-[800px] h-full">
+      <ScrollArea className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px] relative" orientation="horizontal">
+        <div className="min-w-[1200px] h-full pr-8">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart 
               data={transformedData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
             >
               <CartesianGrid 
                 strokeDasharray="3 3" 
@@ -95,7 +86,8 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
                 axisLine={{ strokeWidth: 1 }}
                 padding={{ left: 20, right: 20 }}
                 interval="preserveStartEnd"
-                minTickGap={80}
+                minTickGap={60}
+                height={50}
                 ticks={Array.from({ length: getTickCount() }, (_, i) => {
                   const firstTimestamp = new Date(data[0]?.timestamp || Date.now()).getTime();
                   const lastTimestamp = new Date(data[data.length - 1]?.timestamp || Date.now()).getTime();
@@ -142,7 +134,6 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
                   return [`${value}%`, 'SpO2'];
                 }}
               />
-              {/* Invalid heart rate data (green line at bottom) */}
               <Line
                 yAxisId="heartRate"
                 type="monotone"
@@ -152,8 +143,8 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
                 dot={false}
                 name="Invalid Heart Rate"
                 connectNulls
+                isAnimationActive={false}
               />
-              {/* Valid heart rate data (red line) */}
               <Line
                 yAxisId="heartRate"
                 type="monotone"
@@ -163,8 +154,8 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
                 dot={false}
                 name="Valid Heart Rate"
                 connectNulls
+                isAnimationActive={false}
               />
-              {/* Blood oxygen data (blue line) */}
               <Line
                 yAxisId="bloodOxygen"
                 type="monotone"
@@ -174,13 +165,13 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
                 dot={false}
                 name="Blood Oxygen"
                 connectNulls
+                isAnimationActive={false}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </ScrollArea>
       
-      {/* Legend */}
       <div className="flex justify-center gap-6 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-[#ff4d4f] rounded-sm"></div>
