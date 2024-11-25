@@ -82,10 +82,6 @@ const Index = () => {
               <span className="text-sm font-medium">Health Monitor</span>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleGetLogsNow}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Lấy log ngay
-              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
@@ -143,8 +139,15 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Log Viewer Section */}
-        <div className="mt-6">
+        {/* Log Viewer Section with Get Logs Now Button */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Nhật ký theo dõi</h2>
+            <Button variant="outline" size="sm" onClick={handleGetLogsNow}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Lấy log ngay
+            </Button>
+          </div>
           <LogViewer />
         </div>
       </main>

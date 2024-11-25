@@ -14,6 +14,7 @@ import {
   getStoredLogs,
   type LogEntry,
 } from '@/services/logApiService';
+import { toast } from '@/components/ui/use-toast';
 
 export const LogViewer = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -21,32 +22,23 @@ export const LogViewer = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Hàm load logs từ API
     const loadLogs = async () => {
-      const fetchedLogs = await fetchAndStoreLogs();
-      setLogs(fetchedLogs);
+      try {
+        const fetchedLogs = await fetchAndStoreLogs();
+        setLogs(fetchedLogs);
+      } catch (error) {
+        console.error('Error fetching logs:', error);
+        toast({
+          title: "Lỗi khi lấy dữ liệu",
+          description: "Không thể kết nối đến máy chủ",
+          variant: "destructive",
+        });
+      }
     };
 
-    // Gọi lần đầu khi component mount
     loadLogs();
-
-    // Tính toán thời gian còn lại đến phút tiếp theo
-    const now = new Date();
-    const secondsUntilNextMinute = 60 - now.getSeconds();
-    
-    // Đợi đến đầu phút tiếp theo rồi mới bắt đầu interval
-    const initialTimeout = setTimeout(() => {
-      loadLogs(); // Load logs tại thời điểm bắt đầu phút mới
-      
-      // Sau đó set interval để load mỗi phút
-      const interval = setInterval(loadLogs, 60000);
-      
-      // Cleanup interval khi component unmount
-      return () => clearInterval(interval);
-    }, secondsUntilNextMinute * 1000);
-
-    // Cleanup timeout khi component unmount
-    return () => clearTimeout(initialTimeout);
+    const interval = setInterval(loadLogs, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleLogClick = (log: LogEntry) => {
@@ -55,33 +47,31 @@ export const LogViewer = () => {
   };
 
   return (
-    <div className="space-y-4 p-4 bg-white rounded-lg shadow">
-      <ScrollArea className="h-[400px] rounded-md border">
-        <div className="space-y-4 p-4">
-          {logs.map((log) => (
-            <Card 
-              key={log.minute} 
-              className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={() => handleLogClick(log)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium">{log.minute}</span>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-sm text-gray-600">
-                    Nhịp tim TB: {log.avgHeartRate} BPM
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    SpO2 TB: {log.avgBloodOxygen}%
-                  </div>
-                </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {logs.map((log) => (
+        <Card 
+          key={log.minute} 
+          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => handleLogClick(log)}
+        >
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              <span className="font-medium text-lg">{log.minute}</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Nhịp tim TB:</span>
+                <span className="font-medium">{log.avgHeartRate} BPM</span>
               </div>
-            </Card>
-          ))}
-        </div>
-      </ScrollArea>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">SpO2 TB:</span>
+                <span className="font-medium">{log.avgBloodOxygen}%</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      ))}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-3xl">
