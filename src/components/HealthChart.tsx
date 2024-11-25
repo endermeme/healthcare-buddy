@@ -19,7 +19,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={data}
-          margin={{ top: 20, right: 5, left: -5, bottom: 20 }}
+          margin={{ top: 20, right: 0, left: -10, bottom: 20 }}
         >
           <CartesianGrid 
             strokeDasharray="3 3" 
@@ -39,7 +39,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             dy={10}
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}
-            padding={{ left: 2, right: 2 }}
+            padding={{ left: 0, right: 0 }}
           />
           <YAxis 
             yAxisId="heartRate" 

@@ -12,7 +12,7 @@ interface HealthStatsProps {
   onTimeRangeChange: (value: TimeRange) => void;
 }
 
-export const HealthStats = ({ data, averages }: HealthStatsProps) => {
+export const HealthStats = ({ data }: HealthStatsProps) => {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="health-card bg-stats-health">
@@ -20,14 +20,9 @@ export const HealthStats = ({ data, averages }: HealthStatsProps) => {
           <Heart className="h-4 w-4 text-red-500" />
           <h3 className="text-sm font-medium">Nhịp tim</h3>
         </div>
-        <div className="flex items-end justify-between">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold tabular-nums">{data?.heartRate || '--'}</span>
-            <span className="text-xs text-gray-500">BPM</span>
-          </div>
-          <div className="text-xs text-gray-500 tabular-nums">
-            {data ? `TB: ${averages.avgHeartRate}` : ''}
-          </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl font-bold tabular-nums">{data?.heartRate || '--'}</span>
+          <span className="text-xs text-gray-500">BPM</span>
         </div>
       </div>
 
@@ -36,14 +31,9 @@ export const HealthStats = ({ data, averages }: HealthStatsProps) => {
           <Droplets className="h-4 w-4 text-blue-500" />
           <h3 className="text-sm font-medium">SpO2</h3>
         </div>
-        <div className="flex items-end justify-between">
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold tabular-nums">{data?.bloodOxygen || '--'}</span>
-            <span className="text-xs text-gray-500">%</span>
-          </div>
-          <div className="text-xs text-gray-500 tabular-nums">
-            {data ? `TB: ${averages.avgBloodOxygen}%` : ''}
-          </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl font-bold tabular-nums">{data?.bloodOxygen || '--'}</span>
+          <span className="text-xs text-gray-500">%</span>
         </div>
       </div>
     </div>
