@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { toast } from '@/components/ui/use-toast';
+import { analyzeHealthData } from './geminiService';
 
 export interface MinuteLog {
   timestamp: string;
@@ -11,6 +13,8 @@ export interface LogEntry {
   logs: MinuteLog[];
   avgHeartRate: number;
   avgBloodOxygen: number;
+  analysis?: any;
+  isComplete?: boolean;
 }
 
 const API_URL = 'http://192.168.1.15/logdemo';
@@ -18,15 +22,15 @@ const LOG_STORAGE_KEY = 'health_minute_logs';
 
 export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
   try {
-    // Get new logs from API
     const response = await axios.get<MinuteLog[]>(API_URL);
-    console.log('API Response:', response.data); // Debug log
-    const validLogs = response.data.filter((log: MinuteLog) => log.bloodOxygen > 60);
+    console.log('API Response:', response.data);
     
-    // Get existing stored logs
+    const validLogs = response.data.filter(log => 
+      log.heartRate > 0 && log.bloodOxygen > 0
+    );
+    
     const existingEntries = getStoredLogs();
     
-    // Group new logs by minute
     const groupedLogs = validLogs.reduce<Record<string, MinuteLog[]>>((acc, log) => {
       const minute = new Date(log.timestamp).toLocaleTimeString('vi-VN', {
         hour: '2-digit',
@@ -40,23 +44,41 @@ export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
       return acc;
     }, {});
 
-    // Merge with existing logs
-    Object.entries(groupedLogs).forEach(([minute, logs]) => {
-      const existingEntry = existingEntries.find(entry => entry.minute === minute);
-      
-      if (existingEntry) {
-        // Merge new logs with existing ones
-        existingEntry.logs = [...existingEntry.logs, ...logs];
-        // Recalculate averages
-        existingEntry.avgHeartRate = Math.round(
-          existingEntry.logs.reduce((sum, log) => sum + log.heartRate, 0) / existingEntry.logs.length
-        );
-        existingEntry.avgBloodOxygen = Math.round(
-          existingEntry.logs.reduce((sum, log) => sum + log.bloodOxygen, 0) / existingEntry.logs.length
-        );
-      } else {
-        // Create new entry
-        existingEntries.push({
+    const entries: LogEntry[] = await Promise.all(
+      Object.entries(groupedLogs).map(async ([minute, logs]) => {
+        const existingEntry = existingEntries.find(entry => entry.minute === minute);
+        
+        if (existingEntry) {
+          existingEntry.logs = [...existingEntry.logs, ...logs];
+          const avgHeartRate = Math.round(
+            existingEntry.logs.reduce((sum, log) => sum + log.heartRate, 0) / existingEntry.logs.length
+          );
+          const avgBloodOxygen = Math.round(
+            existingEntry.logs.reduce((sum, log) => sum + log.bloodOxygen, 0) / existingEntry.logs.length
+          );
+          
+          if (!existingEntry.analysis && existingEntry.logs.length >= 10) {
+            try {
+              const analysis = await analyzeHealthData(
+                existingEntry.logs.map(l => l.heartRate),
+                existingEntry.logs.map(l => l.bloodOxygen),
+                minute
+              );
+              existingEntry.analysis = analysis;
+              existingEntry.isComplete = true;
+            } catch (error) {
+              console.error('Error analyzing health data:', error);
+            }
+          }
+          
+          return {
+            ...existingEntry,
+            avgHeartRate,
+            avgBloodOxygen,
+          };
+        }
+        
+        return {
           minute,
           logs,
           avgHeartRate: Math.round(
@@ -64,24 +86,23 @@ export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
           ),
           avgBloodOxygen: Math.round(
             logs.reduce((sum, log) => sum + log.bloodOxygen, 0) / logs.length
-          )
-        });
-      }
-    });
+          ),
+          isComplete: false,
+        };
+      })
+    );
 
-    // Sort entries by time (newest first)
-    const sortedEntries = existingEntries.sort((a, b) => {
+    const sortedEntries = entries.sort((a, b) => {
       const timeA = new Date(`1970/01/01 ${a.minute}`);
       const timeB = new Date(`1970/01/01 ${b.minute}`);
       return timeB.getTime() - timeA.getTime();
     });
 
-    // Store updated logs
     localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(sortedEntries));
     return sortedEntries;
   } catch (error) {
     console.error('Error fetching logs:', error);
-    return getStoredLogs(); // Return existing logs if fetch fails
+    return getStoredLogs();
   }
 };
 
