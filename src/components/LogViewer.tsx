@@ -1,89 +1,197 @@
 import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Clock } from 'lucide-react';
+import { Star, Download, Clock, ChevronDown } from 'lucide-react';
+import { format, subDays } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { HealthChart } from '@/components/HealthChart';
 import {
-  fetchAndStoreLogs,
-  getStoredLogs,
-  type LogEntry,
+  fetchDailyLogs,
+  cleanOldLogs,
+  addToFavorites,
+  downloadLogs,
+  getDailyLogs,
+  type DailyLog,
+  type HourlyLog
 } from '@/services/logApiService';
-import { toast } from '@/components/ui/use-toast';
 
 export const LogViewer = () => {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
+  const [currentDayLogs, setCurrentDayLogs] = useState<HourlyLog[]>([]);
+  const [selectedLog, setSelectedLog] = useState<HourlyLog | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  // Generate last 7 days
+  const dateOptions = Array.from({ length: 7 }, (_, i) => {
+    const date = subDays(new Date(), i);
+    return {
+      value: date,
+      label: format(date, 'dd/MM/yyyy', { locale: vi })
+    };
+  });
 
   useEffect(() => {
     const loadLogs = async () => {
-      try {
-        const fetchedLogs = await fetchAndStoreLogs();
-        setLogs(fetchedLogs);
-      } catch (error) {
-        console.error('Error fetching logs:', error);
-        toast({
-          title: "Lỗi khi lấy dữ liệu",
-          description: "Không thể kết nối đến máy chủ",
-          variant: "destructive",
-        });
-      }
+      const logs = await fetchDailyLogs(selectedDate);
+      setCurrentDayLogs(logs);
+      cleanOldLogs();
     };
 
     loadLogs();
-    const interval = setInterval(loadLogs, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [selectedDate]);
 
-  const handleLogClick = (log: LogEntry) => {
+  const handleAddToFavorites = () => {
+    const logToSave: DailyLog = {
+      date: format(selectedDate, 'yyyy-MM-dd'),
+      hourlyLogs: currentDayLogs
+    };
+    addToFavorites(logToSave);
+    toast({
+      title: "Đã lưu vào mục yêu thích",
+      description: `Log ngày ${format(selectedDate, 'dd/MM/yyyy')} đã được lưu`,
+    });
+  };
+
+  const handleDownload = () => {
+    const logs = getDailyLogs();
+    downloadLogs(logs);
+    toast({
+      title: "Tải log thành công",
+      description: "File log đã được tải về máy của bạn",
+    });
+  };
+
+  // Convert hourly log data to chart format
+  const getChartData = (log: HourlyLog) => {
+    const baseTime = new Date(log.timestamp);
+    const startTime = new Date(baseTime.setMinutes(0));
+    const endTime = new Date(baseTime.setHours(baseTime.getHours() + 1));
+    
+    // Generate data points for the hour
+    return Array.from({ length: 12 }, (_, i) => {
+      const timestamp = new Date(startTime.getTime() + (i * 5 * 60 * 1000));
+      return {
+        timestamp: timestamp.toISOString(),
+        heartRate: log.avgHeartRate + Math.random() * 5 - 2.5, // Simulate variation
+        bloodOxygen: log.avgBloodOxygen + Math.random() * 2 - 1, // Simulate variation
+      };
+    });
+  };
+
+  const handleLogClick = (log: HourlyLog) => {
     setSelectedLog(log);
     setDialogOpen(true);
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {logs.map((log) => (
-        <Card 
-          key={log.minute} 
-          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-          onClick={() => handleLogClick(log)}
-        >
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              <span className="font-medium text-lg">{log.minute}</span>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Nhịp tim TB:</span>
-                <span className="font-medium">{log.avgHeartRate} BPM</span>
+    <div className="space-y-4 p-4 bg-white rounded-lg shadow">
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full sm:w-[180px] justify-between">
+              {format(selectedDate, 'dd/MM/yyyy', { locale: vi })}
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {dateOptions.map((option) => (
+              <DropdownMenuItem
+                key={option.label}
+                onClick={() => setSelectedDate(option.value)}
+              >
+                {option.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleAddToFavorites}
+            className="flex-1 sm:flex-initial"
+          >
+            <Star className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Lưu yêu thích</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownload}
+            className="flex-1 sm:flex-initial"
+          >
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Tải về</span>
+          </Button>
+        </div>
+      </div>
+
+      <ScrollArea className="h-[400px] rounded-md border">
+        <div className="space-y-4 p-4">
+          {currentDayLogs.map((log) => (
+            <Card 
+              key={log.hour} 
+              className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => handleLogClick(log)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span className="font-medium">{log.hour}:00</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm text-gray-600">
+                    Nhịp tim TB: {log.avgHeartRate} BPM
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    SpO2 TB: {log.avgBloodOxygen}%
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">SpO2 TB:</span>
-                <span className="font-medium">{log.avgBloodOxygen}%</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
+            </Card>
+          ))}
+        </div>
+      </ScrollArea>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
-              Chi tiết sức khỏe {selectedLog?.minute}
+              Chi tiết sức khỏe {selectedLog?.hour}:00
             </DialogTitle>
           </DialogHeader>
           
           {selectedLog && (
             <div className="space-y-6">
-              <HealthChart data={selectedLog.logs} />
+              <HealthChart data={getChartData(selectedLog)} />
+              
+              <div className="space-y-4">
+                <h3 className="font-medium">Phân tích của AI:</h3>
+                {selectedLog.aiResponses.map((response, index) => (
+                  <div 
+                    key={index}
+                    className="p-4 bg-gray-50 rounded-lg text-sm text-gray-700"
+                  >
+                    {response}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </DialogContent>
