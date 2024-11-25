@@ -15,11 +15,11 @@ interface HealthChartProps {
 
 export const HealthChart = ({ data }: HealthChartProps) => {
   return (
-    <div className="w-full h-[400px] md:h-[500px] lg:h-[600px] p-2 md:p-6">
+    <div className="w-full h-[300px] sm:h-[400px] md:h-[450px] lg:h-[500px] p-2 sm:p-4 md:p-6">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={data}
-          margin={{ top: 30, right: 40, left: 30, bottom: 30 }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
           <CartesianGrid 
             strokeDasharray="3 3" 
@@ -39,13 +39,13 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             dy={10}
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}
-            padding={{ left: 30, right: 30 }}
+            padding={{ left: 20, right: 20 }}
           />
           <YAxis 
             yAxisId="heartRate" 
             stroke="#94a3b8"
             fontSize={12}
-            tickCount={10}
+            tickCount={8}
             domain={[0, 'dataMax + 20']}
             dx={-10}
             tickLine={false}
@@ -56,7 +56,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             orientation="right" 
             stroke="#94a3b8"
             fontSize={12}
-            tickCount={10}
+            tickCount={8}
             domain={[0, 100]}
             dx={10}
             tickLine={false}
