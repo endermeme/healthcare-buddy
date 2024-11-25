@@ -1,19 +1,10 @@
 import { useState } from 'react';
-import { Menu, History } from 'lucide-react';
 import { useHealthData, TimeRange } from '@/hooks/useHealthData';
 import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
 import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
-import { LogViewer } from '@/components/LogViewer';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { getDailyLogs } from '@/services/logService';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
@@ -27,77 +18,26 @@ const Index = () => {
     });
   };
 
-  const showLogs = () => {
-    const logs = getDailyLogs();
-    const dates = Object.keys(logs).sort().reverse();
-    
-    if (dates.length === 0) {
-      toast({
-        title: "Chưa có log nào",
-        description: "Dữ liệu sẽ được tự động ghi log khi có",
-      });
-      return;
-    }
-
-    const recentLogs = dates.slice(0, 7);
-    const logMessages = recentLogs.map(date => {
-      const dayLogs = logs[date];
-      const logCount = dayLogs.length;
-      const lastLog = dayLogs[dayLogs.length - 1];
-      return `${date} (${logCount} logs):\nLast: ${new Date(lastLog.timestamp).toLocaleTimeString()} - ${lastLog.heartRate}BPM, ${lastLog.bloodOxygen}%`;
-    }).join('\n\n');
-
-    toast({
-      title: "Lịch sử log 7 ngày gần nhất",
-      description: logMessages,
-      duration: 7000,
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm">
-        <div className="mx-auto">
-          <div className="flex h-14 items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary/10"></div>
-              <span className="text-sm font-medium">Health Monitor</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    {timeRange}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleTimeRangeChange('5m')}>
-                    5 phút
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTimeRangeChange('15m')}>
-                    15 phút
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTimeRangeChange('30m')}>
-                    30 phút
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTimeRangeChange('1h')}>
-                    1 giờ
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button variant="outline" size="sm" onClick={showLogs}>
-                <History className="h-4 w-4 mr-2" />
-                Lịch sử
-              </Button>
-            </div>
+      {/* New Health Banner */}
+      <div className="relative overflow-hidden rounded-xl mx-4 mt-4 h-32 bg-gradient-to-r from-[#4FACFE] to-[#00F2FE] shadow-lg">
+        <div className="absolute inset-0">
+          <div className="animate-marquee whitespace-nowrap">
+            {"❤️ 🏃 💪 🧘‍♀️ 🫀 🏊‍♂️ 🚴‍♂️ 🎯 ❤️ 🏃 💪 🧘‍♀️ 🫀 🏊‍♂️ 🚴‍♂️ 🎯".repeat(2).split(" ").map((emoji, index) => (
+              <span key={index} className="text-4xl mx-4 opacity-25">{emoji}</span>
+            ))}
           </div>
         </div>
-      </header>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <h1 className="text-2xl font-bold text-white text-center z-10">
+            Nhịp đập số
+          </h1>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Health Stats and Chart Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm">
@@ -109,6 +49,38 @@ const Index = () => {
                   onTimeRangeChange={setTimeRange}
                 />
                 <HealthChart data={history} />
+                
+                {/* Time Range Selector */}
+                <div className="flex justify-center gap-2 pt-4">
+                  <Button
+                    variant={timeRange === '5m' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleTimeRangeChange('5m')}
+                  >
+                    5 phút
+                  </Button>
+                  <Button
+                    variant={timeRange === '15m' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleTimeRangeChange('15m')}
+                  >
+                    15 phút
+                  </Button>
+                  <Button
+                    variant={timeRange === '30m' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleTimeRangeChange('30m')}
+                  >
+                    30 phút
+                  </Button>
+                  <Button
+                    variant={timeRange === '1h' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleTimeRangeChange('1h')}
+                  >
+                    1 giờ
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -120,11 +92,6 @@ const Index = () => {
               bloodOxygen={currentData?.bloodOxygen ?? null}
             />
           </div>
-        </div>
-
-        {/* Log Viewer Section */}
-        <div className="mt-6">
-          <LogViewer />
         </div>
       </main>
     </div>
