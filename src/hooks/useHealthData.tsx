@@ -4,22 +4,19 @@ import { fetchHealthData, HealthData } from '@/services/healthData';
 import { addHealthLog, clearOldLogs, LogHistoryIcon } from '@/services/logService';
 import { toast } from '@/components/ui/use-toast';
 
-export type TimeRange = '5m' | '15m' | '30m' | '1h';
+export type TimeRange = '10m' | '1h' | '1d';
 
 type HistoryMap = {
-  '5m': HealthData[];
-  '15m': HealthData[];
-  '30m': HealthData[];
+  '10m': HealthData[];
   '1h': HealthData[];
+  '1d': HealthData[];
 };
 
 export const useHealthData = (timeRange: TimeRange) => {
-  // Separate history for each time range
   const [historyMap, setHistoryMap] = useState<HistoryMap>({
-    '5m': [],
-    '15m': [],
-    '30m': [],
+    '10m': [],
     '1h': [],
+    '1d': [],
   });
 
   const { data: currentData } = useQuery({
@@ -43,7 +40,6 @@ export const useHealthData = (timeRange: TimeRange) => {
     }
   });
 
-  // Xóa log cũ mỗi giờ
   useEffect(() => {
     const interval = setInterval(clearOldLogs, 60 * 60 * 1000);
     return () => clearInterval(interval);
@@ -55,7 +51,7 @@ export const useHealthData = (timeRange: TimeRange) => {
       
       setHistoryMap(prev => {
         const newHistoryMap = { ...prev };
-        const ranges: TimeRange[] = ['5m', '15m', '30m', '1h'];
+        const ranges: TimeRange[] = ['10m', '1h', '1d'];
         
         ranges.forEach(range => {
           const timeLimit = new Date(now.getTime() - getTimeRangeInMs(range));
@@ -74,7 +70,6 @@ export const useHealthData = (timeRange: TimeRange) => {
     }
   }, [currentData]);
 
-  // Return history based on selected time range
   const history = historyMap[timeRange];
 
   const getAverages = () => {
@@ -107,13 +102,11 @@ export const useHealthData = (timeRange: TimeRange) => {
 
 const getTimeRangeInMs = (range: TimeRange): number => {
   switch (range) {
-    case '5m':
-      return 5 * 60 * 1000;
-    case '15m':
-      return 15 * 60 * 1000;
-    case '30m':
-      return 30 * 60 * 1000;
+    case '10m':
+      return 10 * 60 * 1000;
     case '1h':
       return 60 * 60 * 1000;
+    case '1d':
+      return 24 * 60 * 60 * 1000;
   }
 };

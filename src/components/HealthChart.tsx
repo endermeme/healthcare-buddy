@@ -8,17 +8,62 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { HealthData } from '@/services/healthData';
+import { TimeRange } from '@/hooks/useHealthData';
 
 interface HealthChartProps {
   data: HealthData[];
+  timeRange?: TimeRange;
 }
 
-export const HealthChart = ({ data }: HealthChartProps) => {
-  // Tìm giá trị max của cả 2 chỉ số
+export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
   const maxHeartRate = Math.max(...data.map(d => d.heartRate));
   const maxBloodOxygen = Math.max(...data.map(d => d.bloodOxygen));
   const maxValue = Math.max(maxHeartRate, maxBloodOxygen);
-  const yAxisMax = Math.ceil((maxValue + 10) / 10) * 10; // Làm tròn lên đến chục gần nhất và thêm 10 đơn vị
+  const yAxisMax = Math.ceil((maxValue + 10) / 10) * 10;
+
+  // Tính toán số điểm dữ liệu hiển thị trên trục X
+  const getTickCount = () => {
+    switch (timeRange) {
+      case '10m':
+        return 10; // Mỗi phút
+      case '1h':
+        return 12; // Mỗi 5 phút
+      case '1d':
+        return 24; // Mỗi giờ
+      default:
+        return 10;
+    }
+  };
+
+  // Format nhãn thời gian tùy theo khoảng thời gian
+  const formatXAxisTick = (timestamp: string) => {
+    const date = new Date(timestamp);
+    switch (timeRange) {
+      case '10m':
+        return date.toLocaleTimeString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      case '1h':
+        return date.toLocaleTimeString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      case '1d':
+        return date.toLocaleTimeString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh',
+          hour: '2-digit'
+        });
+      default:
+        return date.toLocaleTimeString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+    }
+  };
 
   return (
     <div className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px]">
@@ -35,17 +80,20 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           />
           <XAxis
             dataKey="timestamp"
-            tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { 
-              timeZone: 'Asia/Ho_Chi_Minh',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+            tickFormatter={formatXAxisTick}
             stroke="#94a3b8"
             fontSize={12}
             dy={10}
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}
             padding={{ left: 0, right: 0 }}
+            interval="preserveStartEnd"
+            minTickGap={50}
+            ticks={Array.from({ length: getTickCount() }, (_, i) => {
+              const firstTimestamp = new Date(data[0]?.timestamp || Date.now()).getTime();
+              const lastTimestamp = new Date(data[data.length - 1]?.timestamp || Date.now()).getTime();
+              return firstTimestamp + (i * (lastTimestamp - firstTimestamp) / (getTickCount() - 1));
+            })}
           />
           <YAxis 
             yAxisId="heartRate" 

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Index = () => {
-  const [timeRange, setTimeRange] = useState<TimeRange>('5m');
+  const [timeRange, setTimeRange] = useState<TimeRange>('10m');
   const { currentData, history, averages } = useHealthData(timeRange);
 
   const handleTimeRangeChange = (range: TimeRange) => {
@@ -85,21 +85,19 @@ const Index = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
-                    {timeRange}
+                    {timeRange === '10m' ? '10 phút' : 
+                     timeRange === '1h' ? '1 giờ' : '1 ngày'}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleTimeRangeChange('5m')}>
-                    5 phút
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTimeRangeChange('15m')}>
-                    15 phút
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleTimeRangeChange('30m')}>
-                    30 phút
+                  <DropdownMenuItem onClick={() => handleTimeRangeChange('10m')}>
+                    10 phút
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleTimeRangeChange('1h')}>
                     1 giờ
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleTimeRangeChange('1d')}>
+                    1 ngày
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -125,7 +123,7 @@ const Index = () => {
                   timeRange={timeRange}
                   onTimeRangeChange={setTimeRange}
                 />
-                <HealthChart data={history} />
+                <HealthChart data={history} timeRange={timeRange} />
               </div>
             </div>
           </div>
