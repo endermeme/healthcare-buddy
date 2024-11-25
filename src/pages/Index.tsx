@@ -61,7 +61,7 @@ const Index = () => {
       const dayLogs = logs[date];
       const logCount = dayLogs.length;
       const lastLog = dayLogs[dayLogs.length - 1];
-      return `${date} (${logCount} logs):\nLast: ${new Date(lastLog.timestamp).toLocaleTimeString()} - ${lastLog.heartRate}BPM, ${lastLog.bloodOxygen}%`;
+      return `${date} (${logCount} logs):\nLast: ${new Date(lastLog.timestamp).toLocaleTimeString()} - ${lastLog.logs[0]?.heartRate ?? '--'}BPM, ${lastLog.logs[0]?.bloodOxygen ?? '--'}%`;
     }).join('\n\n');
 
     toast({
@@ -131,8 +131,8 @@ const Index = () => {
           {/* Water Intake Section */}
           <div className="lg:col-span-1">
             <WaterIntakeProgress
-              heartRate={currentData?.heartRate ?? null}
-              bloodOxygen={currentData?.bloodOxygen ?? null}
+              heartRate={currentData?.logs[0]?.heartRate ?? null}
+              bloodOxygen={currentData?.logs[0]?.bloodOxygen ?? null}
             />
           </div>
         </div>

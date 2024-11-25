@@ -34,7 +34,7 @@ const Chat = () => {
 
     // Phân tích chỉ số nhịp tim
     const heartRateAnalysis = () => {
-      const rate = latestLog.heartRate;
+      const rate = latestLog.logs[0]?.heartRate ?? 0;
       if (rate < 60) return "nhịp tim thấp (nhịp chậm)";
       if (rate > 100) return "nhịp tim cao (nhịp nhanh)";
       return "nhịp tim bình thường";
@@ -42,7 +42,7 @@ const Chat = () => {
 
     // Phân tích chỉ số SpO2
     const spo2Analysis = () => {
-      const spo2 = latestLog.bloodOxygen;
+      const spo2 = latestLog.logs[0]?.bloodOxygen ?? 0;
       if (spo2 >= 95) return "mức oxy máu tốt";
       if (spo2 >= 90) return "mức oxy máu ở ngưỡng cần theo dõi";
       return "mức oxy máu thấp, cần chú ý";
@@ -51,8 +51,8 @@ const Chat = () => {
     return `Context: Dữ liệu sức khỏe mới nhất (${latestDate}):
 
 Chỉ số hiện tại:
-- Nhịp tim: ${latestLog.heartRate} BPM (${heartRateAnalysis()})
-- SpO2: ${latestLog.bloodOxygen}% (${spo2Analysis()})
+- Nhịp tim: ${latestLog.logs[0]?.heartRate ?? '--'} BPM (${heartRateAnalysis()})
+- SpO2: ${latestLog.logs[0]?.bloodOxygen ?? '--'}% (${spo2Analysis()})
 
 Thông tin tham khảo:
 - Nhịp tim bình thường: 60-100 BPM
