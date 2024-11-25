@@ -131,8 +131,8 @@ const Index = () => {
           {/* Water Intake Section */}
           <div className="lg:col-span-1">
             <WaterIntakeProgress
-              heartRate={currentData?.logs[0]?.heartRate ?? null}
-              bloodOxygen={currentData?.logs[0]?.bloodOxygen ?? null}
+              heartRate={currentData?.heartRate ?? null}
+              bloodOxygen={currentData?.bloodOxygen ?? null}
             />
           </div>
         </div>
