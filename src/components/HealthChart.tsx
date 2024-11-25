@@ -14,6 +14,12 @@ interface HealthChartProps {
 }
 
 export const HealthChart = ({ data }: HealthChartProps) => {
+  // Tìm giá trị max của cả 2 chỉ số
+  const maxHeartRate = Math.max(...data.map(d => d.heartRate));
+  const maxBloodOxygen = Math.max(...data.map(d => d.bloodOxygen));
+  const maxValue = Math.max(maxHeartRate, maxBloodOxygen);
+  const yAxisMax = Math.ceil((maxValue + 10) / 10) * 10; // Làm tròn lên đến chục gần nhất và thêm 10 đơn vị
+
   return (
     <div className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px]">
       <ResponsiveContainer width="100%" height="100%">
@@ -46,7 +52,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             stroke="#94a3b8"
             fontSize={12}
             tickCount={8}
-            domain={[0, 'dataMax + 20']}
+            domain={[0, yAxisMax]}
             dx={0}
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}
@@ -57,7 +63,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             stroke="#94a3b8"
             fontSize={12}
             tickCount={8}
-            domain={[0, 100]}
+            domain={[0, yAxisMax]}
             dx={0}
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}
