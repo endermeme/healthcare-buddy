@@ -1,75 +1,67 @@
 import axios from 'axios';
 import { format, addDays, isBefore } from 'date-fns';
 
-export interface HourlyLog {
-  hour: number;
+export interface MinuteLog {
+  timestamp: string;
+  heartRate: number;
+  bloodOxygen: number;
+}
+
+export interface LogEntry {
+  minute: string;
+  logs: MinuteLog[];
   avgHeartRate: number;
   avgBloodOxygen: number;
-  aiResponses: string[];
-  timestamp: string;
 }
 
-export interface DailyLog {
-  date: string;
-  hourlyLogs: HourlyLog[];
-}
+const API_URL = 'http://192.168.1.15/logdemo';
+const LOG_STORAGE_KEY = 'health_minute_logs';
 
-const LOG_STORAGE_KEY = 'health_daily_logs';
-const FAVORITE_LOGS_KEY = 'favorite_logs';
-const API_URL = 'http://192.168.1.15/log';
-
-export const fetchDailyLogs = async (date: Date): Promise<HourlyLog[]> => {
+export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
   try {
-    const response = await axios.get(`${API_URL}?date=${format(date, 'yyyy-MM-dd')}`);
-    return response.data;
+    const response = await axios.get(API_URL);
+    const validLogs = response.data.filter((log: MinuteLog) => log.bloodOxygen > 60);
+    
+    // Group logs by minute
+    const groupedLogs = validLogs.reduce((acc: { [key: string]: MinuteLog[] }, log: MinuteLog) => {
+      const minute = new Date(log.timestamp).toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      if (!acc[minute]) {
+        acc[minute] = [];
+      }
+      acc[minute].push(log);
+      return acc;
+    }, {});
+
+    // Calculate averages and format entries
+    const entries: LogEntry[] = Object.entries(groupedLogs).map(([minute, logs]) => {
+      const avgHeartRate = Math.round(
+        logs.reduce((sum, log) => sum + log.heartRate, 0) / logs.length
+      );
+      const avgBloodOxygen = Math.round(
+        logs.reduce((sum, log) => sum + log.bloodOxygen, 0) / logs.length
+      );
+
+      return {
+        minute,
+        logs,
+        avgHeartRate,
+        avgBloodOxygen
+      };
+    });
+
+    localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(entries));
+    return entries;
   } catch (error) {
     console.error('Error fetching logs:', error);
     return [];
   }
 };
 
-export const saveDailyLogs = (logs: DailyLog[]) => {
-  localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(logs));
-};
-
-export const getDailyLogs = (): DailyLog[] => {
-  const logs = localStorage.getItem(LOG_STORAGE_KEY);
-  return logs ? JSON.parse(logs) : [];
-};
-
-export const cleanOldLogs = () => {
-  const logs = getDailyLogs();
-  const sevenDaysAgo = addDays(new Date(), -7);
-  
-  const filteredLogs = logs.filter(log => {
-    const logDate = new Date(log.date);
-    return isBefore(sevenDaysAgo, logDate);
-  });
-
-  saveDailyLogs(filteredLogs);
-};
-
-export const addToFavorites = (log: DailyLog) => {
-  const favorites = getFavoriteLogs();
-  if (!favorites.some(f => f.date === log.date)) {
-    favorites.push(log);
-    localStorage.setItem(FAVORITE_LOGS_KEY, JSON.stringify(favorites));
-  }
-};
-
-export const getFavoriteLogs = (): DailyLog[] => {
-  const logs = localStorage.getItem(FAVORITE_LOGS_KEY);
-  return logs ? JSON.parse(logs) : [];
-};
-
-export const downloadLogs = (logs: DailyLog[]) => {
-  const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `health_logs_${format(new Date(), 'yyyy-MM-dd')}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+export const getStoredLogs = (): LogEntry[] => {
+  const stored = localStorage.getItem(LOG_STORAGE_KEY);
+  return stored ? JSON.parse(stored) : [];
 };
