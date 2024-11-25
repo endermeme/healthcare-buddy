@@ -25,14 +25,23 @@ export const useHealthData = (timeRange: TimeRange) => {
     refetchInterval: 5000,
     staleTime: 4000,
     meta: {
-      onSuccess: (data: HealthData | null) => {
-        if (data) {
-          const logDate = addHealthLog(data.heartRate, data.bloodOxygen);
-          if (logDate) {
+      onSuccess: async (data: HealthData | null) => {
+        if (data && data.heartRate > 0 && data.bloodOxygen > 0) {
+          try {
+            const logDate = await addHealthLog(data.heartRate, data.bloodOxygen);
+            if (logDate) {
+              toast({
+                title: "Đã ghi log mới",
+                description: `Nhịp tim: ${data.heartRate} BPM\nỐc-xy máu: ${data.bloodOxygen}%`,
+                duration: 3000,
+              });
+            }
+          } catch (error) {
+            console.error('Lỗi khi ghi log:', error);
             toast({
-              title: "Dữ liệu đã được ghi log",
-              description: `Đã ghi log cho ngày ${logDate}:\nNhịp tim: ${data.heartRate} BPM\nỐc-xy máu: ${data.bloodOxygen}%`,
-              duration: 5000,
+              title: "Lỗi ghi log",
+              description: "Không thể ghi log dữ liệu",
+              variant: "destructive",
             });
           }
         }
@@ -57,10 +66,9 @@ export const useHealthData = (timeRange: TimeRange) => {
           const timeLimit = new Date(now.getTime() - getTimeRangeInMs(range));
           const currentHistory = prev[range];
           
-          // Add new data point
           const updatedHistory = [...currentHistory, currentData]
             .filter(data => new Date(data.timestamp) > timeLimit)
-            .slice(-1000); // Limit to last 1000 points
+            .slice(-1000);
             
           newHistoryMap[range] = updatedHistory;
         });
