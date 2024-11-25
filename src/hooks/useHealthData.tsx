@@ -6,8 +6,21 @@ import { toast } from '@/components/ui/use-toast';
 
 export type TimeRange = '5m' | '15m' | '30m' | '1h';
 
+type HistoryMap = {
+  '5m': HealthData[];
+  '15m': HealthData[];
+  '30m': HealthData[];
+  '1h': HealthData[];
+};
+
 export const useHealthData = (timeRange: TimeRange) => {
-  const [history, setHistory] = useState<HealthData[]>([]);
+  // Separate history for each time range
+  const [historyMap, setHistoryMap] = useState<HistoryMap>({
+    '5m': [],
+    '15m': [],
+    '30m': [],
+    '1h': [],
+  });
 
   const { data: currentData } = useQuery({
     queryKey: ['healthData'],
@@ -38,18 +51,31 @@ export const useHealthData = (timeRange: TimeRange) => {
 
   useEffect(() => {
     if (currentData) {
-      setHistory(prev => {
-        const now = new Date();
-        const timeLimit = new Date(now.getTime() - getTimeRangeInMs(timeRange));
+      const now = new Date();
+      
+      setHistoryMap(prev => {
+        const newHistoryMap = { ...prev };
+        const ranges: TimeRange[] = ['5m', '15m', '30m', '1h'];
         
-        const updatedHistory = [...prev, currentData]
-          .filter(data => new Date(data.timestamp) > timeLimit)
-          .slice(-1000);
-
-        return updatedHistory;
+        ranges.forEach(range => {
+          const timeLimit = new Date(now.getTime() - getTimeRangeInMs(range));
+          const currentHistory = prev[range];
+          
+          // Add new data point
+          const updatedHistory = [...currentHistory, currentData]
+            .filter(data => new Date(data.timestamp) > timeLimit)
+            .slice(-1000); // Limit to last 1000 points
+            
+          newHistoryMap[range] = updatedHistory;
+        });
+        
+        return newHistoryMap;
       });
     }
-  }, [currentData, timeRange]);
+  }, [currentData]);
+
+  // Return history based on selected time range
+  const history = historyMap[timeRange];
 
   const getAverages = () => {
     if (history.length === 0) return { 
@@ -75,7 +101,7 @@ export const useHealthData = (timeRange: TimeRange) => {
     currentData,
     history,
     averages: getAverages(),
-    LogHistoryIcon, // Export icon for use in UI
+    LogHistoryIcon,
   };
 };
 
