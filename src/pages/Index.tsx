@@ -119,14 +119,10 @@ const Index = () => {
 
           {/* Water Intake Section */}
           <div className="lg:col-span-1">
-            {currentData && (
-              <div className="rounded-xl bg-white shadow-sm">
-                <WaterIntakeProgress
-                  heartRate={currentData.heartRate}
-                  bloodOxygen={currentData.bloodOxygen}
-                />
-              </div>
-            )}
+            <WaterIntakeProgress
+              heartRate={currentData?.heartRate ?? null}
+              bloodOxygen={currentData?.bloodOxygen ?? null}
+            />
           </div>
         </div>
 
