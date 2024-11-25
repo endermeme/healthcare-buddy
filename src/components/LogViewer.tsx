@@ -37,6 +37,7 @@ export const LogViewer = () => {
     const loadLogs = async () => {
       try {
         const fetchedLogs = await fetchAndStoreLogs();
+        console.log('Fetched logs:', fetchedLogs);
         setLogs(fetchedLogs);
       } catch (error) {
         console.error('Error fetching logs:', error);
