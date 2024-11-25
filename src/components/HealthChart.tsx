@@ -25,7 +25,7 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
   const transformedData = data.map(d => ({
     ...d,
     validHeartRate: d.bloodOxygen > 0 ? d.heartRate : null,
-    invalidHeartRate: d.bloodOxygen === 0 ? d.heartRate : null,
+    invalidHeartRate: d.bloodOxygen === 0 ? 0 : null, // Set to 0 for bottom line
   }));
 
   const getTickCount = () => {
@@ -141,7 +141,7 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
                 return [`${value}%`, 'SpO2'];
               }}
             />
-            {/* Invalid heart rate data (green line) */}
+            {/* Invalid heart rate data (green line at bottom) */}
             <Line
               yAxisId="heartRate"
               type="monotone"
@@ -159,8 +159,7 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
               dataKey="validHeartRate"
               stroke="#ff4d4f"
               strokeWidth={2}
-              dot={{ r: 3, strokeWidth: 2, fill: '#fff' }}
-              activeDot={{ r: 5, strokeWidth: 2 }}
+              dot={false}
               name="Valid Heart Rate"
               connectNulls
             />
@@ -171,8 +170,7 @@ export const HealthChart = ({ data, timeRange = '10m' }: HealthChartProps) => {
               dataKey="bloodOxygen"
               stroke="#4096ff"
               strokeWidth={2}
-              dot={{ r: 3, strokeWidth: 2, fill: '#fff' }}
-              activeDot={{ r: 5, strokeWidth: 2 }}
+              dot={false}
               name="Blood Oxygen"
               connectNulls
             />
