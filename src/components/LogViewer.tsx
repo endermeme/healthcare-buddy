@@ -25,6 +25,7 @@ export const LogViewer = () => {
     const loadLogs = async () => {
       try {
         const fetchedLogs = await fetchAndStoreLogs();
+        console.log('Fetched logs:', fetchedLogs); // Debug log
         setLogs(fetchedLogs);
       } catch (error) {
         console.error('Error fetching logs:', error);
@@ -37,6 +38,7 @@ export const LogViewer = () => {
     };
 
     loadLogs();
+    // Tự động cập nhật logs mỗi phút
     const interval = setInterval(loadLogs, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -45,6 +47,15 @@ export const LogViewer = () => {
     setSelectedLog(log);
     setDialogOpen(true);
   };
+
+  // Hiển thị thông báo nếu không có logs
+  if (logs.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Chưa có dữ liệu log nào. Dữ liệu sẽ xuất hiện sau khi bạn nhấn "Lấy log ngay".
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

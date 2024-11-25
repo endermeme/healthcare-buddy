@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { format, addDays, isBefore } from 'date-fns';
 
 export interface MinuteLog {
   timestamp: string;
@@ -21,6 +20,7 @@ export const fetchAndStoreLogs = async (): Promise<LogEntry[]> => {
   try {
     // Get new logs from API
     const response = await axios.get<MinuteLog[]>(API_URL);
+    console.log('API Response:', response.data); // Debug log
     const validLogs = response.data.filter((log: MinuteLog) => log.bloodOxygen > 60);
     
     // Get existing stored logs
