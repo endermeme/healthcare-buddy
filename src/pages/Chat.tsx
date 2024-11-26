@@ -13,7 +13,7 @@ interface Message {
   isUser: boolean;
   audioUrl?: string;
   transcription?: string;
-  timestamp: Date;
+  timestamp: string;
   content: string;
   role: 'user' | 'assistant';
 }
@@ -37,7 +37,7 @@ export default function Chat() {
         isUser: true,
         audioUrl,
         transcription,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         content: text,
         role: 'user'
       };
@@ -77,7 +77,7 @@ export default function Chat() {
           id: (Date.now() + 1).toString(),
           text: response.data.text || response.data.answer,
           isUser: false,
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           content: response.data.text || response.data.answer,
           role: 'assistant',
         };
