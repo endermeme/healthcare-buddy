@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { toast } from 'sonner';
+import { getApiEndpoint } from './apiKeyService';
 
 export interface HealthData {
   heartRate: number;
@@ -121,20 +122,7 @@ export const loadChatMessages = () => {
 // Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
-    const deviceKey = localStorage.getItem('deviceKey');
-    if (!deviceKey) {
-      const now = Date.now();
-      if (now - lastErrorTime >= ERROR_COOLDOWN) {
-        toast.error("Vui lòng nhập mã thiết bị trong cài đặt", {
-          duration: TOAST_DURATION,
-          position: "bottom-center",
-        });
-        lastErrorTime = now;
-      }
-      return [];
-    }
-
-    const response = await axios.get<ApiResponse>(`${API_ENDPOINT}?key=${deviceKey}`);
+    const response = await axios.get<ApiResponse>(getApiEndpoint('/data'));
     
     if (!response.data || typeof response.data.heartRate !== 'number') {
       throw new Error('Invalid data format received');

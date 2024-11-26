@@ -10,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
-import axios from "axios";
+import { validateApiKey, setApiKey } from "@/services/apiKeyService";
 
 const formSchema = z.object({
+  deviceKey: z.string().length(6, "Mã thiết bị phải có đúng 6 ký tự"),
   age: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 150, {
     message: "Tuổi phải là số dương từ 1-150",
   }),
@@ -23,18 +24,17 @@ const formSchema = z.object({
     message: "Cân nặng phải là số dương từ 1-500kg",
   }),
   medicalHistory: z.string().min(1, "Vui lòng nhập tiền sử bệnh").max(1000, "Tiền sử bệnh quá dài"),
-  deviceKey: z.string().length(6, "Mã thiết bị phải có đúng 6 ký tự"),
 });
 
 export default function Profile() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      deviceKey: localStorage.getItem('deviceKey') || "",
       age: "",
       gender: undefined,
       weight: "",
       medicalHistory: "",
-      deviceKey: localStorage.getItem('deviceKey') || "",
     },
   });
 
@@ -43,23 +43,19 @@ export default function Profile() {
     if (savedProfile) {
       const parsedProfile = JSON.parse(savedProfile);
       Object.keys(parsedProfile).forEach((key) => {
-        form.setValue(key as keyof z.infer<typeof formSchema>, parsedProfile[key], {
-          shouldValidate: true,
-          shouldDirty: true,
-          shouldTouch: true,
-        });
+        form.setValue(key as keyof z.infer<typeof formSchema>, parsedProfile[key]);
       });
     }
   }, [form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setApiKey(values.deviceKey);
     localStorage.setItem('userProfile', JSON.stringify(values));
-    localStorage.setItem('deviceKey', values.deviceKey);
     toast.success("Đã lưu thông tin thành công", {
       duration: 3000,
       position: "bottom-center",
     });
-  }
+  };
 
   const testDeviceKey = async () => {
     const deviceKey = form.getValues('deviceKey');
@@ -71,15 +67,13 @@ export default function Profile() {
       return;
     }
 
-    try {
-      const response = await axios.get(`http://192.168.1.15/data?key=${deviceKey}`);
-      if (response.data) {
-        toast.success("Kết nối thành công với thiết bị", {
-          duration: 3000,
-          position: "bottom-center",
-        });
-      }
-    } catch (error) {
+    const isValid = await validateApiKey(deviceKey);
+    if (isValid) {
+      toast.success("Kết nối thành công với thiết bị", {
+        duration: 3000,
+        position: "bottom-center",
+      });
+    } else {
       toast.error("Không thể kết nối với thiết bị. Vui lòng kiểm tra lại mã.", {
         duration: 3000,
         position: "bottom-center",
@@ -200,7 +194,8 @@ export default function Profile() {
           <Alert className="bg-blue-50 text-blue-800 border-blue-200">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Lưu ý: Các chỉ số sức khỏe cơ bản như nhịp tim, SpO2 sẽ được đo và cập nhật tự động thông qua thiết bị đeo. Các chỉ số sức khỏe khác như huyết áp, đường huyết, cholesterol cần được đo và theo dõi tại các cơ sở y tế chuyên môn để đảm bảo độ chính xác.
+              Lưu ý: Các chỉ số sức khỏe cơ bản như nhịp tim, SpO2 sẽ được đo và cập nhật tự động thông qua thiết bị đeo. 
+              Các chỉ số sức khỏe khác như huyết áp, đường huyết, cholesterol cần được đo và theo dõi tại các cơ sở y tế chuyên môn để đảm bảo độ chính xác.
             </AlertDescription>
           </Alert>
 
