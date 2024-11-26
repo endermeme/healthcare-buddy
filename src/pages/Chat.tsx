@@ -13,6 +13,9 @@ interface Message {
   isUser: boolean;
   audioUrl?: string;
   transcription?: string;
+  timestamp: string;
+  content: string;
+  role: 'user' | 'assistant';
 }
 
 export default function Chat() {
@@ -34,6 +37,9 @@ export default function Chat() {
         isUser: true,
         audioUrl,
         transcription,
+        timestamp: new Date().toISOString(),
+        content: text,
+        role: 'user'
       };
       
       const newMessages = [...messages, userMessage];
@@ -71,6 +77,9 @@ export default function Chat() {
           id: (Date.now() + 1).toString(),
           text: response.data.text || response.data.answer,
           isUser: false,
+          timestamp: new Date().toISOString(),
+          content: response.data.text || response.data.answer,
+          role: 'assistant'
         };
         
         const updatedMessages = [...newMessages, aiMessage];
