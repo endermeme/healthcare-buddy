@@ -10,6 +10,7 @@ export const useAudioRecording = ({ onTranscriptionComplete }: UseAudioRecording
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const startTimeRef = useRef<number>(0);
   const { toast } = useToast();
 
   const startRecording = async () => {
@@ -18,6 +19,7 @@ export const useAudioRecording = ({ onTranscriptionComplete }: UseAudioRecording
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+      startTimeRef.current = Date.now();
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
@@ -26,6 +28,18 @@ export const useAudioRecording = ({ onTranscriptionComplete }: UseAudioRecording
       };
 
       mediaRecorder.onstop = async () => {
+        const duration = Date.now() - startTimeRef.current;
+        
+        // Check if recording is less than 1 second
+        if (duration < 1000) {
+          toast({
+            variant: "destructive",
+            title: "Ghi âm quá ngắn",
+            description: "Vui lòng ghi âm ít nhất 1 giây.",
+          });
+          return;
+        }
+
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
         const audioUrl = URL.createObjectURL(audioBlob);
 
@@ -40,7 +54,7 @@ export const useAudioRecording = ({ onTranscriptionComplete }: UseAudioRecording
               headers: {
                 'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
                 'Content-Type': 'multipart/form-data',
-                'Accept-Language': 'vi', // Specify Vietnamese language
+                'Accept-Language': 'vi',
               },
             }
           );
