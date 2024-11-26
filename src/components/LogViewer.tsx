@@ -29,6 +29,7 @@ export const LogViewer = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
+  // Generate last 7 days
   const dateOptions = Array.from({ length: 7 }, (_, i) => {
     const date = subDays(new Date(), i);
     return {
@@ -36,11 +37,6 @@ export const LogViewer = () => {
       label: format(date, 'dd/MM/yyyy', { locale: vi })
     };
   });
-
-  const handleLogClick = (log: MinuteLog) => {
-    setSelectedLog(log);
-    setDialogOpen(true);
-  };
 
   const handleAddToFavorites = () => {
     const logToSave: DailyLog = {
@@ -61,6 +57,11 @@ export const LogViewer = () => {
       title: "Tải log thành công",
       description: "File log đã được tải về máy của bạn",
     });
+  };
+
+  const handleLogClick = (log: MinuteLog) => {
+    setSelectedLog(log);
+    setDialogOpen(true);
   };
 
   return (
