@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchHealthData, HealthData } from '@/services/healthData';
-import { toast } from '@/components/ui/use-toast';
 
 export type TimeRange = '5m' | '15m' | '30m' | '1h';
 
 export const useHealthData = (timeRange: TimeRange) => {
   const [history, setHistory] = useState<HealthData[]>([]);
+  const apiKey = localStorage.getItem('apiKey');
 
   const { data: currentData } = useQuery({
     queryKey: ['healthData'],
     queryFn: fetchHealthData,
     refetchInterval: 5000,
     staleTime: 4000,
+    enabled: !!apiKey,
   });
 
   useEffect(() => {

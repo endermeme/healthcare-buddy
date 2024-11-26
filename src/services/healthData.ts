@@ -1,5 +1,7 @@
+import { toast } from "@/components/ui/use-toast";
+import { fetchSensorData, ApiResponse } from './api';
+import { HealthData } from './healthDataTypes'; // Ensure you have the HealthData interface imported from appropriate file
 import axios from 'axios';
-import { toast } from '@/components/ui/use-toast';
 
 export interface HealthData {
   heartRate: number;
@@ -9,27 +11,7 @@ export interface HealthData {
   oxygenLevels: number[];
 }
 
-interface ApiResponse {
-  heartRate: number;
-  spo2: number;
-}
-
-export interface HourlyLog {
-  hour: string;
-  isRecording: boolean;
-  lastRecordTime: string | null;
-  averageHeartRate: number;
-  averageBloodOxygen: number;
-  secondsData: HealthData[];
-}
-
-interface WaterRecommendation {
-  recommendation: string;
-  glassesCount: number;
-}
-
-const BASE_API_ENDPOINT = 'http://192.168.1.15/data';
-export const LOGS_STORAGE_KEY = 'health_logs';
+const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
 
@@ -58,13 +40,6 @@ export const getCurrentRecording = (): { isRecording: boolean; currentHour: stri
 // Cập nhật trạng thái ghi
 export const setCurrentRecording = (isRecording: boolean, currentHour: string | null) => {
   localStorage.setItem(CURRENT_RECORDING_KEY, JSON.stringify({ isRecording, currentHour }));
-};
-
-// Tính trung bình của một mảng số
-const calculateAverage = (numbers: number[]): number => {
-  if (numbers.length === 0) return 0;
-  const sum = numbers.reduce((a, b) => a + b, 0);
-  return Math.round(sum / numbers.length);
 };
 
 // Cập nhật log cho giờ hiện tại
@@ -103,56 +78,18 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   }
 };
 
-export const saveChatMessage = (message: any) => {
-  const messages = loadChatMessages();
-  messages.push(message);
-  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
-};
-
-export const loadChatMessages = () => {
-  const storedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
-  return storedMessages ? JSON.parse(storedMessages) : [];
-};
-
 export const fetchHealthData = async (): Promise<HealthData[]> => {
+  const apiKey = localStorage.getItem('apiKey');
+  if (!apiKey) {
+    return [];
+  }
+
   try {
-    const apiKey = localStorage.getItem('apiKey');
-    if (!apiKey) {
-      console.log('API key not found in localStorage');
-      return [];
-    }
+    const data = await fetchSensorData(apiKey);
+    const { heartRate, spo2: bloodOxygen } = data;
 
-    console.log('Fetching data with API key:', apiKey);
-    
-    const response = await axios.get<ApiResponse>(
-      `${BASE_API_ENDPOINT}`, 
-      {
-        params: { key: apiKey },
-        timeout: 5000, // 5 second timeout
-        headers: {
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
-        }
-      }
-    );
-    
-    console.log('API Response:', response.data);
-
-    if (!response.data) {
-      console.error('No data received from API');
-      throw new Error('No data received');
-    }
-
-    const { heartRate, spo2: bloodOxygen } = response.data;
-
-    if (typeof heartRate !== 'number' || typeof bloodOxygen !== 'number') {
-      console.error('Invalid data format:', response.data);
-      throw new Error('Invalid data format received');
-    }
-
-    // Chỉ xử lý dữ liệu hợp lệ
     if (isValidReading(heartRate, bloodOxygen)) {
-      const data: HealthData = {
+      const healthData: HealthData = {
         heartRate,
         bloodOxygen,
         timestamp: new Date().toISOString(),
@@ -162,40 +99,17 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
 
       // Cập nhật logs
       const currentLogs = loadLogs();
-      const updatedLogs = updateCurrentHourLog(currentLogs, data);
+      const updatedLogs = updateCurrentHourLog(currentLogs, healthData);
       saveLogs(updatedLogs);
 
-      return [data];
-    } else {
-      console.warn('Invalid reading detected:', { heartRate, bloodOxygen });
-      return [];
+      return [healthData];
     }
+    return [];
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        config: {
-          url: error.config?.url,
-          params: error.config?.params
-        }
-      });
-      
-      const errorMessage = error.response?.status === 401 
-        ? "Key API không hợp lệ"
-        : "Không thể kết nối với cảm biến. Vui lòng kiểm tra lại.";
-
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
       toast({
-        title: "Lỗi kết nối",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } else {
-      console.error('Non-axios error:', error);
-      toast({
-        title: "Lỗi không xác định",
-        description: "Đã xảy ra lỗi khi kết nối với cảm biến",
+        title: "Lỗi xác thực",
+        description: "Key API không hợp lệ",
         variant: "destructive",
       });
     }
@@ -203,6 +117,14 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
   }
 };
 
+// Tính trung bình của một mảng số
+const calculateAverage = (numbers: number[]): number => {
+  if (numbers.length === 0) return 0;
+  const sum = numbers.reduce((a, b) => a + b, 0);
+  return Math.round(sum / numbers.length);
+};
+
+// Hàm gợi ý nước uống
 export const getWaterRecommendation = async (
   heartRate: number,
   bloodOxygen: number
