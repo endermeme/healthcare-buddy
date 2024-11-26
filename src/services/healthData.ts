@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 
 export interface HealthData {
   heartRate: number;
@@ -7,7 +7,6 @@ export interface HealthData {
   timestamp: string;
   heartRates: number[];
   oxygenLevels: number[];
-  error?: boolean;
 }
 
 interface ApiResponse {
@@ -116,7 +115,6 @@ export const loadChatMessages = () => {
 };
 
 // Fetch health data từ sensor
-
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
     const response = await axios.get<ApiResponse>(API_ENDPOINT);
@@ -149,7 +147,11 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
     }
   } catch (error) {
     console.error('Error fetching health data:', error);
-    toast("Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.");
+    toast({
+      title: "Lỗi kết nối",
+      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
+      variant: "destructive",
+    });
     return [];
   }
 };
