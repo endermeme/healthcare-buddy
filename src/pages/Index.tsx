@@ -4,13 +4,27 @@ import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
 import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 const EMOJIS = ["❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯", "❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯"];
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
   const { currentData, history, averages } = useHealthData(timeRange);
+
+  // Kiểm tra lỗi cảm biến và hiển thị toast
+  if (currentData?.error) {
+    toast.error("Lỗi cảm biến", {
+      position: "bottom-center",
+      duration: 3000,
+      className: "bg-red-500 text-white border-none shadow-lg",
+      style: {
+        backgroundColor: "#ef4444",
+        color: "white",
+        border: "none",
+      },
+    });
+  }
 
   const handleTimeRangeChange = (range: TimeRange) => {
     setTimeRange(range);
