@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { History } from 'lucide-react';
 
 export interface SecondData {
   timestamp: string;
@@ -14,8 +15,9 @@ export interface MinuteLog {
 
 export interface HourLog {
   hour: string;
-  minuteLogs: MinuteLog[];
   timestamp: string;
+  minuteLogs: MinuteLog[];
+  isRecording?: boolean;
 }
 
 const LOG_STORAGE_KEY = 'health_logs';
@@ -41,7 +43,8 @@ export const addHealthLog = (heartRate: number, bloodOxygen: number): string | u
       hourLog = {
         hour: hourStr,
         minuteLogs: [],
-        timestamp: format(now, "yyyy-MM-dd'T'HH:00:00")
+        timestamp: format(now, "yyyy-MM-dd'T'HH:00:00"),
+        isRecording: true
       };
       dailyLogs[dateStr].push(hourLog);
     }
@@ -66,6 +69,10 @@ export const addHealthLog = (heartRate: number, bloodOxygen: number): string | u
       heartRate,
       bloodOxygen
     });
+
+    // Update recording status
+    hourLog.isRecording = true;
+    minuteLog.isRecording = true;
 
     localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(dailyLogs));
     return dateStr;
@@ -103,28 +110,6 @@ export const deleteLog = (date: string, hourIndex: number) => {
     }
   } catch (error) {
     console.error('Error deleting log:', error);
-  }
-};
-
-export const clearOldLogs = () => {
-  try {
-    const storedLogs = localStorage.getItem(LOG_STORAGE_KEY);
-    if (!storedLogs) return;
-    
-    const dailyLogs = JSON.parse(storedLogs);
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
-    
-    // Remove logs older than 30 days
-    Object.keys(dailyLogs).forEach(date => {
-      if (new Date(date) < thirtyDaysAgo) {
-        delete dailyLogs[date];
-      }
-    });
-    
-    localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(dailyLogs));
-  } catch (error) {
-    console.error('Error clearing old logs:', error);
   }
 };
 

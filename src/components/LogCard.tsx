@@ -1,9 +1,10 @@
 import { Card } from '@/components/ui/card';
-import { Clock, Activity, Heart } from 'lucide-react';
+import { Clock, Activity, Heart, Radio } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { type HourLog } from '@/services/logService';
 import { HealthChart } from './HealthChart';
+import { Badge } from '@/components/ui/badge';
 
 interface LogCardProps {
   log: HourLog;
@@ -41,13 +42,12 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
               {format(hourTime, 'HH:00', { locale: vi })}
             </span>
           </div>
-          <div className="text-sm">
-            {lastMinute?.isRecording ? (
-              <span className="text-blue-500">Đang ghi...</span>
-            ) : (
-              <span className="text-green-500">Đã hoàn tất</span>
-            )}
-          </div>
+          {log.isRecording && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Radio className="h-3 w-3 text-red-500 animate-pulse" />
+              <span className="text-xs">Đang ghi</span>
+            </Badge>
+          )}
         </div>
 
         <div className="h-[200px] w-full">
