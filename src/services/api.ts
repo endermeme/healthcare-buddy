@@ -10,17 +10,15 @@ export const api = axios.create({
     'Authorization': `Bearer ${API_KEY}`,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-  },
-  // Add CORS proxy to bypass CORS issues
-  proxy: {
-    protocol: 'https',
-    host: 'cors-anywhere.herokuapp.com',
-    port: 443,
-    auth: {
-      username: 'user',
-      password: 'password'
-    }
   }
+});
+
+// Add CORS headers to requests
+api.interceptors.request.use((config) => {
+  config.headers['Access-Control-Allow-Origin'] = '*';
+  config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+  config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization';
+  return config;
 });
 
 export const sendAudioToSpeechToText = async (audioBlob: Blob) => {
