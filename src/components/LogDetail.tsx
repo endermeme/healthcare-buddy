@@ -23,10 +23,9 @@ export const LogDetail = ({ log, open, onOpenChange }: LogDetailProps) => {
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
-            Chi tiết phút {new Date(log.minute).toLocaleTimeString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+            Chi tiết {new Date(log.hour).toLocaleTimeString('vi-VN', {
+              hour: '2-digit'
+            })}:00
           </DialogTitle>
         </DialogHeader>
         
@@ -38,15 +37,8 @@ export const LogDetail = ({ log, open, onOpenChange }: LogDetailProps) => {
               {log.secondsData.map((data, index) => (
                 <div 
                   key={data.timestamp}
-                  className="p-3 bg-gray-50 rounded-lg text-sm grid grid-cols-3 gap-4"
+                  className="p-3 bg-gray-50 rounded-lg text-sm grid grid-cols-2 gap-4"
                 >
-                  <span className="font-medium">
-                    {new Date(data.timestamp).toLocaleTimeString('vi-VN', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit'
-                    })}
-                  </span>
                   <span className="text-red-500">
                     Nhịp tim: {data.heartRate} BPM
                   </span>

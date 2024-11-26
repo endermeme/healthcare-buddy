@@ -10,7 +10,7 @@ interface SecondData {
 }
 
 export interface MinuteLog {
-  minute: string;
+  hour: string; // Changed from minute to hour
   isRecording: boolean;
   secondsData: SecondData[];
 }
@@ -21,7 +21,7 @@ interface LogCardProps {
 }
 
 export const LogCard = ({ log, onClick }: LogCardProps) => {
-  const minuteTime = new Date(log.minute);
+  const hourTime = new Date(log.hour);
   const lastReading = log.secondsData[log.secondsData.length - 1];
 
   return (
@@ -34,7 +34,7 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
           <div className="flex items-center space-x-2">
             <Clock className="h-4 w-4 text-gray-500" />
             <span className="font-medium">
-              {format(minuteTime, 'HH:mm', { locale: vi })}
+              {format(hourTime, 'HH:00', { locale: vi })}
             </span>
           </div>
           <div className="text-sm">
@@ -62,7 +62,7 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
         </div>
 
         <div className="text-xs text-gray-500">
-          {log.secondsData.length} giây đã ghi
+          {log.secondsData.length} lần đo
         </div>
       </div>
     </Card>
