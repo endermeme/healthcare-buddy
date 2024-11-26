@@ -5,6 +5,7 @@ import { ChatHeader } from '@/components/chat/ChatHeader';
 import { toast } from 'sonner';
 import { saveChatMessage } from '@/services/healthData';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 interface Message {
   id: string;
@@ -36,26 +37,33 @@ export default function Chat() {
       setMessages(prev => [...prev, userMessage]);
       saveChatMessage(userMessage);
 
-      // Prepare API request with metadata
-      const requestBody = {
+      // Call API
+      const response = await axios.post('http://service.aigate.app/v1/chat/completions', {
         query: text,
         ...metadata
-      };
+      }, {
+        headers: {
+          'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
+          'Content-Type': 'application/json'
+        }
+      });
 
-      // Call your API here with requestBody
-      // const response = await yourApiCall(requestBody);
-      
       // Add AI response
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "Đây là phản hồi mẫu. Hãy thay thế bằng phản hồi thực từ API.",
-        isUser: false,
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
-      saveChatMessage(aiMessage);
+      if (response.data && response.data.answer) {
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response.data.answer,
+          isUser: false,
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+        saveChatMessage(aiMessage);
+      } else {
+        throw new Error('Invalid API response');
+      }
 
     } catch (error) {
+      console.error('API Error:', error);
       toast.error("Có lỗi xảy ra khi gửi tin nhắn");
     } finally {
       setIsLoading(false);
