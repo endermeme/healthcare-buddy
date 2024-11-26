@@ -1,39 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Star, Download, Clock, ChevronDown } from 'lucide-react';
+import { Star, Download, ChevronDown } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { HealthChart } from '@/components/HealthChart';
+import { LogCard, type MinuteLog } from './LogCard';
+import { LogDetail } from './LogDetail';
 import {
   fetchDailyLogs,
-  cleanOldLogs,
   addToFavorites,
   downloadLogs,
   getDailyLogs,
   type DailyLog,
-  type HourlyLog
 } from '@/services/logApiService';
 
 export const LogViewer = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
-  const [currentDayLogs, setCurrentDayLogs] = useState<HourlyLog[]>([]);
-  const [selectedLog, setSelectedLog] = useState<HourlyLog | null>(null);
+  const [minuteLogs, setMinuteLogs] = useState<MinuteLog[]>([]);
+  const [selectedLog, setSelectedLog] = useState<MinuteLog | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -46,20 +38,10 @@ export const LogViewer = () => {
     };
   });
 
-  useEffect(() => {
-    const loadLogs = async () => {
-      const logs = await fetchDailyLogs(selectedDate);
-      setCurrentDayLogs(logs);
-      cleanOldLogs();
-    };
-
-    loadLogs();
-  }, [selectedDate]);
-
   const handleAddToFavorites = () => {
     const logToSave: DailyLog = {
       date: format(selectedDate, 'yyyy-MM-dd'),
-      hourlyLogs: currentDayLogs
+      minuteLogs: minuteLogs
     };
     addToFavorites(logToSave);
     toast({
@@ -77,24 +59,7 @@ export const LogViewer = () => {
     });
   };
 
-  // Convert hourly log data to chart format
-  const getChartData = (log: HourlyLog) => {
-    const baseTime = new Date(log.timestamp);
-    const startTime = new Date(baseTime.setMinutes(0));
-    const endTime = new Date(baseTime.setHours(baseTime.getHours() + 1));
-    
-    // Generate data points for the hour
-    return Array.from({ length: 12 }, (_, i) => {
-      const timestamp = new Date(startTime.getTime() + (i * 5 * 60 * 1000));
-      return {
-        timestamp: timestamp.toISOString(),
-        heartRate: log.avgHeartRate + Math.random() * 5 - 2.5, // Simulate variation
-        bloodOxygen: log.avgBloodOxygen + Math.random() * 2 - 1, // Simulate variation
-      };
-    });
-  };
-
-  const handleLogClick = (log: HourlyLog) => {
+  const handleLogClick = (log: MinuteLog) => {
     setSelectedLog(log);
     setDialogOpen(true);
   };
@@ -144,58 +109,21 @@ export const LogViewer = () => {
 
       <ScrollArea className="h-[400px] rounded-md border">
         <div className="space-y-4 p-4">
-          {currentDayLogs.map((log) => (
-            <Card 
-              key={log.hour} 
-              className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+          {minuteLogs.map((log) => (
+            <LogCard 
+              key={log.minute}
+              log={log}
               onClick={() => handleLogClick(log)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium">{log.hour}:00</span>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-sm text-gray-600">
-                    Nhịp tim TB: {log.avgHeartRate} BPM
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    SpO2 TB: {log.avgBloodOxygen}%
-                  </div>
-                </div>
-              </div>
-            </Card>
+            />
           ))}
         </div>
       </ScrollArea>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>
-              Chi tiết sức khỏe {selectedLog?.hour}:00
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedLog && (
-            <div className="space-y-6">
-              <HealthChart data={getChartData(selectedLog)} />
-              
-              <div className="space-y-4">
-                <h3 className="font-medium">Phân tích của AI:</h3>
-                {selectedLog.aiResponses.map((response, index) => (
-                  <div 
-                    key={index}
-                    className="p-4 bg-gray-50 rounded-lg text-sm text-gray-700"
-                  >
-                    {response}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <LogDetail
+        log={selectedLog}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 };

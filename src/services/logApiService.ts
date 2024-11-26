@@ -1,31 +1,23 @@
 import { format } from 'date-fns';
-import { HourlyHealthLog } from './logService';
+import { MinuteLog } from '@/components/LogCard';
 
 export interface DailyLog {
   date: string;
-  hourlyLogs: HourlyLog[];
-}
-
-export interface HourlyLog {
-  hour: string;
-  avgHeartRate: number;
-  avgBloodOxygen: number;
-  timestamp: string;
-  aiResponses: string[];
+  minuteLogs: MinuteLog[];
 }
 
 const LOG_STORAGE_KEY = 'health_daily_logs';
 const FAVORITE_LOGS_KEY = 'favorite_logs';
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-export const fetchDailyLogs = async (date: Date): Promise<HourlyLog[]> => {
+export const fetchDailyLogs = async (date: Date): Promise<MinuteLog[]> => {
   const dateStr = format(date, 'yyyy-MM-dd');
   const storedLogs = localStorage.getItem(LOG_STORAGE_KEY);
   if (!storedLogs) return [];
   
   const logs: DailyLog[] = JSON.parse(storedLogs);
   const dayLog = logs.find(log => log.date === dateStr);
-  return dayLog?.hourlyLogs || [];
+  return dayLog?.minuteLogs || [];
 };
 
 export const saveDailyLogs = (logs: DailyLog[]) => {
