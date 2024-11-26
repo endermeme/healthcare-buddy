@@ -8,6 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = 3001;
+const HOST = '192.168.1.15';
 
 interface HealthLogRequest {
   bpm: number[];
@@ -17,7 +18,7 @@ interface HealthLogRequest {
 // Mock data storage
 let healthLogs: any[] = [];
 
-app.get('/api/health-log', (_req: Request, res: Response) => {
+app.get('/log', (_req: Request, res: Response) => {
   // Generate some mock data if no data exists
   if (healthLogs.length === 0) {
     const mockData = {
@@ -30,7 +31,7 @@ app.get('/api/health-log', (_req: Request, res: Response) => {
   return res.json(healthLogs[healthLogs.length - 1]);
 });
 
-app.post('/api/health-log', (req: Request<{}, {}, HealthLogRequest>, res: Response) => {
+app.post('/log', (req: Request<{}, {}, HealthLogRequest>, res: Response) => {
   const { bpm, oxy } = req.body;
   
   if (!Array.isArray(bpm) || !Array.isArray(oxy) || bpm.length !== oxy.length) {
@@ -56,6 +57,6 @@ app.post('/api/health-log', (req: Request<{}, {}, HealthLogRequest>, res: Respon
   return res.json(healthData);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Server running at http://${HOST}:${PORT}`);
 });

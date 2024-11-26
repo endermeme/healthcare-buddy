@@ -5,7 +5,7 @@ export interface HealthData {
 }
 
 export const fetchHealthData = async (): Promise<HealthData> => {
-  const response = await fetch('http://localhost:3001/api/health-log');
+  const response = await fetch('http://192.168.1.15:3001/log');
   if (!response.ok) {
     throw new Error('Failed to fetch health data');
   }
