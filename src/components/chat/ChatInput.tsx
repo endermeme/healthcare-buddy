@@ -33,16 +33,29 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
   const getMetadataFromProfile = () => {
     if (!profileData) return {};
     
-    // Lấy dữ liệu nhịp tim và oxy từ lịch sử ghi
+    // Lấy dữ liệu nhịp tim và oxy từ lịch sử ghi và tạo chuỗi số
     const logs = loadLogs();
-    const latestLog = logs[logs.length - 1];
-    const latestData = latestLog?.secondsData[latestLog.secondsData.length - 1];
+    const recentLogs = logs.slice(-10); // Lấy 10 bản ghi gần nhất
+    
+    const heartRates = recentLogs
+      .flatMap(log => log.secondsData)
+      .map(data => data.heartRate)
+      .filter(rate => rate > 0)
+      .slice(-10)
+      .join(' ');
+
+    const oxygenLevels = recentLogs
+      .flatMap(log => log.secondsData)
+      .map(data => data.bloodOxygen)
+      .filter(level => level > 0)
+      .slice(-10)
+      .join(' ');
     
     return {
-      nhiptim: latestData?.heartRate || '',
-      oxy: latestData?.bloodOxygen || '',
-      tuoi: profileData.age || '',
-      cannang: profileData.weight || '',
+      nhiptim: heartRates || '90 90 90 90 90', // Fallback nếu không có dữ liệu
+      oxy: oxygenLevels || '98 98 98 98 98', // Fallback nếu không có dữ liệu
+      tuoi: profileData.age?.toString() || '',
+      cannang: profileData.weight?.toString() || '',
       tiensubenh: profileData.medicalHistory || '',
       gioitinh: profileData.gender || '',
     };
