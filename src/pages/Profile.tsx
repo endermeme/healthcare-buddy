@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import axios from "axios";
 
 const formSchema = z.object({
   age: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 150, {
@@ -60,6 +61,32 @@ export default function Profile() {
     });
   }
 
+  const testDeviceKey = async () => {
+    const deviceKey = form.getValues('deviceKey');
+    if (deviceKey.length !== 6) {
+      toast.error("Mã thiết bị phải có đúng 6 ký tự", {
+        duration: 3000,
+        position: "bottom-center",
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.get(`http://192.168.1.15/data?key=${deviceKey}`);
+      if (response.data) {
+        toast.success("Kết nối thành công với thiết bị", {
+          duration: 3000,
+          position: "bottom-center",
+        });
+      }
+    } catch (error) {
+      toast.error("Không thể kết nối với thiết bị. Vui lòng kiểm tra lại mã.", {
+        duration: 3000,
+        position: "bottom-center",
+      });
+    }
+  };
+
   return (
     <div className="container max-w-2xl mx-auto p-4 pb-20">
       <h1 className="text-2xl font-bold mb-6">Thông tin cá nhân</h1>
@@ -72,9 +99,18 @@ export default function Profile() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Mã thiết bị</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nhập mã thiết bị 6 ký tự" {...field} maxLength={6} />
-                </FormControl>
+                <div className="flex gap-2">
+                  <FormControl>
+                    <Input placeholder="Nhập mã thiết bị 6 ký tự" {...field} maxLength={6} />
+                  </FormControl>
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={testDeviceKey}
+                  >
+                    Kiểm tra
+                  </Button>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
