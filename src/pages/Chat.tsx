@@ -6,23 +6,17 @@ import { SetupWizard } from '@/components/SetupWizard';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import axios from 'axios';
 import { useToast } from '@/components/ui/use-toast';
-import { useQuery } from '@tanstack/react-query';
-import { fetchHealthData } from '@/services/healthData';
+import { loadLogs } from '@/services/healthData';
 
 const Chat = () => {
   const [showSetupWizard, setShowSetupWizard] = useState(false);
   const [messages, setMessages] = useState<Array<{type: 'user' | 'bot', content: string}>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTimeIndex, setSelectedTimeIndex] = useState<number | null>(null);
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const { data: healthData } = useQuery({
-    queryKey: ['healthData'],
-    queryFn: fetchHealthData,
-  });
 
   useEffect(() => {
     const hasCompletedSetup = localStorage.getItem('hasCompletedSetup');
@@ -35,20 +29,21 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const getSelectedHealthData = () => {
-    if (!healthData || selectedTimeIndex === null) return null;
-    return healthData[selectedTimeIndex];
+  const getSelectedLogData = () => {
+    if (!selectedLogId) return null;
+    const logs = loadLogs();
+    return logs.find(log => log.hour === selectedLogId);
   };
 
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    const selectedData = getSelectedHealthData();
+    const selectedData = getSelectedLogData();
     if (!selectedData && inputMessage.toLowerCase().includes('chỉ số')) {
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: "Vui lòng chọn thời điểm dữ liệu trước khi hỏi về chỉ số.",
+        description: "Vui lòng chọn bản ghi trước khi hỏi về chỉ số.",
       });
       return;
     }
@@ -59,8 +54,8 @@ const Chat = () => {
       
       const response = await axios.post('http://service.aigate.app/v1/chat-messages', {
         inputs: {
-          nhiptim: selectedData ? selectedData.heartRates.join(' ') : "80 90 80 80 80 88 32 83 82 82 23 93 92 82 83 92 82 92",
-          oxy: selectedData ? selectedData.oxygenLevels.join(' ') : "93 93 98 98 98 98 98 98 98 98 98 98 87 98"
+          nhiptim: selectedData ? selectedData.secondsData.map(d => d.heartRate).join(' ') : "",
+          oxy: selectedData ? selectedData.secondsData.map(d => d.bloodOxygen).join(' ') : ""
         },
         query: inputMessage,
         response_mode: "blocking",
@@ -94,9 +89,8 @@ const Chat = () => {
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       <ChatHeader 
         onBack={() => navigate('/')}
-        healthData={healthData}
-        selectedTimeIndex={selectedTimeIndex}
-        onTimeSelect={setSelectedTimeIndex}
+        selectedLogId={selectedLogId}
+        onLogSelect={setSelectedLogId}
       />
 
       <main className="flex-1 overflow-y-auto p-4 pb-20">

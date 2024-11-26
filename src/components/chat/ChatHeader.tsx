@@ -1,34 +1,33 @@
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
-import { HealthData } from '@/services/healthData';
+import { HourlyLog } from '@/services/healthData';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { loadLogs } from '@/services/healthData';
 
 interface ChatHeaderProps {
   onBack: () => void;
-  healthData: HealthData[] | undefined;
-  selectedTimeIndex: number | null;
-  onTimeSelect: (index: number) => void;
+  selectedLogId: string | null;
+  onLogSelect: (logId: string) => void;
 }
 
 export const ChatHeader = ({ 
   onBack, 
-  healthData, 
-  selectedTimeIndex, 
-  onTimeSelect 
+  selectedLogId,
+  onLogSelect 
 }: ChatHeaderProps) => {
+  const logs = loadLogs();
+  
+  const selectedLog = logs.find(log => log.hour === selectedLogId);
+
   const formatTimeString = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    return format(new Date(timestamp), 'HH:mm - dd/MM/yyyy', { locale: vi });
   };
 
   return (
@@ -51,26 +50,28 @@ export const ChatHeader = ({
                 size="sm"
                 className="flex items-center gap-2"
               >
-                {selectedTimeIndex !== null && healthData ? 
-                  formatTimeString(healthData[selectedTimeIndex].timestamp) :
-                  'Chọn thời điểm'
+                {selectedLog ? 
+                  formatTimeString(selectedLog.hour) :
+                  'Chọn bản ghi'
                 }
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              {healthData && healthData
-                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                .map((data, index) => (
+              {logs
+                .sort((a, b) => new Date(b.hour).getTime() - new Date(a.hour).getTime())
+                .map((log) => (
                   <DropdownMenuItem
-                    key={data.timestamp}
-                    onClick={() => onTimeSelect(index)}
+                    key={log.hour}
+                    onClick={() => onLogSelect(log.hour)}
                     className="flex flex-col items-start"
                   >
-                    <span className="font-medium">{formatTimeString(data.timestamp)}</span>
+                    <span className="font-medium">
+                      {formatTimeString(log.hour)}
+                    </span>
                     <span className="text-xs text-gray-500">
-                      Nhịp tim: {data.heartRates.join(', ')} | 
-                      SpO2: {data.oxygenLevels.join(', ')}
+                      Nhịp tim: {log.averageHeartRate} BPM | 
+                      SpO2: {log.averageBloodOxygen}%
                     </span>
                   </DropdownMenuItem>
                 ))}
