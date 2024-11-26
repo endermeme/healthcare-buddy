@@ -1,8 +1,8 @@
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster as Sonner } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
@@ -21,6 +21,9 @@ const queryClient = new QueryClient({
 });
 
 const AppContent = () => {
+  const location = useLocation();
+  const isMainScreen = location.pathname === '/';
+  
   useQuery({
     queryKey: ['healthData'],
     queryFn: fetchHealthData,
@@ -37,6 +40,21 @@ const AppContent = () => {
         <Route path="/profile" element={<Profile />} />
       </Routes>
       <BottomNav />
+      {isMainScreen && (
+        <Sonner
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: '#1A1F2C',
+              color: 'white',
+              border: 'none',
+              opacity: '1',
+            },
+            duration: 3000,
+          }}
+          className="w-auto"
+        />
+      )}
     </div>
   );
 };
@@ -48,7 +66,6 @@ const App = () => {
         <TooltipProvider>
           <AppContent />
           <Toaster />
-          <Sonner />
         </TooltipProvider>
       </QueryClientProvider>
     </BrowserRouter>
