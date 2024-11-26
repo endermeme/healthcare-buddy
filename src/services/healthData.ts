@@ -114,21 +114,41 @@ export const loadChatMessages = () => {
   return storedMessages ? JSON.parse(storedMessages) : [];
 };
 
-// Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
     const apiKey = localStorage.getItem('apiKey');
     if (!apiKey) {
-      throw new Error('API key not found');
+      console.log('API key not found in localStorage');
+      return [];
     }
 
-    const response = await axios.get<ApiResponse>(`${BASE_API_ENDPOINT}?key=${apiKey}`);
+    console.log('Fetching data with API key:', apiKey);
     
-    if (!response.data || typeof response.data.heartRate !== 'number') {
-      throw new Error('Invalid data format received');
+    const response = await axios.get<ApiResponse>(
+      `${BASE_API_ENDPOINT}`, 
+      {
+        params: { key: apiKey },
+        timeout: 5000, // 5 second timeout
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      }
+    );
+    
+    console.log('API Response:', response.data);
+
+    if (!response.data) {
+      console.error('No data received from API');
+      throw new Error('No data received');
     }
 
     const { heartRate, spo2: bloodOxygen } = response.data;
+
+    if (typeof heartRate !== 'number' || typeof bloodOxygen !== 'number') {
+      console.error('Invalid data format:', response.data);
+      throw new Error('Invalid data format received');
+    }
 
     // Chỉ xử lý dữ liệu hợp lệ
     if (isValidReading(heartRate, bloodOxygen)) {
@@ -151,12 +171,34 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
       return [];
     }
   } catch (error) {
-    console.error('Error fetching health data:', error);
-    toast({
-      title: "Lỗi kết nối",
-      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị và key API.",
-      variant: "destructive",
-    });
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          params: error.config?.params
+        }
+      });
+      
+      const errorMessage = error.response?.status === 401 
+        ? "Key API không hợp lệ"
+        : "Không thể kết nối với cảm biến. Vui lòng kiểm tra lại.";
+
+      toast({
+        title: "Lỗi kết nối",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } else {
+      console.error('Non-axios error:', error);
+      toast({
+        title: "Lỗi không xác định",
+        description: "Đã xảy ra lỗi khi kết nối với cảm biến",
+        variant: "destructive",
+      });
+    }
     return [];
   }
 };
