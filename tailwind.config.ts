@@ -49,15 +49,24 @@ export default {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
-        marquee: {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-50%)' },
+        "emoji-fall": {
+          "0%": { 
+            transform: "translateY(-100%)",
+            opacity: "0"
+          },
+          "50%": {
+            opacity: "1"
+          },
+          "100%": { 
+            transform: "translateY(100%)",
+            opacity: "0"
+          }
         }
       },
       animation: {
         "scale-up": "scale-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
-        "marquee": 'marquee 20s linear infinite',
+        "emoji-fall": "emoji-fall 3s linear infinite",
       },
     },
   },

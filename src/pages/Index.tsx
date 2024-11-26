@@ -6,6 +6,8 @@ import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
+const EMOJIS = ["❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯"];
+
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
   const { currentData, history, averages } = useHealthData(timeRange);
@@ -20,14 +22,21 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* New Health Banner */}
+      {/* Health Banner */}
       <div className="relative overflow-hidden rounded-xl mx-4 mt-4 h-32 bg-gradient-to-r from-[#4FACFE] to-[#00F2FE] shadow-lg">
-        <div className="absolute inset-0">
-          <div className="animate-marquee whitespace-nowrap">
-            {"❤️ 🏃 💪 🧘‍♀️ 🫀 🏊‍♂️ 🚴‍♂️ 🎯 ❤️ 🏃 💪 🧘‍♀️ 🫀 🏊‍♂️ 🚴‍♂️ 🎯".repeat(2).split(" ").map((emoji, index) => (
-              <span key={index} className="text-4xl mx-4 opacity-25">{emoji}</span>
-            ))}
-          </div>
+        <div className="absolute inset-0 overflow-hidden">
+          {EMOJIS.map((emoji, index) => (
+            <span
+              key={index}
+              className="absolute animate-emoji-fall opacity-0"
+              style={{
+                left: `${(index / EMOJIS.length) * 100}%`,
+                animationDelay: `${index * 0.5}s`
+              }}
+            >
+              {emoji}
+            </span>
+          ))}
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           <h1 className="text-2xl font-bold text-white text-center z-10">
