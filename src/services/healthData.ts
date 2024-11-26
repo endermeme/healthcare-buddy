@@ -54,17 +54,38 @@ export const getWaterRecommendation = async (heartRate: number, bloodOxygen: num
 
 export const fetchHealthData = async (): Promise<HealthData> => {
   try {
-    const response = await fetch('http://localhost:3001/api/health-data');
+    const response = await fetch('http://localhost:3001/api/health-data', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      credentials: 'include', // Include credentials if needed
+    });
+
+    if (response.status === 429) {
+      toast('Quá nhiều yêu cầu, vui lòng thử lại sau ít phút', {
+        duration: 3000,
+      });
+      throw new Error('Rate limit exceeded');
+    }
+
     if (!response.ok) {
       throw new Error('Lỗi kết nối với cảm biến');
     }
+
     const data = await response.json();
     return data;
   } catch (error) {
     if (window.location.pathname === '/') {
-      toast('Lỗi kết nối với cảm biến', {
-        duration: 3000,
-      });
+      if (error instanceof Error) {
+        toast(error.message, {
+          duration: 3000,
+        });
+      } else {
+        toast('Lỗi kết nối với cảm biến', {
+          duration: 3000,
+        });
+      }
     }
     throw error;
   }
