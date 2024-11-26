@@ -30,6 +30,9 @@ const Detail = () => {
     );
   }
 
+  // Filter out invalid blood oxygen readings
+  const validData = currentLog.secondsData.filter(data => data.bloodOxygen > 0);
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <Button 
@@ -52,13 +55,13 @@ const Detail = () => {
           <div className="p-4 bg-white rounded-lg shadow">
             <div className="flex justify-between items-center mb-4">
               <span className="text-sm text-gray-500">
-                {currentLog.secondsData.length} lần đo
+                {validData.length} lần đo hợp lệ
               </span>
               <span className={currentLog.isRecording ? "text-blue-500" : "text-green-500"}>
                 {currentLog.isRecording ? "Đang ghi..." : "Đã hoàn tất"}
               </span>
             </div>
-            <HealthChart data={currentLog.secondsData} />
+            <HealthChart data={validData} />
           </div>
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -66,7 +69,7 @@ const Detail = () => {
               <h2 className="font-semibold">Chi tiết từng lần đo</h2>
             </div>
             <div className="divide-y">
-              {currentLog.secondsData.map((data, index) => (
+              {validData.map((data, index) => (
                 <div key={data.timestamp} className="p-4 hover:bg-gray-50">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-500">
