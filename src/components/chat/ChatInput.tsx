@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2, Mic, Square } from 'lucide-react';
 import RecordRTC from 'recordrtc';
