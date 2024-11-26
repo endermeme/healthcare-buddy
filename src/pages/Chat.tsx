@@ -37,16 +37,21 @@ export default function Chat() {
       setMessages(prev => [...prev, userMessage]);
       saveChatMessage(userMessage);
 
-      // Call API with HTTPS
-      const response = await axios.post('https://service.aigate.app/v1/chat/completions', {
-        query: text,
-        ...metadata
-      }, {
+      // Call API
+      const response = await axios({
+        method: 'post',
+        url: 'https://service.aigate.app/v1/chat/completions',
         headers: {
           'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        timeout: 30000 // 30 second timeout
+        data: {
+          query: text,
+          ...metadata
+        },
+        timeout: 60000, // Tăng timeout lên 60 giây
+        validateStatus: (status) => status >= 200 && status < 500 // Chấp nhận status 2xx, 3xx, 4xx
       });
 
       // Add AI response
@@ -65,14 +70,25 @@ export default function Chat() {
 
     } catch (error: any) {
       console.error('API Error:', error);
+      
+      // Xử lý các loại lỗi cụ thể
       if (error.code === 'ECONNABORTED') {
-        toast.error("Kết nối bị gián đoạn, vui lòng thử lại");
+        toast.error("Yêu cầu quá thời gian, vui lòng thử lại");
       } else if (error.response) {
-        toast.error(`Lỗi từ máy chủ: ${error.response.status}`);
+        // Lỗi từ server với status code
+        const status = error.response.status;
+        if (status === 401) {
+          toast.error("Lỗi xác thực, vui lòng đăng nhập lại");
+        } else if (status === 429) {
+          toast.error("Quá nhiều yêu cầu, vui lòng thử lại sau");
+        } else {
+          toast.error(`Lỗi từ máy chủ: ${status}`);
+        }
       } else if (error.request) {
-        toast.error("Không thể kết nối đến máy chủ");
+        // Không nhận được phản hồi từ server
+        toast.error("Không thể kết nối đến máy chủ, vui lòng kiểm tra kết nối mạng");
       } else {
-        toast.error("Có lỗi xảy ra khi gửi tin nhắn");
+        toast.error("Có lỗi xảy ra: " + error.message);
       }
     } finally {
       setIsLoading(false);
