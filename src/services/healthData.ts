@@ -116,6 +116,7 @@ export const loadChatMessages = () => {
 };
 
 // Fetch health data từ sensor
+
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
     const response = await axios.get<ApiResponse>(API_ENDPOINT);
@@ -148,11 +149,7 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
     }
   } catch (error) {
     console.error('Error fetching health data:', error);
-    toast({
-      title: "Lỗi kết nối",
-      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
-      variant: "destructive",
-    });
+    toast("Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.");
     return [];
   }
 };
