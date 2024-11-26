@@ -164,10 +164,3 @@ export const getWaterRecommendation = async (
     glassesCount: baseGlasses
   };
 };
-
-// Save chat message
-export const saveChatMessage = (message: any) => {
-  const messages = JSON.parse(localStorage.getItem(CHAT_STORAGE_KEY) || '[]');
-  messages.push(message);
-  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
-};
