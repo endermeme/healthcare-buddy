@@ -49,11 +49,7 @@ export function ProfileForm() {
     if (savedProfile) {
       const parsedProfile = JSON.parse(savedProfile);
       Object.keys(parsedProfile).forEach((key) => {
-        form.setValue(key as keyof ProfileFormValues, parsedProfile[key], {
-          shouldValidate: true,
-          shouldDirty: true,
-          shouldTouch: true,
-        });
+        form.setValue(key as keyof ProfileFormValues, parsedProfile[key]);
       });
     }
   }, [form]);

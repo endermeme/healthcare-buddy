@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 
 export function ApiKeySettings() {
@@ -39,9 +39,10 @@ export function ApiKeySettings() {
 
   return (
     <div className="space-y-2">
-      <FormLabel>Key API</FormLabel>
+      <Label htmlFor="apiKey">Key API</Label>
       <div className="flex gap-2">
         <Input
+          id="apiKey"
           type="text"
           maxLength={6}
           value={apiKey}
