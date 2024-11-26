@@ -106,4 +106,26 @@ export const deleteLog = (date: string, hourIndex: number) => {
   }
 };
 
+export const clearOldLogs = () => {
+  try {
+    const storedLogs = localStorage.getItem(LOG_STORAGE_KEY);
+    if (!storedLogs) return;
+    
+    const dailyLogs = JSON.parse(storedLogs);
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
+    
+    // Remove logs older than 30 days
+    Object.keys(dailyLogs).forEach(date => {
+      if (new Date(date) < thirtyDaysAgo) {
+        delete dailyLogs[date];
+      }
+    });
+    
+    localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(dailyLogs));
+  } catch (error) {
+    console.error('Error clearing old logs:', error);
+  }
+};
+
 export const LogHistoryIcon = History;
