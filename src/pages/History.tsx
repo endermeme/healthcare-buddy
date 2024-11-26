@@ -6,37 +6,19 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { vi } from 'date-fns/locale';
 import { Heart, Activity } from 'lucide-react';
 import { loadLogs, HourlyLog } from '@/services/healthData';
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from '@/components/ui/use-toast';
 
 const History = () => {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<HourlyLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadInitialData = () => {
-      try {
-        console.log('Loading logs...');
-        const storedLogs = loadLogs();
-        console.log('Loaded logs:', storedLogs);
-        setLogs(storedLogs || []);
-      } catch (err) {
-        console.error('Error loading logs:', err);
-        toast({
-          title: "Lỗi",
-          description: "Không thể tải dữ liệu. Vui lòng thử lại sau.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // Load initial logs
+    const storedLogs = loadLogs();
+    setLogs(storedLogs);
 
-    loadInitialData();
-
+    // Update logs every minute
     const interval = setInterval(() => {
-      loadInitialData();
+      setLogs(loadLogs());
     }, 60000);
 
     return () => clearInterval(interval);
@@ -56,19 +38,6 @@ const History = () => {
     groups[date].push(log);
     return groups;
   }, {});
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4 space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-32 w-full" />
-          ))}
-        </div>
-      </div>
-    );
-  }
   
   return (
     <div className="min-h-screen bg-gray-50 p-4">
