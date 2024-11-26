@@ -2,6 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { HealthChart } from './HealthChart';
 import { HourlyLog } from '@/services/healthData';
+import { calculate10MinuteAverages } from '@/utils/healthDataUtils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LogDetailProps {
   log: HourlyLog | null;
@@ -12,13 +14,15 @@ interface LogDetailProps {
 export const LogDetail = ({ log, open, onOpenChange }: LogDetailProps) => {
   if (!log) return null;
 
-  const chartData = log.secondsData.map(data => ({
+  const validData = log.secondsData.filter(data => data.bloodOxygen > 0);
+  
+  const rawChartData = validData.map(data => ({
     timestamp: data.timestamp,
     heartRate: data.heartRate,
     bloodOxygen: data.bloodOxygen,
-    heartRates: [data.heartRate], // Add single reading as array
-    oxygenLevels: [data.bloodOxygen], // Add single reading as array
   }));
+
+  const averageChartData = calculate10MinuteAverages(validData);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -32,11 +36,22 @@ export const LogDetail = ({ log, open, onOpenChange }: LogDetailProps) => {
         </DialogHeader>
         
         <div className="space-y-6">
-          <HealthChart data={chartData} />
+          <Tabs defaultValue="raw" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="raw">Số liệu gốc</TabsTrigger>
+              <TabsTrigger value="average">Trung bình 10 phút</TabsTrigger>
+            </TabsList>
+            <TabsContent value="raw" className="mt-4">
+              <HealthChart data={rawChartData} />
+            </TabsContent>
+            <TabsContent value="average" className="mt-4">
+              <HealthChart data={averageChartData} />
+            </TabsContent>
+          </Tabs>
           
           <ScrollArea className="h-[200px] rounded-md border">
             <div className="p-4 space-y-2">
-              {log.secondsData.map((data, index) => (
+              {validData.map((data, index) => (
                 <div 
                   key={data.timestamp}
                   className="p-3 bg-gray-50 rounded-lg text-sm grid grid-cols-2 gap-4"
