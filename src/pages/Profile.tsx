@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -8,16 +7,18 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 const formSchema = z.object({
   age: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 150, {
-    message: "Tuổi phải là số hợp lệ từ 1-150",
+    message: "Tuổi phải là số dương từ 1-150",
   }),
-  gender: z.enum(["male", "female", "other"], {
+  gender: z.enum(["male", "female"], {
     required_error: "Vui lòng chọn giới tính",
   }),
   weight: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 500, {
-    message: "Cân nặng phải là số hợp lệ từ 1-500kg",
+    message: "Cân nặng phải là số dương từ 1-500kg",
   }),
   medicalHistory: z.string().min(1, "Vui lòng nhập tiền sử bệnh").max(1000, "Tiền sử bệnh quá dài"),
 });
@@ -33,8 +34,8 @@ export default function Profile() {
     },
   });
 
-  useEffect(() => {
-    // Load saved data from localStorage
+  // Load saved data from localStorage on component mount
+  React.useEffect(() => {
     const savedProfile = localStorage.getItem('userProfile');
     if (savedProfile) {
       const parsedProfile = JSON.parse(savedProfile);
@@ -100,14 +101,6 @@ export default function Profile() {
                         Nữ
                       </FormLabel>
                     </FormItem>
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <RadioGroupItem value="other" />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        Khác
-                      </FormLabel>
-                    </FormItem>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -146,6 +139,13 @@ export default function Profile() {
               </FormItem>
             )}
           />
+
+          <Alert className="bg-blue-50 text-blue-800 border-blue-200">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Lưu ý: Các chỉ số sức khỏe như nhịp tim, SpO2 sẽ được đo và cập nhật tự động thông qua thiết bị đeo. Vui lòng đảm bảo thiết bị được kết nối đúng cách để có kết quả chính xác.
+            </AlertDescription>
+          </Alert>
 
           <Button type="submit" className="w-full">
             Lưu thông tin
