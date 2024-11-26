@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { format, utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { vi } from 'date-fns/locale';
 
 const app = express();
@@ -20,7 +20,7 @@ app.post('/api/health-log', (req, res) => {
   const now = new Date();
   
   const healthData = bpm.map((heartRate, index) => {
-    const timestamp = utcToZonedTime(now, timeZone);
+    const timestamp = toZonedTime(now, timeZone);
     timestamp.setSeconds(timestamp.getSeconds() + index);
     
     return {

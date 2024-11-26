@@ -4,10 +4,12 @@ import { HealthStats } from '@/components/HealthStats';
 import { calculateAverages, type HealthData } from '@/services/healthData';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { TimeRange } from '@/hooks/useHealthData';
 
 const Index = () => {
   const [healthData, setHealthData] = useState<HealthData[]>([]);
   const averages = calculateAverages(healthData);
+  const timeRange: TimeRange = '5m';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -17,7 +19,7 @@ const Index = () => {
             <HealthStats 
               data={healthData[healthData.length - 1]} 
               averages={averages}
-              timeRange="1m"
+              timeRange={timeRange}
               onTimeRangeChange={() => {}}
             />
             <HealthChart data={healthData} />

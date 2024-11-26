@@ -1,35 +1,17 @@
-import axios from 'axios';
-import { format, addMinutes } from 'date-fns';
-import { vi } from 'date-fns/locale';
-
 export interface HealthData {
   timestamp: string;
   heartRate: number;
   bloodOxygen: number;
 }
 
-export interface HealthLogPayload {
-  bpm: number[];
-  oxy: number[];
-}
-
-const API_URL = 'http://localhost:3001/api/health-log';
-
-export const postHealthLog = async (data: HealthLogPayload): Promise<HealthData[]> => {
-  const response = await axios.post(API_URL, data);
-  return response.data;
+export const fetchHealthData = async (): Promise<HealthData> => {
+  const response = await fetch('http://localhost:3001/api/health-log');
+  if (!response.ok) {
+    throw new Error('Failed to fetch health data');
+  }
+  return response.json();
 };
 
-export const calculateAverages = (data: HealthData[]) => {
-  if (data.length === 0) return { avgHeartRate: 0, avgBloodOxygen: 0 };
-  
-  const sum = data.reduce((acc, curr) => ({
-    heartRate: acc.heartRate + curr.heartRate,
-    bloodOxygen: acc.bloodOxygen + curr.bloodOxygen
-  }), { heartRate: 0, bloodOxygen: 0 });
-
-  return {
-    avgHeartRate: Math.round(sum.heartRate / data.length),
-    avgBloodOxygen: Math.round(sum.bloodOxygen / data.length)
-  };
+export const getWaterRecommendation = (weight: number): number => {
+  return Math.round(weight * 0.033 * 1000);
 };

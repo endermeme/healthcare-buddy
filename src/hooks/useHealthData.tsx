@@ -36,11 +36,9 @@ export const useHealthData = (timeRange: TimeRange) => {
         const now = new Date();
         const timeLimit = new Date(now.getTime() - getTimeRangeInMs(timeRange));
         
-        const updatedHistory = [...prev, currentData]
-          .filter(data => new Date(data.timestamp) > timeLimit)
-          .slice(-1000);
-
-        return updatedHistory;
+        return [...prev, currentData].filter(data => 
+          new Date(data.timestamp) > timeLimit
+        ).slice(-1000) as HealthData[];
       });
     }
   }, [currentData, timeRange]);
