@@ -1,21 +1,26 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://service.aigate.app/v1';
+const API_BASE_URL = 'https://service.aigate.app/v1';
 const API_KEY = 'app-sVzMPqGDTYKCkCJCQToMs4G2';
 
+// Create axios instance with custom config
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Authorization': `Bearer ${API_KEY}`,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
-});
-
-// Add CORS headers to requests
-api.interceptors.request.use((config) => {
-  config.headers['Access-Control-Allow-Origin'] = '*';
-  config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-  config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization';
-  return config;
+  // Add CORS proxy to bypass CORS issues
+  proxy: {
+    protocol: 'https',
+    host: 'cors-anywhere.herokuapp.com',
+    port: 443,
+    auth: {
+      username: 'user',
+      password: 'password'
+    }
+  }
 });
 
 export const sendAudioToSpeechToText = async (audioBlob: Blob) => {
