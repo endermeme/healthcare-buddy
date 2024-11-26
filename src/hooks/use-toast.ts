@@ -90,8 +90,6 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -130,6 +128,9 @@ const listeners: Array<(state: State) => void> = []
 
 let memoryState: State = { toasts: [] }
 
+let lastErrorTime = 0;
+const ERROR_COOLDOWN = 20000; // 20 seconds
+
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
   listeners.forEach((listener) => {
@@ -140,14 +141,23 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
-  const id = genId()
+  const id = genId();
+  const now = Date.now();
+
+  // For error toasts, check the cooldown
+  if (props.variant === 'destructive') {
+    if (now - lastErrorTime < ERROR_COOLDOWN) {
+      return { id, dismiss: () => {}, update: () => {} };
+    }
+    lastErrorTime = now;
+  }
 
   const update = (props: ToasterToast) =>
     dispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
-    })
-  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+    });
+  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
 
   dispatch({
     type: "ADD_TOAST",
@@ -156,16 +166,16 @@ function toast({ ...props }: Toast) {
       id,
       open: true,
       onOpenChange: (open) => {
-        if (!open) dismiss()
+        if (!open) dismiss();
       },
     },
-  })
+  });
 
   return {
-    id: id,
+    id,
     dismiss,
     update,
-  }
+  };
 }
 
 function useToast() {
@@ -189,3 +199,4 @@ function useToast() {
 }
 
 export { useToast, toast }
+
