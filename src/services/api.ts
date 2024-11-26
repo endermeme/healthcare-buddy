@@ -23,9 +23,10 @@ api.interceptors.request.use((config) => {
 
 export const sendAudioToSpeechToText = async (audioBlob: Blob) => {
   const formData = new FormData();
-  formData.append('audio', audioBlob, 'recording.webm');
+  formData.append('file', audioBlob, 'recording.webm');
+  formData.append('user', 'abc-123'); // Add user identifier
   
-  const response = await api.post('/speech-to-text', formData, {
+  const response = await api.post('/audio-to-text', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
