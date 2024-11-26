@@ -6,7 +6,7 @@ import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
-const EMOJIS = ["❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯"];
+const EMOJIS = ["❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯", "❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯"];
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
@@ -31,7 +31,7 @@ const Index = () => {
               className="absolute animate-emoji-fall opacity-0"
               style={{
                 left: `${(index / EMOJIS.length) * 100}%`,
-                animationDelay: `${index * 0.5}s`
+                animationDelay: `${index * 0.3}s`
               }}
             >
               {emoji}
