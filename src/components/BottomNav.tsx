@@ -1,37 +1,55 @@
-import { Link, useLocation } from "react-router-dom";
-import { Home, MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Home, MessageSquare, History, BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
 
 export const BottomNav = () => {
+  const navigate = useNavigate();
   const location = useLocation();
 
-  return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-around py-2">
-          <Link
-            to="/"
-            className={cn(
-              "flex flex-col items-center p-2 text-gray-600",
-              location.pathname === "/" && "text-primary"
-            )}
-          >
-            <Home className="h-6 w-6" />
-            <span className="text-xs mt-1">Home</span>
-          </Link>
+  const handleClick = (section: string) => {
+    if (section === 'posts') {
+      toast({
+        title: `Đang chuyển tới ${section}`,
+        description: "Tính năng này sẽ sớm ra mắt!",
+      });
+      return;
+    }
+    navigate(section);
+  };
 
-          <Link
-            to="/chat"
-            className={cn(
-              "flex flex-col items-center p-2 text-gray-600",
-              location.pathname === "/chat" && "text-primary"
-            )}
-          >
-            <MessageCircle className="h-6 w-6" />
-            <span className="text-xs mt-1">Chat</span>
-          </Link>
-        </div>
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
+      <div className="mx-auto flex items-center justify-around px-4 py-2">
+        <Button 
+          variant={location.pathname === '/' ? 'default' : 'ghost'} 
+          size="icon"
+          onClick={() => handleClick('/')}
+        >
+          <Home className="h-5 w-5" />
+        </Button>
+        <Button 
+          variant={location.pathname === '/chat' ? 'default' : 'ghost'}
+          size="icon"
+          onClick={() => handleClick('/chat')}
+        >
+          <MessageSquare className="h-5 w-5" />
+        </Button>
+        <Button 
+          variant={location.pathname === '/history' ? 'default' : 'ghost'}
+          size="icon"
+          onClick={() => handleClick('/history')}
+        >
+          <History className="h-5 w-5" />
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => handleClick('posts')}
+        >
+          <BookOpen className="h-5 w-5" />
+        </Button>
       </div>
-    </div>
+    </nav>
   );
 };
