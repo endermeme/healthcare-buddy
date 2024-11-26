@@ -103,15 +103,28 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   }
 };
 
-export const saveChatMessage = (message: any) => {
-  const messages = loadChatMessages();
-  messages.push(message);
-  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+const ABNORMAL_THRESHOLD = 3;
+const MIN_HEART_RATE = 60;
+const MAX_HEART_RATE = 100;
+const MIN_BLOOD_OXYGEN = 95;
+
+export const isAbnormalReading = (data: HealthData): boolean => {
+  return data.heartRate < MIN_HEART_RATE || 
+         data.heartRate > MAX_HEART_RATE || 
+         data.bloodOxygen < MIN_BLOOD_OXYGEN;
 };
 
-export const loadChatMessages = () => {
-  const storedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
-  return storedMessages ? JSON.parse(storedMessages) : [];
+export const checkForAbnormalReadings = (data: HealthData[]) => {
+  let abnormalCount = 0;
+  const lastReadings = data.slice(-5);
+
+  lastReadings.forEach(reading => {
+    if (isAbnormalReading(reading)) {
+      abnormalCount++;
+    }
+  });
+
+  return abnormalCount >= ABNORMAL_THRESHOLD;
 };
 
 // Fetch health data từ sensor
@@ -125,7 +138,6 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
 
     const { heartRate, spo2: bloodOxygen } = response.data;
 
-    // Chỉ xử lý dữ liệu hợp lệ
     if (isValidReading(heartRate, bloodOxygen)) {
       const data: HealthData = {
         heartRate,
@@ -135,16 +147,21 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
         oxygenLevels: Array(10).fill(bloodOxygen),
       };
 
-      // Cập nhật logs
       const currentLogs = loadLogs();
       const updatedLogs = updateCurrentHourLog(currentLogs, data);
       saveLogs(updatedLogs);
 
+      // Check for abnormal readings
+      if (checkForAbnormalReadings([...currentLogs.flatMap(log => log.secondsData), data])) {
+        new Notification("Cảnh báo sức khỏe", {
+          body: "Phát hiện các chỉ số bất thường trong thời gian gần đây. Vui lòng kiểm tra chi tiết.",
+          icon: "/favicon.ico"
+        });
+      }
+
       return [data];
-    } else {
-      console.warn('Invalid reading detected:', { heartRate, bloodOxygen });
-      return [];
     }
+    return [];
   } catch (error) {
     console.error('Error fetching health data:', error);
     toast({
