@@ -6,9 +6,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, ArrowRight, X, Wifi, Settings, CheckCircle2, Key } from 'lucide-react';
+import { ArrowLeft, ArrowRight, X, Wifi, Settings, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface SetupWizardProps {
   onClose: () => void;
@@ -17,31 +16,13 @@ interface SetupWizardProps {
 export const SetupWizard = ({ onClose }: SetupWizardProps) => {
   const [step, setStep] = useState(1);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
-  const [apiKey, setApiKey] = useState('');
   const { toast } = useToast();
 
   const handleNext = () => {
-    if (step < 4) {
-      if (step === 3) {
-        testConnection();
-      } else {
-        setStep(step + 1);
-      }
+    if (step < 3) {
+      setStep(step + 1);
     } else {
-      if (apiKey.length === 6 && /^\d+$/.test(apiKey)) {
-        localStorage.setItem('apiKey', apiKey);
-        toast({
-          title: "Thiết lập hoàn tất",
-          description: "Đã lưu key API thành công",
-        });
-        onClose();
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Key không hợp lệ",
-          description: "Vui lòng nhập 6 chữ số",
-        });
-      }
+      testConnection();
     }
   };
 
@@ -68,7 +49,7 @@ export const SetupWizard = ({ onClose }: SetupWizardProps) => {
           title: "Kết nối thành công",
           description: "Thiết bị đã sẵn sàng để sử dụng",
         });
-        setStep(4);
+        onClose();
       } else {
         throw new Error('Connection failed');
       }
@@ -125,7 +106,7 @@ export const SetupWizard = ({ onClose }: SetupWizardProps) => {
             <h2 className="text-lg font-semibold text-center">Kết nối lại WiFi</h2>
             <p className="text-center text-gray-600">
               Vui lòng kết nối lại với mạng WiFi gia đình của bạn và nhấn "Kiểm tra kết nối"
-              để tiếp tục quá trình cài đặt.
+              để hoàn tất quá trình cài đặt.
             </p>
             {isTestingConnection && (
               <div className="flex items-center justify-center gap-2 text-primary">
@@ -135,26 +116,6 @@ export const SetupWizard = ({ onClose }: SetupWizardProps) => {
                 Đang kiểm tra kết nối...
               </div>
             )}
-          </div>
-        );
-      case 4:
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-center text-primary">
-              <Key className="h-12 w-12" />
-            </div>
-            <h2 className="text-lg font-semibold text-center">Nhập Key API</h2>
-            <p className="text-center text-gray-600">
-              Vui lòng nhập key 6 chữ số được cung cấp cùng thiết bị:
-            </p>
-            <Input
-              type="text"
-              maxLength={6}
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Nhập 6 chữ số"
-              className="text-center text-2xl tracking-wider"
-            />
           </div>
         );
       default:
@@ -199,8 +160,8 @@ export const SetupWizard = ({ onClose }: SetupWizardProps) => {
               onClick={handleNext}
               disabled={isTestingConnection}
             >
-              {step === 3 ? 'Kiểm tra kết nối' : step === 4 ? 'Hoàn tất' : 'Tiếp theo'}
-              {step < 4 && step !== 3 && <ArrowRight className="h-4 w-4 ml-2" />}
+              {step === 3 ? 'Kiểm tra kết nối' : 'Tiếp theo'}
+              {step < 3 && <ArrowRight className="h-4 w-4 ml-2" />}
             </Button>
           </div>
         </div>

@@ -1,5 +1,5 @@
-import { toast } from "@/components/ui/use-toast";
 import axios from 'axios';
+import { toast } from '@/components/ui/use-toast';
 
 export interface HealthData {
   heartRate: number;
@@ -9,20 +9,26 @@ export interface HealthData {
   oxygenLevels: number[];
 }
 
+interface ApiResponse {
+  heartRate: number;
+  spo2: number;
+}
+
 export interface HourlyLog {
   hour: string;
   isRecording: boolean;
-  lastRecordTime: string;
+  lastRecordTime: string | null;
   averageHeartRate: number;
   averageBloodOxygen: number;
   secondsData: HealthData[];
 }
 
-export interface WaterRecommendation {
+interface WaterRecommendation {
   recommendation: string;
   glassesCount: number;
 }
 
+const API_ENDPOINT = 'http://192.168.1.15/data';
 export const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
@@ -52,6 +58,13 @@ export const getCurrentRecording = (): { isRecording: boolean; currentHour: stri
 // Cập nhật trạng thái ghi
 export const setCurrentRecording = (isRecording: boolean, currentHour: string | null) => {
   localStorage.setItem(CURRENT_RECORDING_KEY, JSON.stringify({ isRecording, currentHour }));
+};
+
+// Tính trung bình của một mảng số
+const calculateAverage = (numbers: number[]): number => {
+  if (numbers.length === 0) return 0;
+  const sum = numbers.reduce((a, b) => a + b, 0);
+  return Math.round(sum / numbers.length);
 };
 
 // Cập nhật log cho giờ hiện tại
@@ -90,18 +103,31 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   }
 };
 
-export const fetchHealthData = async (): Promise<HealthData[]> => {
-  const apiKey = localStorage.getItem('apiKey');
-  if (!apiKey) {
-    return [];
-  }
+export const saveChatMessage = (message: any) => {
+  const messages = loadChatMessages();
+  messages.push(message);
+  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+};
 
+export const loadChatMessages = () => {
+  const storedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
+  return storedMessages ? JSON.parse(storedMessages) : [];
+};
+
+// Fetch health data từ sensor
+export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
-    const response = await axios.get(`http://192.168.1.15/data?key=${apiKey}`);
+    const response = await axios.get<ApiResponse>(API_ENDPOINT);
+    
+    if (!response.data || typeof response.data.heartRate !== 'number') {
+      throw new Error('Invalid data format received');
+    }
+
     const { heartRate, spo2: bloodOxygen } = response.data;
 
+    // Chỉ xử lý dữ liệu hợp lệ
     if (isValidReading(heartRate, bloodOxygen)) {
-      const healthData: HealthData = {
+      const data: HealthData = {
         heartRate,
         bloodOxygen,
         timestamp: new Date().toISOString(),
@@ -111,32 +137,25 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
 
       // Cập nhật logs
       const currentLogs = loadLogs();
-      const updatedLogs = updateCurrentHourLog(currentLogs, healthData);
+      const updatedLogs = updateCurrentHourLog(currentLogs, data);
       saveLogs(updatedLogs);
 
-      return [healthData];
+      return [data];
+    } else {
+      console.warn('Invalid reading detected:', { heartRate, bloodOxygen });
+      return [];
     }
-    return [];
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
-      toast({
-        title: "Lỗi xác thực",
-        description: "Key API không hợp lệ",
-        variant: "destructive",
-      });
-    }
+    console.error('Error fetching health data:', error);
+    toast({
+      title: "Lỗi kết nối",
+      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
+      variant: "destructive",
+    });
     return [];
   }
 };
 
-// Tính trung bình của một mảng số
-const calculateAverage = (numbers: number[]): number => {
-  if (numbers.length === 0) return 0;
-  const sum = numbers.reduce((a, b) => a + b, 0);
-  return Math.round(sum / numbers.length);
-};
-
-// Hàm gợi ý nước uống
 export const getWaterRecommendation = async (
   heartRate: number,
   bloodOxygen: number
@@ -162,11 +181,4 @@ export const getWaterRecommendation = async (
     recommendation,
     glassesCount: baseGlasses
   };
-};
-
-// Save chat message
-export const saveChatMessage = (message: any) => {
-  const messages = JSON.parse(localStorage.getItem(CHAT_STORAGE_KEY) || '[]');
-  messages.push(message);
-  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
 };
