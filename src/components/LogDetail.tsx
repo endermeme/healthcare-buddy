@@ -1,10 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MinuteLog } from './LogCard';
-import { HealthChart } from './HealthChart';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { HealthChart } from './HealthChart';
+import { HourlyLog } from '@/services/healthData';
 
 interface LogDetailProps {
-  log: MinuteLog | null;
+  log: HourlyLog | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Star, Download, ChevronDown } from 'lucide-react';
@@ -11,26 +11,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogCard, type MinuteLog } from './LogCard';
+import { LogCard } from './LogCard';
 import { LogDetail } from './LogDetail';
-
-// Temporary mock data
-const mockMinuteLogs: MinuteLog[] = Array.from({ length: 24 }, (_, i) => ({
-  hour: new Date().toISOString(),
-  isRecording: false,
-  secondsData: Array.from({ length: 60 }, (_, m) => ({
-    timestamp: new Date().toISOString(),
-    heartRate: Math.floor(Math.random() * (100 - 60) + 60),
-    bloodOxygen: Math.floor(Math.random() * (100 - 95) + 95),
-  }))
-}));
+import { loadLogs, HourlyLog } from '@/services/healthData';
 
 export const LogViewer = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [minuteLogs] = useState<MinuteLog[]>(mockMinuteLogs);
-  const [selectedLog, setSelectedLog] = useState<MinuteLog | null>(null);
+  const [logs, setLogs] = useState<HourlyLog[]>([]);
+  const [selectedLog, setSelectedLog] = useState<HourlyLog | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const storedLogs = loadLogs();
+    setLogs(storedLogs);
+
+    // Update logs every minute
+    const interval = setInterval(() => {
+      setLogs(loadLogs());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Generate last 7 days
   const dateOptions = Array.from({ length: 7 }, (_, i) => {
@@ -55,10 +57,18 @@ export const LogViewer = () => {
     });
   };
 
-  const handleLogClick = (log: MinuteLog) => {
+  const handleLogClick = (log: HourlyLog) => {
     setSelectedLog(log);
     setDialogOpen(true);
   };
+
+  // Filter logs for selected date
+  const filteredLogs = logs.filter(log => {
+    const logDate = new Date(log.hour);
+    const selectedDateStart = new Date(selectedDate.setHours(0, 0, 0, 0));
+    const selectedDateEnd = new Date(selectedDate.setHours(23, 59, 59, 999));
+    return logDate >= selectedDateStart && logDate <= selectedDateEnd;
+  });
 
   return (
     <div className="space-y-4 p-4 bg-white rounded-lg shadow">
@@ -105,7 +115,7 @@ export const LogViewer = () => {
 
       <ScrollArea className="h-[400px] rounded-md border">
         <div className="space-y-4 p-4">
-          {minuteLogs.map((log) => (
+          {filteredLogs.map((log) => (
             <LogCard 
               key={log.hour}
               log={log}
