@@ -1,9 +1,8 @@
 import { HealthData } from '@/services/healthData';
 
-export const calculate10MinuteAverages = (data: HealthData[]) => {
+export const calculate10MinuteAverages = (data: HealthData[]): HealthData[] => {
   if (!data.length) return [];
   
-  // Sort data by timestamp
   const sortedData = [...data].sort((a, b) => 
     new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
@@ -15,11 +14,9 @@ export const calculate10MinuteAverages = (data: HealthData[]) => {
   sortedData.forEach(reading => {
     const readingTime = new Date(reading.timestamp);
     
-    // If reading is within current 10-min window, add to bucket
     if (readingTime.getTime() - bucketStartTime.getTime() < 10 * 60 * 1000) {
       currentBucket.push(reading);
     } else {
-      // Calculate average for current bucket
       if (currentBucket.length > 0) {
         const avgHeartRate = Math.round(
           currentBucket.reduce((sum, d) => sum + d.heartRate, 0) / currentBucket.length
@@ -32,10 +29,11 @@ export const calculate10MinuteAverages = (data: HealthData[]) => {
           timestamp: bucketStartTime.toISOString(),
           heartRate: avgHeartRate,
           bloodOxygen: avgBloodOxygen,
+          heartRates: currentBucket.map(d => d.heartRate),
+          oxygenLevels: currentBucket.map(d => d.bloodOxygen)
         });
       }
 
-      // Start new bucket
       bucketStartTime = new Date(
         Math.floor(readingTime.getTime() / (10 * 60 * 1000)) * (10 * 60 * 1000)
       );
@@ -43,7 +41,6 @@ export const calculate10MinuteAverages = (data: HealthData[]) => {
     }
   });
 
-  // Don't forget the last bucket
   if (currentBucket.length > 0) {
     const avgHeartRate = Math.round(
       currentBucket.reduce((sum, d) => sum + d.heartRate, 0) / currentBucket.length
@@ -56,6 +53,8 @@ export const calculate10MinuteAverages = (data: HealthData[]) => {
       timestamp: bucketStartTime.toISOString(),
       heartRate: avgHeartRate,
       bloodOxygen: avgBloodOxygen,
+      heartRates: currentBucket.map(d => d.heartRate),
+      oxygenLevels: currentBucket.map(d => d.bloodOxygen)
     });
   }
 

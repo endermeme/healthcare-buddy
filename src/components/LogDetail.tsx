@@ -20,6 +20,8 @@ export const LogDetail = ({ log, open, onOpenChange }: LogDetailProps) => {
     timestamp: data.timestamp,
     heartRate: data.heartRate,
     bloodOxygen: data.bloodOxygen,
+    heartRates: [data.heartRate],
+    oxygenLevels: [data.bloodOxygen]
   }));
 
   const averageChartData = calculate10MinuteAverages(validData);

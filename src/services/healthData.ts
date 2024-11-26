@@ -29,7 +29,7 @@ interface WaterRecommendation {
 }
 
 const API_ENDPOINT = 'http://192.168.1.15/data';
-const LOGS_STORAGE_KEY = 'health_logs';
+export const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
 

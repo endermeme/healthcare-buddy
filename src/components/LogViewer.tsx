@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogCard } from './LogCard';
 import { LogDetail } from './LogDetail';
-import { loadLogs, HourlyLog } from '@/services/healthData';
+import { loadLogs, HourlyLog, LOGS_STORAGE_KEY } from '@/services/healthData';
 import { Checkbox } from "@/components/ui/checkbox";
 
 export const LogViewer = () => {
