@@ -30,6 +30,7 @@ interface WaterRecommendation {
 
 const API_ENDPOINT = 'http://192.168.1.15/data';
 const LOGS_STORAGE_KEY = 'health_logs';
+const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
 
 // Kiểm tra tính hợp lệ của dữ liệu
@@ -100,6 +101,17 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
     };
     return [...logs, newLog];
   }
+};
+
+export const saveChatMessage = (message: any) => {
+  const messages = loadChatMessages();
+  messages.push(message);
+  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+};
+
+export const loadChatMessages = () => {
+  const storedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
+  return storedMessages ? JSON.parse(storedMessages) : [];
 };
 
 // Fetch health data từ sensor
