@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SetupWizard } from '@/components/SetupWizard';
 import axios from 'axios';
@@ -13,6 +13,7 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const hasCompletedSetup = localStorage.getItem('hasCompletedSetup');
@@ -20,6 +21,10 @@ const Chat = () => {
       setShowSetupWizard(true);
     }
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -44,7 +49,11 @@ const Chat = () => {
         }
       });
 
-      setMessages(prev => [...prev, { type: 'bot', content: response.data.answer }]);
+      if (response.data.answer) {
+        setMessages(prev => [...prev, { type: 'bot', content: response.data.answer }]);
+      } else {
+        throw new Error('Invalid response format');
+      }
       setInputMessage('');
     } catch (error) {
       toast({
@@ -58,7 +67,7 @@ const Chat = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-100">
       <header className="sticky top-0 z-10 bg-white shadow-sm">
         <div className="flex h-14 items-center px-4">
           <Button 
@@ -74,39 +83,58 @@ const Chat = () => {
       </header>
 
       <main className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-4">
+        <div className="max-w-3xl mx-auto space-y-4">
+          {messages.length === 0 && (
+            <div className="text-center text-gray-500 mt-8">
+              <p>Xin chào! Tôi có thể giúp gì cho bạn?</p>
+              <p className="text-sm mt-2">Hãy đặt câu hỏi về các chỉ số sức khỏe của bạn.</p>
+            </div>
+          )}
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`p-4 rounded-lg ${
-                message.type === 'user' 
-                  ? 'bg-primary text-primary-foreground ml-auto max-w-[80%]' 
-                  : 'bg-muted max-w-[80%]'
-              }`}
+              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {message.content}
+              <div
+                className={`p-4 rounded-2xl max-w-[80%] ${
+                  message.type === 'user'
+                    ? 'bg-primary text-white ml-auto'
+                    : 'bg-white shadow-sm'
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              </div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
       </main>
 
       <div className="p-4 border-t bg-white">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Nhập tin nhắn..."
-            className="flex-1 p-2 border rounded-md"
-            disabled={isLoading}
-          />
-          <Button 
-            onClick={sendMessage}
-            disabled={isLoading}
-          >
-            Gửi
-          </Button>
+        <div className="max-w-3xl mx-auto">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && !isLoading && sendMessage()}
+              placeholder="Nhập câu hỏi của bạn..."
+              className="flex-1 p-3 border rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              disabled={isLoading}
+            />
+            <Button 
+              onClick={sendMessage}
+              disabled={isLoading}
+              size="icon"
+              className="rounded-full w-12 h-12"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
