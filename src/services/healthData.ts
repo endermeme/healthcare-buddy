@@ -5,6 +5,8 @@ export interface HealthData {
   heartRate: number;
   bloodOxygen: number;
   timestamp: string;
+  heartRates: number[];
+  oxygenLevels: number[];
 }
 
 interface ApiResponse {
@@ -70,7 +72,7 @@ const calculateAverages = (data: HealthData[]) => {
 };
 
 // Fetch health data from the sensor
-export const fetchHealthData = async (): Promise<HealthData | null> => {
+export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
     const response = await axios.get<ApiResponse>(API_ENDPOINT);
     
@@ -82,45 +84,11 @@ export const fetchHealthData = async (): Promise<HealthData | null> => {
       heartRate: response.data.heartRate,
       bloodOxygen: response.data.spo2,
       timestamp: new Date().toISOString(),
+      heartRates: Array(10).fill(response.data.heartRate), // Last 10 readings
+      oxygenLevels: Array(10).fill(response.data.spo2), // Last 10 readings
     };
 
-    // Update logs
-    const currentHour = new Date().setMinutes(0, 0, 0);
-    const hourString = new Date(currentHour).toISOString();
-    
-    const logs = loadLogs();
-    let currentLog = logs.find(log => log.hour === hourString);
-    
-    if (!currentLog) {
-      currentLog = {
-        hour: hourString,
-        isRecording: true,
-        lastRecordTime: null,
-        averageHeartRate: 0,
-        averageBloodOxygen: 0,
-        secondsData: []
-      };
-      logs.push(currentLog);
-    }
-
-    currentLog.secondsData.push(data);
-    currentLog.lastRecordTime = data.timestamp;
-    
-    const averages = calculateAverages(currentLog.secondsData);
-    currentLog.averageHeartRate = averages.heartRate;
-    currentLog.averageBloodOxygen = averages.bloodOxygen;
-
-    // Check if hour is complete
-    const now = new Date();
-    const logHour = new Date(currentLog.hour);
-    if (now.getHours() !== logHour.getHours()) {
-      currentLog.isRecording = false;
-    }
-
-    saveLogs(logs);
-    setCurrentRecording(currentLog.isRecording, currentLog.isRecording ? hourString : null);
-
-    return data;
+    return [data];
   } catch (error) {
     console.error('Error fetching health data:', error);
     toast({
@@ -128,7 +96,7 @@ export const fetchHealthData = async (): Promise<HealthData | null> => {
       description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
       variant: "destructive",
     });
-    return null;
+    return [];
   }
 };
 

@@ -1,18 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Send, Loader2, ChevronDown } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SetupWizard } from '@/components/SetupWizard';
+import { ChatHeader } from '@/components/chat/ChatHeader';
 import axios from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { fetchHealthData } from '@/services/healthData';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const Chat = () => {
   const [showSetupWizard, setShowSetupWizard] = useState(false);
@@ -24,7 +19,6 @@ const Chat = () => {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch health data
   const { data: healthData } = useQuery({
     queryKey: ['healthData'],
     queryFn: fetchHealthData,
@@ -43,22 +37,7 @@ const Chat = () => {
 
   const getSelectedHealthData = () => {
     if (!healthData || selectedTimeIndex === null) return null;
-    
-    const sortedData = [...healthData].sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-    
-    return sortedData[selectedTimeIndex];
-  };
-
-  const formatTimeString = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    return healthData[selectedTimeIndex];
   };
 
   const sendMessage = async () => {
@@ -113,53 +92,12 @@ const Chat = () => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <header className="sticky top-0 z-10 bg-white shadow-sm">
-        <div className="flex h-14 items-center px-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate('/')}
-            className="mr-2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <span className="text-sm font-medium">AI Assistant</span>
-          <div className="ml-auto">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  {selectedTimeIndex !== null && healthData ? 
-                    formatTimeString(healthData[selectedTimeIndex].timestamp) :
-                    'Chọn thời điểm'
-                  }
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {healthData && [...healthData]
-                  .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                  .map((data, index) => (
-                    <DropdownMenuItem
-                      key={data.timestamp}
-                      onClick={() => setSelectedTimeIndex(index)}
-                      className="flex flex-col items-start"
-                    >
-                      <span className="font-medium">{formatTimeString(data.timestamp)}</span>
-                      <span className="text-xs text-gray-500">
-                        Nhịp tim: {data.heartRates.join(', ')} | 
-                        SpO2: {data.oxygenLevels.join(', ')}
-                      </span>
-                    </DropdownMenuItem>
-                  ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
+      <ChatHeader 
+        onBack={() => navigate('/')}
+        healthData={healthData}
+        selectedTimeIndex={selectedTimeIndex}
+        onTimeSelect={setSelectedTimeIndex}
+      />
 
       <main className="flex-1 overflow-y-auto p-4 pb-20">
         <div className="max-w-3xl mx-auto space-y-4">
