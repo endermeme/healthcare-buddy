@@ -21,6 +21,11 @@ export interface HourlyLog {
   secondsData: HealthData[];
 }
 
+interface WaterRecommendation {
+  recommendation: string;
+  glassesCount: number;
+}
+
 const API_ENDPOINT = 'http://192.168.1.15/data';
 
 // Local storage keys
@@ -125,4 +130,35 @@ export const fetchHealthData = async (): Promise<HealthData | null> => {
     });
     return null;
   }
+};
+
+export const getWaterRecommendation = async (
+  heartRate: number,
+  bloodOxygen: number
+): Promise<WaterRecommendation> => {
+  // Calculate recommended glasses based on heart rate and blood oxygen
+  let baseGlasses = 8; // Default recommendation
+  
+  // Adjust based on heart rate
+  if (heartRate > 100) {
+    baseGlasses += 2; // Add more water if heart rate is elevated
+  } else if (heartRate < 60) {
+    baseGlasses -= 1; // Slightly reduce if heart rate is low
+  }
+  
+  // Adjust based on blood oxygen
+  if (bloodOxygen < 95) {
+    baseGlasses += 1; // Add more water if blood oxygen is low
+  }
+
+  // Generate recommendation message
+  let recommendation = "Hãy uống đủ nước để duy trì sức khỏe tốt.";
+  if (heartRate > 100 || bloodOxygen < 95) {
+    recommendation = "Bạn nên uống nhiều nước hơn để cải thiện các chỉ số sức khỏe.";
+  }
+
+  return {
+    recommendation,
+    glassesCount: baseGlasses
+  };
 };
