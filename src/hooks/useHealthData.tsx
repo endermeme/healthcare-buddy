@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchHealthData, HealthData } from '@/services/healthData';
-import { addHealthLog, LogHistoryIcon } from '@/services/logService';
+import { addHealthLog, clearOldLogs, LogHistoryIcon } from '@/services/logService';
 import { toast } from '@/components/ui/use-toast';
 
 export type TimeRange = '5m' | '15m' | '30m' | '1h';
@@ -30,15 +30,23 @@ export const useHealthData = (timeRange: TimeRange) => {
     }
   });
 
+  // Xóa log cũ mỗi giờ
+  useEffect(() => {
+    const interval = setInterval(clearOldLogs, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (currentData) {
       setHistory(prev => {
         const now = new Date();
         const timeLimit = new Date(now.getTime() - getTimeRangeInMs(timeRange));
         
-        return [...prev, currentData].filter(data => 
-          new Date(data.timestamp) > timeLimit
-        ).slice(-1000) as HealthData[];
+        const updatedHistory = [...prev, currentData]
+          .filter(data => new Date(data.timestamp) > timeLimit)
+          .slice(-1000);
+
+        return updatedHistory;
       });
     }
   }, [currentData, timeRange]);
@@ -67,7 +75,7 @@ export const useHealthData = (timeRange: TimeRange) => {
     currentData,
     history,
     averages: getAverages(),
-    LogHistoryIcon,
+    LogHistoryIcon, // Export icon for use in UI
   };
 };
 

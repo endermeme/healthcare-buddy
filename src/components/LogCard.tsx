@@ -1,57 +1,49 @@
 import { Card } from '@/components/ui/card';
-import { Clock, Activity, Heart, Radio } from 'lucide-react';
+import { Clock, Activity, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { type HourLog } from '@/services/logService';
-import { HealthChart } from './HealthChart';
-import { Badge } from '@/components/ui/badge';
+
+interface SecondData {
+  timestamp: string;
+  heartRate: number;
+  bloodOxygen: number;
+}
+
+export interface MinuteLog {
+  minute: string;
+  isRecording: boolean;
+  secondsData: SecondData[];
+}
 
 interface LogCardProps {
-  log: HourLog;
+  log: MinuteLog;
   onClick: () => void;
 }
 
 export const LogCard = ({ log, onClick }: LogCardProps) => {
-  const hourTime = new Date(log.timestamp);
-  
-  // Calculate minute-by-minute averages for the chart
-  const minuteAverages = log.minuteLogs.map(minute => {
-    const avgHeartRate = minute.secondsData.reduce((sum, data) => sum + data.heartRate, 0) / minute.secondsData.length;
-    const avgBloodOxygen = minute.secondsData.reduce((sum, data) => sum + data.bloodOxygen, 0) / minute.secondsData.length;
-    return {
-      timestamp: minute.minute,
-      heartRate: Math.round(avgHeartRate),
-      bloodOxygen: Math.round(avgBloodOxygen)
-    };
-  });
-
-  // Get latest readings
-  const lastMinute = log.minuteLogs[log.minuteLogs.length - 1];
-  const lastReading = lastMinute?.secondsData[lastMinute.secondsData.length - 1];
+  const minuteTime = new Date(log.minute);
+  const lastReading = log.secondsData[log.secondsData.length - 1];
 
   return (
     <Card 
       className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
       onClick={onClick}
     >
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Clock className="h-4 w-4 text-gray-500" />
             <span className="font-medium">
-              {format(hourTime, 'HH:00', { locale: vi })}
+              {format(minuteTime, 'HH:mm', { locale: vi })}
             </span>
           </div>
-          {log.isRecording && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Radio className="h-3 w-3 text-red-500 animate-pulse" />
-              <span className="text-xs">Đang ghi</span>
-            </Badge>
-          )}
-        </div>
-
-        <div className="h-[200px] w-full">
-          <HealthChart data={minuteAverages} />
+          <div className="text-sm">
+            {log.isRecording ? (
+              <span className="text-blue-500">Đang ghi...</span>
+            ) : (
+              <span className="text-green-500">Đã hoàn tất</span>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -70,7 +62,7 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
         </div>
 
         <div className="text-xs text-gray-500">
-          {log.minuteLogs.length} phút đã ghi
+          {log.secondsData.length} giây đã ghi
         </div>
       </div>
     </Card>

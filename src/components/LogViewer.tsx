@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Star, Download, ChevronDown, Trash2 } from 'lucide-react';
+import { Star, Download, ChevronDown } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { useToast } from '@/components/ui/use-toast';
@@ -11,17 +11,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogCard } from './LogCard';
+import { LogCard, type MinuteLog } from './LogCard';
 import { LogDetail } from './LogDetail';
 import {
-  getLogsForDate,
-  deleteLog,
-  type HourLog,
-} from '@/services/logService';
+  fetchDailyLogs,
+  addToFavorites,
+  downloadLogs,
+  getDailyLogs,
+  type DailyLog,
+} from '@/services/logApiService';
 
 export const LogViewer = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedLog, setSelectedLog] = useState<HourLog | null>(null);
+  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
+  const [minuteLogs, setMinuteLogs] = useState<MinuteLog[]>([]);
+  const [selectedLog, setSelectedLog] = useState<MinuteLog | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -34,19 +38,30 @@ export const LogViewer = () => {
     };
   });
 
-  const hourLogs = getLogsForDate(format(selectedDate, 'yyyy-MM-dd'));
-
-  const handleLogClick = (log: HourLog) => {
-    setSelectedLog(log);
-    setDialogOpen(true);
+  const handleAddToFavorites = () => {
+    const logToSave: DailyLog = {
+      date: format(selectedDate, 'yyyy-MM-dd'),
+      minuteLogs: minuteLogs
+    };
+    addToFavorites(logToSave);
+    toast({
+      title: "Đã lưu vào mục yêu thích",
+      description: `Log ngày ${format(selectedDate, 'dd/MM/yyyy')} đã được lưu`,
+    });
   };
 
-  const handleDeleteLog = (hourIndex: number) => {
-    deleteLog(format(selectedDate, 'yyyy-MM-dd'), hourIndex);
+  const handleDownload = () => {
+    const logs = getDailyLogs();
+    downloadLogs(logs);
     toast({
-      title: "Đã xóa log",
-      description: "Log đã được xóa thành công",
+      title: "Tải log thành công",
+      description: "File log đã được tải về máy của bạn",
     });
+  };
+
+  const handleLogClick = (log: MinuteLog) => {
+    setSelectedLog(log);
+    setDialogOpen(true);
   };
 
   return (
@@ -70,28 +85,36 @@ export const LogViewer = () => {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleAddToFavorites}
+            className="flex-1 sm:flex-initial"
+          >
+            <Star className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Lưu yêu thích</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownload}
+            className="flex-1 sm:flex-initial"
+          >
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Tải về</span>
+          </Button>
+        </div>
       </div>
 
-      <ScrollArea className="h-[600px] rounded-md border">
+      <ScrollArea className="h-[400px] rounded-md border">
         <div className="space-y-4 p-4">
-          {hourLogs.map((log, index) => (
-            <div key={log.hour} className="relative">
-              <LogCard 
-                log={log}
-                onClick={() => handleLogClick(log)}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteLog(index);
-                }}
-              >
-                <Trash2 className="h-4 w-4 text-red-500" />
-              </Button>
-            </div>
+          {minuteLogs.map((log) => (
+            <LogCard 
+              key={log.minute}
+              log={log}
+              onClick={() => handleLogClick(log)}
+            />
           ))}
         </div>
       </ScrollArea>

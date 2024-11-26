@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
-import { getWaterRecommendation, type WaterRecommendation } from '@/services/healthData';
+import { getWaterRecommendation } from '@/services/healthData';
 import { Droplet, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

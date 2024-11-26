@@ -1,116 +1,115 @@
-import { format } from 'date-fns';
 import { History } from 'lucide-react';
 
-export interface SecondData {
+export interface HourlyHealthLog {
+  time: string; // Format: "HH:00"
+  heartRateReadings: number[];
+  oxygenReadings: number[];
   timestamp: string;
-  heartRate: number;
-  bloodOxygen: number;
 }
 
-export interface MinuteLog {
-  minute: string;
-  isRecording: boolean;
-  secondsData: SecondData[];
-}
-
-export interface HourLog {
-  hour: string;
-  timestamp: string;
-  minuteLogs: MinuteLog[];
-  isRecording?: boolean;
+interface DailyLogs {
+  [date: string]: HourlyHealthLog[];
 }
 
 const LOG_STORAGE_KEY = 'health_logs';
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-export const addHealthLog = (heartRate: number, bloodOxygen: number): string | undefined => {
-  const now = new Date();
-  const dateStr = format(now, 'yyyy-MM-dd');
-  const hourStr = format(now, 'HH:00');
-  const minuteStr = now.toISOString();
-
-  try {
-    const storedLogs = localStorage.getItem(LOG_STORAGE_KEY);
-    const dailyLogs = storedLogs ? JSON.parse(storedLogs) : {};
-    
-    if (!dailyLogs[dateStr]) {
-      dailyLogs[dateStr] = [];
-    }
-
-    // Find or create hour log
-    let hourLog = dailyLogs[dateStr].find((log: HourLog) => log.hour === hourStr);
-    
-    if (!hourLog) {
-      hourLog = {
-        hour: hourStr,
-        minuteLogs: [],
-        timestamp: format(now, "yyyy-MM-dd'T'HH:00:00"),
-        isRecording: true
-      };
-      dailyLogs[dateStr].push(hourLog);
-    }
-
-    // Find or create minute log
-    let minuteLog = hourLog.minuteLogs.find(
-      (log: MinuteLog) => format(new Date(log.minute), 'HH:mm') === format(now, 'HH:mm')
-    );
-
-    if (!minuteLog) {
-      minuteLog = {
-        minute: minuteStr,
-        isRecording: true,
-        secondsData: []
-      };
-      hourLog.minuteLogs.push(minuteLog);
-    }
-
-    // Add new reading
-    minuteLog.secondsData.push({
-      timestamp: minuteStr,
-      heartRate,
-      bloodOxygen
-    });
-
-    // Update recording status
-    hourLog.isRecording = true;
-    minuteLog.isRecording = true;
-
-    localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(dailyLogs));
-    return dateStr;
-  } catch (error) {
-    console.error('Error saving health log:', error);
-    return undefined;
-  }
+// Helper để lấy chuỗi ngày dạng YYYY-MM-DD
+const getDateString = (date: Date) => {
+  return date.toISOString().split('T')[0];
 };
 
-export const getLogsForDate = (date: string): HourLog[] => {
+const getHourString = (date: Date) => {
+  return `${date.getHours()}:00`;
+};
+
+// Lấy tất cả log theo ngày
+export const getDailyLogs = (): DailyLogs => {
   try {
     const storedLogs = localStorage.getItem(LOG_STORAGE_KEY);
-    if (!storedLogs) return [];
-    
-    const dailyLogs = JSON.parse(storedLogs);
-    return dailyLogs[date] || [];
+    return storedLogs ? JSON.parse(storedLogs) : {};
   } catch (error) {
     console.error('Error reading logs:', error);
-    return [];
+    return {};
   }
 };
 
-export const deleteLog = (date: string, hourIndex: number) => {
-  try {
-    const storedLogs = localStorage.getItem(LOG_STORAGE_KEY);
-    if (!storedLogs) return;
-    
-    const dailyLogs = JSON.parse(storedLogs);
-    if (dailyLogs[date]) {
-      dailyLogs[date].splice(hourIndex, 1);
-      if (dailyLogs[date].length === 0) {
-        delete dailyLogs[date];
-      }
-      localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(dailyLogs));
-    }
-  } catch (error) {
-    console.error('Error deleting log:', error);
+// Lấy log cho một ngày cụ thể
+export const getLogsForDate = (date: string): HourlyHealthLog[] => {
+  const allLogs = getDailyLogs();
+  return allLogs[date] || [];
+};
+
+// Thêm log mới
+export const addHealthLog = (heartRate: number, bloodOxygen: number): string | undefined => {
+  const now = new Date();
+  const dateStr = getDateString(now);
+  const hourStr = getHourString(now);
+  
+  const currentLogs = getDailyLogs();
+  const todayLogs = currentLogs[dateStr] || [];
+
+  // Tìm log của giờ hiện tại
+  let currentHourLog = todayLogs.find(log => log.time === hourStr);
+
+  if (!currentHourLog) {
+    // Tạo log mới cho giờ hiện tại
+    currentHourLog = {
+      time: hourStr,
+      heartRateReadings: [],
+      oxygenReadings: [],
+      timestamp: now.toISOString()
+    };
+    todayLogs.push(currentHourLog);
   }
+
+  // Thêm các chỉ số mới
+  currentHourLog.heartRateReadings.push(heartRate);
+  currentHourLog.oxygenReadings.push(bloodOxygen);
+
+  // Cập nhật logs
+  currentLogs[dateStr] = todayLogs;
+  localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(currentLogs));
+
+  return dateStr;
+};
+
+// Xóa log cũ hơn 1 tuần
+export const clearOldLogs = () => {
+  const allLogs = getDailyLogs();
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() - ONE_WEEK_MS);
+  
+  const filteredLogs = Object.entries(allLogs)
+    .filter(([dateStr]) => new Date(dateStr) >= cutoffDate)
+    .reduce((acc: DailyLogs, [date, logs]) => {
+      acc[date] = logs;
+      return acc;
+    }, {});
+
+  localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(filteredLogs));
+};
+
+// Lấy thống kê cho một giờ
+export const getHourlyStats = (logs: HourlyHealthLog) => {
+  const heartRateStats = {
+    avg: Math.round(logs.heartRateReadings.reduce((a, b) => a + b, 0) / logs.heartRateReadings.length),
+    min: Math.min(...logs.heartRateReadings),
+    max: Math.max(...logs.heartRateReadings)
+  };
+
+  const oxygenStats = {
+    avg: Math.round(logs.oxygenReadings.reduce((a, b) => a + b, 0) / logs.oxygenReadings.length),
+    min: Math.min(...logs.oxygenReadings),
+    max: Math.max(...logs.oxygenReadings)
+  };
+
+  return {
+    time: logs.time,
+    heartRate: heartRateStats,
+    oxygen: oxygenStats,
+    readings: logs.heartRateReadings.length
+  };
 };
 
 export const LogHistoryIcon = History;
