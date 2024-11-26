@@ -4,6 +4,7 @@ import { AudioMessage } from '@/components/chat/AudioMessage';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { toast } from 'sonner';
 import { saveChatMessage } from '@/services/healthData';
+import { useNavigate } from 'react-router-dom';
 
 interface Message {
   id: string;
@@ -16,6 +17,8 @@ interface Message {
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleSendMessage = async (text: string, audioUrl?: string, transcription?: string, metadata?: object) => {
     try {
@@ -59,9 +62,21 @@ export default function Chat() {
     }
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  const handleLogSelect = (logId: string) => {
+    setSelectedLogId(logId);
+  };
+
   return (
     <div className="flex flex-col h-screen pb-16">
-      <ChatHeader />
+      <ChatHeader 
+        onBack={handleBack}
+        selectedLogId={selectedLogId}
+        onLogSelect={handleLogSelect}
+      />
       
       <div className="flex-1 overflow-y-auto p-4">
         {messages.map(message => (
