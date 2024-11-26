@@ -42,11 +42,28 @@ const getAdviceByAge = (age: number): string => {
   return "Duy trì uống nước đều đặn, uống từng ngụm nhỏ nếu cần. Bổ sung nước qua thực phẩm mềm.";
 };
 
+const calculateExpectedProgress = (): number => {
+  const now = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(6, 0, 0, 0); // Bắt đầu tính từ 6 giờ sáng
+  
+  const endOfDay = new Date(now);
+  endOfDay.setHours(22, 0, 0, 0); // Kết thúc lúc 10 giờ tối
+  
+  if (now < startOfDay || now > endOfDay) return 0;
+  
+  const totalMinutes = (endOfDay.getTime() - startOfDay.getTime()) / (1000 * 60);
+  const elapsedMinutes = (now.getTime() - startOfDay.getTime()) / (1000 * 60);
+  
+  return Math.min(100, (elapsedMinutes / totalMinutes) * 100);
+};
+
 export const WaterIntakeProgress = ({ heartRate, bloodOxygen }: WaterIntakeProgressProps) => {
   const [recommendation, setRecommendation] = useState('');
   const [currentGlasses, setCurrentGlasses] = useState(0);
   const [targetGlasses, setTargetGlasses] = useState(8);
   const [progress, setProgress] = useState(0);
+  const [expectedProgress, setExpectedProgress] = useState(0);
   const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -57,6 +74,20 @@ export const WaterIntakeProgress = ({ heartRate, bloodOxygen }: WaterIntakeProgr
       const recommended = getRecommendedIntakeByAge(profile.age || 25, profile.gender || "male");
       setTargetGlasses(recommended.glasses);
     }
+  }, []);
+
+  useEffect(() => {
+    const updateExpectedProgress = () => {
+      setExpectedProgress(calculateExpectedProgress());
+    };
+
+    // Cập nhật ngay lập tức
+    updateExpectedProgress();
+
+    // Cập nhật mỗi phút
+    const interval = setInterval(updateExpectedProgress, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -112,14 +143,26 @@ export const WaterIntakeProgress = ({ heartRate, bloodOxygen }: WaterIntakeProgr
         </HoverCard>
       </div>
       
-      <Progress value={progress} className="mb-4 h-4" />
-      
-      <div className="flex justify-between text-sm text-gray-600 mb-4">
-        <span>{currentGlasses} / {targetGlasses} cốc</span>
-        <span>{Math.round(progress)}%</span>
+      <div className="space-y-4">
+        <div>
+          <Progress value={progress} className="mb-2 h-4" />
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>{currentGlasses} / {targetGlasses} cốc</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+        </div>
+
+        <div>
+          <div className="text-sm text-gray-600 mb-2">Tiến độ theo thời gian</div>
+          <Progress value={expectedProgress} className="h-2 bg-gray-100" />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>6:00</span>
+            <span>22:00</span>
+          </div>
+        </div>
       </div>
 
-      <div className="flex gap-4 justify-center mb-4">
+      <div className="flex gap-4 justify-center my-4">
         <Button 
           variant="outline" 
           size="icon"
