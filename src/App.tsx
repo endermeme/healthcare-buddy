@@ -8,19 +8,19 @@ import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import History from "./pages/History";
 import Detail from "./pages/Detail";
+import Profile from "./pages/Profile";
 import { fetchHealthData } from "@/services/healthData";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchInterval: 5000, // Fetch every 5 seconds
-      refetchIntervalInBackground: true, // Continue fetching even when tab is not active
+      refetchInterval: 5000,
+      refetchIntervalInBackground: true,
     },
   },
 });
 
 const AppContent = () => {
-  // This query will run continuously in the background
   useQuery({
     queryKey: ['healthData'],
     queryFn: fetchHealthData,
@@ -34,6 +34,7 @@ const AppContent = () => {
         <Route path="/chat" element={<Chat />} />
         <Route path="/history" element={<History />} />
         <Route path="/detail/:id" element={<Detail />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
       <BottomNav />
     </div>
