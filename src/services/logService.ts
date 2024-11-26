@@ -1,13 +1,14 @@
 import { History } from 'lucide-react';
 
-interface HealthLog {
+export interface HourlyHealthLog {
+  time: string; // Format: "HH:00"
+  heartRateReadings: number[];
+  oxygenReadings: number[];
   timestamp: string;
-  heartRate: number;
-  bloodOxygen: number;
 }
 
 interface DailyLogs {
-  [date: string]: HealthLog[];
+  [date: string]: HourlyHealthLog[];
 }
 
 const LOG_STORAGE_KEY = 'health_logs';
@@ -18,21 +19,15 @@ const getDateString = (date: Date) => {
   return date.toISOString().split('T')[0];
 };
 
+const getHourString = (date: Date) => {
+  return `${date.getHours()}:00`;
+};
+
 // Lấy tất cả log theo ngày
 export const getDailyLogs = (): DailyLogs => {
   try {
     const storedLogs = localStorage.getItem(LOG_STORAGE_KEY);
-    if (!storedLogs) return {};
-    
-    const logs: HealthLog[] = JSON.parse(storedLogs);
-    return logs.reduce((acc: DailyLogs, log) => {
-      const dateStr = getDateString(new Date(log.timestamp));
-      if (!acc[dateStr]) {
-        acc[dateStr] = [];
-      }
-      acc[dateStr].push(log);
-      return acc;
-    }, {});
+    return storedLogs ? JSON.parse(storedLogs) : {};
   } catch (error) {
     console.error('Error reading logs:', error);
     return {};
@@ -40,38 +35,41 @@ export const getDailyLogs = (): DailyLogs => {
 };
 
 // Lấy log cho một ngày cụ thể
-export const getLogsForDate = (date: string): HealthLog[] => {
+export const getLogsForDate = (date: string): HourlyHealthLog[] => {
   const allLogs = getDailyLogs();
   return allLogs[date] || [];
 };
 
 // Thêm log mới
 export const addHealthLog = (heartRate: number, bloodOxygen: number): string | undefined => {
-  // Chỉ ghi log nếu giá trị hợp lệ
-  if (heartRate < 50 || heartRate > 120 || bloodOxygen < 80 || bloodOxygen > 100) {
-    return undefined;
-  }
-
   const now = new Date();
   const dateStr = getDateString(now);
+  const hourStr = getHourString(now);
   
   const currentLogs = getDailyLogs();
   const todayLogs = currentLogs[dateStr] || [];
 
-  // Thêm log mới
-  const newLog: HealthLog = {
-    timestamp: now.toISOString(),
-    heartRate,
-    bloodOxygen,
-  };
+  // Tìm log của giờ hiện tại
+  let currentHourLog = todayLogs.find(log => log.time === hourStr);
 
-  // Cập nhật log cho ngày hiện tại
-  todayLogs.push(newLog);
+  if (!currentHourLog) {
+    // Tạo log mới cho giờ hiện tại
+    currentHourLog = {
+      time: hourStr,
+      heartRateReadings: [],
+      oxygenReadings: [],
+      timestamp: now.toISOString()
+    };
+    todayLogs.push(currentHourLog);
+  }
+
+  // Thêm các chỉ số mới
+  currentHourLog.heartRateReadings.push(heartRate);
+  currentHourLog.oxygenReadings.push(bloodOxygen);
+
+  // Cập nhật logs
   currentLogs[dateStr] = todayLogs;
-
-  // Chuyển về dạng mảng để lưu trữ
-  const allLogs = Object.values(currentLogs).flat();
-  localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(allLogs));
+  localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(currentLogs));
 
   return dateStr;
 };
@@ -82,7 +80,6 @@ export const clearOldLogs = () => {
   const now = new Date();
   const cutoffDate = new Date(now.getTime() - ONE_WEEK_MS);
   
-  // Lọc bỏ log cũ
   const filteredLogs = Object.entries(allLogs)
     .filter(([dateStr]) => new Date(dateStr) >= cutoffDate)
     .reduce((acc: DailyLogs, [date, logs]) => {
@@ -90,48 +87,29 @@ export const clearOldLogs = () => {
       return acc;
     }, {});
 
-  // Chuyển về dạng mảng và lưu
-  const logsArray = Object.values(filteredLogs).flat();
-  localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(logsArray));
+  localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(filteredLogs));
 };
 
-// Biểu tượng lịch sử
-export const LogHistoryIcon = History;
+// Lấy thống kê cho một giờ
+export const getHourlyStats = (logs: HourlyHealthLog) => {
+  const heartRateStats = {
+    avg: Math.round(logs.heartRateReadings.reduce((a, b) => a + b, 0) / logs.heartRateReadings.length),
+    min: Math.min(...logs.heartRateReadings),
+    max: Math.max(...logs.heartRateReadings)
+  };
 
-// Lấy thống kê cho một ngày
-export const getDailyStats = (date: string) => {
-  const logs = getLogsForDate(date);
-  
-  if (logs.length === 0) {
-    return null;
-  }
-
-  const stats = logs.reduce((acc, log) => ({
-    totalHeartRate: acc.totalHeartRate + log.heartRate,
-    totalBloodOxygen: acc.totalBloodOxygen + log.bloodOxygen,
-    count: acc.count + 1,
-    minHeartRate: Math.min(acc.minHeartRate, log.heartRate),
-    maxHeartRate: Math.max(acc.maxHeartRate, log.heartRate),
-    minBloodOxygen: Math.min(acc.minBloodOxygen, log.bloodOxygen),
-    maxBloodOxygen: Math.max(acc.maxBloodOxygen, log.bloodOxygen),
-  }), {
-    totalHeartRate: 0,
-    totalBloodOxygen: 0,
-    count: 0,
-    minHeartRate: Infinity,
-    maxHeartRate: -Infinity,
-    minBloodOxygen: Infinity,
-    maxBloodOxygen: -Infinity
-  });
+  const oxygenStats = {
+    avg: Math.round(logs.oxygenReadings.reduce((a, b) => a + b, 0) / logs.oxygenReadings.length),
+    min: Math.min(...logs.oxygenReadings),
+    max: Math.max(...logs.oxygenReadings)
+  };
 
   return {
-    date,
-    avgHeartRate: Math.round(stats.totalHeartRate / stats.count),
-    avgBloodOxygen: Math.round(stats.totalBloodOxygen / stats.count),
-    minHeartRate: stats.minHeartRate,
-    maxHeartRate: stats.maxHeartRate,
-    minBloodOxygen: stats.minBloodOxygen,
-    maxBloodOxygen: stats.maxBloodOxygen,
-    readingsCount: stats.count
+    time: logs.time,
+    heartRate: heartRateStats,
+    oxygen: oxygenStats,
+    readings: logs.heartRateReadings.length
   };
 };
+
+export const LogHistoryIcon = History;
