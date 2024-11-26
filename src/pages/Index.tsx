@@ -14,7 +14,7 @@ const Index = () => {
 
   // Kiểm tra lỗi cảm biến và hiển thị toast
   if (currentData?.error) {
-    toast.error("Lỗi cảm biến", {
+    toast("Lỗi cảm biến", {
       position: "bottom-center",
       duration: 3000,
       className: "bg-red-500 text-white border-none shadow-lg",
@@ -29,7 +29,6 @@ const Index = () => {
   const handleTimeRangeChange = (range: TimeRange) => {
     setTimeRange(range);
     toast({
-      title: "Đã thay đổi khoảng thời gian",
       description: `Hiển thị dữ liệu trong ${range}`,
     });
   };

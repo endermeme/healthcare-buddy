@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { toast } from '@/components/ui/use-toast';
 
 export interface HealthData {
   heartRate: number;
@@ -7,6 +6,7 @@ export interface HealthData {
   timestamp: string;
   heartRates: number[];
   oxygenLevels: number[];
+  error?: boolean;
 }
 
 interface ApiResponse {
