@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { MinuteLog } from '@/components/LogCard';
+import { type MinuteLog } from '@/services/logService';
 
 export interface DailyLog {
   date: string;
