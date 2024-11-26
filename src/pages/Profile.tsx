@@ -144,7 +144,7 @@ export default function Profile() {
           <Alert className="bg-blue-50 text-blue-800 border-blue-200">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Lưu ý: Các chỉ số sức khỏe như nhịp tim, SpO2 sẽ được đo và cập nhật tự động thông qua thiết bị đeo. Vui lòng đảm bảo thiết bị được kết nối đúng cách để có kết quả chính xác.
+              Lưu ý: Các chỉ số sức khỏe cơ bản như nhịp tim, SpO2 sẽ được đo và cập nhật tự động thông qua thiết bị đeo. Các chỉ số sức khỏe khác như huyết áp, đường huyết, cholesterol cần được đo và theo dõi tại các cơ sở y tế chuyên môn để đảm bảo độ chính xác.
             </AlertDescription>
           </Alert>
 
