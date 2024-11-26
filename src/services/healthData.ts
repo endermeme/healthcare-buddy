@@ -29,49 +29,80 @@ interface WaterRecommendation {
 }
 
 const API_ENDPOINT = 'http://192.168.1.15/data';
-
-// Local storage keys
 const LOGS_STORAGE_KEY = 'health_logs';
 const CURRENT_RECORDING_KEY = 'current_recording';
 
-// Load logs from local storage
+// Kiểm tra tính hợp lệ của dữ liệu
+const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
+  return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
+};
+
+// Load logs từ local storage
 export const loadLogs = (): HourlyLog[] => {
   const storedLogs = localStorage.getItem(LOGS_STORAGE_KEY);
   return storedLogs ? JSON.parse(storedLogs) : [];
 };
 
-// Save logs to local storage
+// Lưu logs vào local storage
 export const saveLogs = (logs: HourlyLog[]) => {
   localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
 };
 
-// Get current recording status
+// Lấy trạng thái ghi hiện tại
 export const getCurrentRecording = (): { isRecording: boolean; currentHour: string | null } => {
   const stored = localStorage.getItem(CURRENT_RECORDING_KEY);
   return stored ? JSON.parse(stored) : { isRecording: false, currentHour: null };
 };
 
-// Set current recording status
+// Cập nhật trạng thái ghi
 export const setCurrentRecording = (isRecording: boolean, currentHour: string | null) => {
   localStorage.setItem(CURRENT_RECORDING_KEY, JSON.stringify({ isRecording, currentHour }));
 };
 
-// Calculate averages for an hour
-const calculateAverages = (data: HealthData[]) => {
-  if (data.length === 0) return { heartRate: 0, bloodOxygen: 0 };
-  
-  const sum = data.reduce((acc, curr) => ({
-    heartRate: acc.heartRate + curr.heartRate,
-    bloodOxygen: acc.bloodOxygen + curr.bloodOxygen
-  }), { heartRate: 0, bloodOxygen: 0 });
-
-  return {
-    heartRate: Math.round(sum.heartRate / data.length),
-    bloodOxygen: Math.round(sum.bloodOxygen / data.length)
-  };
+// Tính trung bình của một mảng số
+const calculateAverage = (numbers: number[]): number => {
+  if (numbers.length === 0) return 0;
+  const sum = numbers.reduce((a, b) => a + b, 0);
+  return Math.round(sum / numbers.length);
 };
 
-// Fetch health data from the sensor
+// Cập nhật log cho giờ hiện tại
+const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog[] => {
+  const currentHour = new Date().setMinutes(0, 0, 0);
+  const hourString = new Date(currentHour).toISOString();
+  
+  const existingLogIndex = logs.findIndex(log => log.hour === hourString);
+  
+  if (existingLogIndex >= 0) {
+    const updatedLog = { ...logs[existingLogIndex] };
+    updatedLog.secondsData.push(newData);
+    updatedLog.lastRecordTime = new Date().toISOString();
+    
+    // Cập nhật trung bình
+    const validHeartRates = updatedLog.secondsData.map(d => d.heartRate).filter(rate => rate > 0);
+    const validOxygenLevels = updatedLog.secondsData.map(d => d.bloodOxygen).filter(level => level > 0);
+    
+    updatedLog.averageHeartRate = calculateAverage(validHeartRates);
+    updatedLog.averageBloodOxygen = calculateAverage(validOxygenLevels);
+    
+    const newLogs = [...logs];
+    newLogs[existingLogIndex] = updatedLog;
+    return newLogs;
+  } else {
+    // Tạo log mới cho giờ hiện tại
+    const newLog: HourlyLog = {
+      hour: hourString,
+      isRecording: true,
+      lastRecordTime: new Date().toISOString(),
+      averageHeartRate: newData.heartRate,
+      averageBloodOxygen: newData.bloodOxygen,
+      secondsData: [newData]
+    };
+    return [...logs, newLog];
+  }
+};
+
+// Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
     const response = await axios.get<ApiResponse>(API_ENDPOINT);
@@ -80,15 +111,28 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
       throw new Error('Invalid data format received');
     }
 
-    const data: HealthData = {
-      heartRate: response.data.heartRate,
-      bloodOxygen: response.data.spo2,
-      timestamp: new Date().toISOString(),
-      heartRates: Array(10).fill(response.data.heartRate), // Last 10 readings
-      oxygenLevels: Array(10).fill(response.data.spo2), // Last 10 readings
-    };
+    const { heartRate, spo2: bloodOxygen } = response.data;
 
-    return [data];
+    // Chỉ xử lý dữ liệu hợp lệ
+    if (isValidReading(heartRate, bloodOxygen)) {
+      const data: HealthData = {
+        heartRate,
+        bloodOxygen,
+        timestamp: new Date().toISOString(),
+        heartRates: Array(10).fill(heartRate),
+        oxygenLevels: Array(10).fill(bloodOxygen),
+      };
+
+      // Cập nhật logs
+      const currentLogs = loadLogs();
+      const updatedLogs = updateCurrentHourLog(currentLogs, data);
+      saveLogs(updatedLogs);
+
+      return [data];
+    } else {
+      console.warn('Invalid reading detected:', { heartRate, bloodOxygen });
+      return [];
+    }
   } catch (error) {
     console.error('Error fetching health data:', error);
     toast({
@@ -104,22 +148,18 @@ export const getWaterRecommendation = async (
   heartRate: number,
   bloodOxygen: number
 ): Promise<WaterRecommendation> => {
-  // Calculate recommended glasses based on heart rate and blood oxygen
-  let baseGlasses = 8; // Default recommendation
+  let baseGlasses = 8;
   
-  // Adjust based on heart rate
   if (heartRate > 100) {
-    baseGlasses += 2; // Add more water if heart rate is elevated
+    baseGlasses += 2;
   } else if (heartRate < 60) {
-    baseGlasses -= 1; // Slightly reduce if heart rate is low
+    baseGlasses -= 1;
   }
   
-  // Adjust based on blood oxygen
   if (bloodOxygen < 95) {
-    baseGlasses += 1; // Add more water if blood oxygen is low
+    baseGlasses += 1;
   }
 
-  // Generate recommendation message
   let recommendation = "Hãy uống đủ nước để duy trì sức khỏe tốt.";
   if (heartRate > 100 || bloodOxygen < 95) {
     recommendation = "Bạn nên uống nhiều nước hơn để cải thiện các chỉ số sức khỏe.";
