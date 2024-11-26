@@ -14,6 +14,22 @@ interface HealthLogRequest {
   oxy: number[];
 }
 
+// Mock data storage
+let healthLogs: any[] = [];
+
+app.get('/api/health-log', (_req: Request, res: Response) => {
+  // Generate some mock data if no data exists
+  if (healthLogs.length === 0) {
+    const mockData = {
+      heartRate: Math.floor(Math.random() * (100 - 60) + 60),
+      bloodOxygen: Math.floor(Math.random() * (100 - 95) + 95),
+      timestamp: new Date().toISOString()
+    };
+    healthLogs.push(mockData);
+  }
+  return res.json(healthLogs[healthLogs.length - 1]);
+});
+
 app.post('/api/health-log', (req: Request<{}, {}, HealthLogRequest>, res: Response) => {
   const { bpm, oxy } = req.body;
   
@@ -28,11 +44,13 @@ app.post('/api/health-log', (req: Request<{}, {}, HealthLogRequest>, res: Respon
     const timestamp = toZonedTime(now, timeZone);
     timestamp.setSeconds(timestamp.getSeconds() + index);
     
-    return {
+    const data = {
       timestamp: timestamp.toISOString(),
       heartRate: Number(heartRate),
       bloodOxygen: Number(oxy[index])
     };
+    healthLogs.push(data);
+    return data;
   });
 
   return res.json(healthData);
