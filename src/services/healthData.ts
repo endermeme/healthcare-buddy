@@ -16,7 +16,10 @@ import type {
   WaterRecommendation 
 } from './types';
 
-// Validation functions
+// Re-export types and constants that are used by other modules
+export type { HealthData, HourlyLog, WaterRecommendation };
+export { LOGS_STORAGE_KEY };
+
 const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
   return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
 };
@@ -85,7 +88,6 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   }];
 };
 
-// Main functions
 export const checkForAbnormalReadings = (data: HealthData[]) => {
   let abnormalCount = 0;
   const lastReadings = data.slice(-5);
