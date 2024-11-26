@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Send, Loader2, Mic, MicOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useToast } from '@/components/ui/use-toast';
 import { SetupWizard } from '@/components/SetupWizard';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { AudioMessage } from '@/components/chat/AudioMessage';
-import axios from 'axios';
-import { useToast } from '@/components/ui/use-toast';
+import { ChatInput } from '@/components/chat/ChatInput';
 import { loadLogs, HourlyLog } from '@/services/healthData';
 
 interface Message {
@@ -19,9 +18,7 @@ interface Message {
 const Chat = () => {
   const [showSetupWizard, setShowSetupWizard] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const [selectedLogData, setSelectedLogData] = useState<{
     heartRates: number[];
@@ -30,8 +27,6 @@ const Chat = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     const hasCompletedSetup = localStorage.getItem('hasCompletedSetup');
@@ -45,12 +40,11 @@ const Chat = () => {
   }, [messages]);
 
   const processLogData = (log: HourlyLog) => {
-    // Filter out invalid readings (0 or undefined values)
     const validData = log.secondsData.filter(data => 
       data.heartRate > 0 && 
-      data.heartRate < 300 && // Reasonable max heart rate
+      data.heartRate < 300 && 
       data.bloodOxygen > 0 &&
-      data.bloodOxygen <= 100 // Valid blood oxygen range
+      data.bloodOxygen <= 100 
     );
 
     return {
@@ -70,78 +64,8 @@ const Chat = () => {
     }
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        try {
-          const formData = new FormData();
-          formData.append('file', audioBlob, 'audio.wav');
-
-          const response = await axios.post(
-            'http://service.aigate.app/v1/audio-to-text',
-            formData,
-            {
-              headers: {
-                'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
-                'Content-Type': 'multipart/form-data',
-              },
-            }
-          );
-
-          if (response.data.text) {
-            setMessages(prev => [...prev, {
-              type: 'user',
-              content: response.data.text,
-              audioUrl,
-              transcription: response.data.text
-            }]);
-            sendMessage(response.data.text);
-          }
-        } catch (error) {
-          toast({
-            variant: "destructive",
-            title: "Lỗi",
-            description: "Không thể chuyển đổi âm thanh thành văn bản. Vui lòng thử lại.",
-          });
-        }
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể truy cập microphone. Vui lòng kiểm tra quyền truy cập.",
-      });
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-      setIsRecording(false);
-    }
-  };
-
-  const sendMessage = async (text?: string) => {
-    const messageToSend = text || inputMessage.trim();
-    if (!messageToSend) return;
+  const sendMessage = async (text: string, audioUrl?: string, transcription?: string) => {
+    if (!text.trim()) return;
 
     if (!selectedLogData) {
       toast({
@@ -152,6 +76,14 @@ const Chat = () => {
       return;
     }
 
+    const newMessage: Message = {
+      type: 'user',
+      content: text,
+      audioUrl,
+      transcription
+    };
+    setMessages(prev => [...prev, newMessage]);
+
     try {
       setIsLoading(true);
       
@@ -160,7 +92,7 @@ const Chat = () => {
           nhiptim: selectedLogData.heartRates.join(' '),
           oxy: selectedLogData.oxygenLevels.join(' ')
         },
-        query: messageToSend,
+        query: text,
         response_mode: "blocking",
         conversation_id: "",
         user: "abc-123"
@@ -176,7 +108,6 @@ const Chat = () => {
       } else {
         throw new Error('Invalid response format');
       }
-      setInputMessage('');
     } catch (error) {
       toast({
         variant: "destructive",
@@ -230,45 +161,10 @@ const Chat = () => {
         </div>
       </main>
 
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className={`rounded-full w-12 h-12 ${isRecording ? 'bg-red-100 text-red-500' : ''}`}
-              onClick={isRecording ? stopRecording : startRecording}
-            >
-              {isRecording ? (
-                <MicOff className="h-5 w-5" />
-              ) : (
-                <Mic className="h-5 w-5" />
-              )}
-            </Button>
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && !isLoading && sendMessage()}
-              placeholder="Nhập câu hỏi của bạn..."
-              className="flex-1 p-3 border rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              disabled={isLoading || isRecording}
-            />
-            <Button 
-              onClick={() => sendMessage()}
-              disabled={isLoading || isRecording}
-              size="icon"
-              className="rounded-full w-12 h-12"
-            >
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
+      <ChatInput 
+        onSendMessage={sendMessage}
+        isLoading={isLoading}
+      />
 
       {showSetupWizard && (
         <SetupWizard onClose={() => {
