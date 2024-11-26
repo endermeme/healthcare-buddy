@@ -1,6 +1,5 @@
 import { toast } from "@/components/ui/use-toast";
-import { fetchSensorData, ApiResponse } from './api';
-import { HealthData } from './healthDataTypes'; // Ensure you have the HealthData interface imported from appropriate file
+import { fetchSensorData } from './api';
 import axios from 'axios';
 
 export interface HealthData {
@@ -11,7 +10,21 @@ export interface HealthData {
   oxygenLevels: number[];
 }
 
-const LOGS_STORAGE_KEY = 'health_logs';
+export interface HourlyLog {
+  hour: string;
+  isRecording: boolean;
+  lastRecordTime: string;
+  averageHeartRate: number;
+  averageBloodOxygen: number;
+  secondsData: HealthData[];
+}
+
+export interface WaterRecommendation {
+  recommendation: string;
+  glassesCount: number;
+}
+
+export const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
 
@@ -150,4 +163,11 @@ export const getWaterRecommendation = async (
     recommendation,
     glassesCount: baseGlasses
   };
+};
+
+// Save chat message
+export const saveChatMessage = (message: any) => {
+  const messages = JSON.parse(localStorage.getItem(CHAT_STORAGE_KEY) || '[]');
+  messages.push(message);
+  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
 };
