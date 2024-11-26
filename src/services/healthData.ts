@@ -115,9 +115,16 @@ export const loadChatMessages = () => {
 };
 
 // Fetch health data từ sensor
+const getApiKey = () => localStorage.getItem('apiKey');
+
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
-    const response = await axios.get<ApiResponse>(API_ENDPOINT);
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      throw new Error('API key not found');
+    }
+
+    const response = await axios.get<ApiResponse>(`${API_ENDPOINT}?key=${apiKey}`);
     
     if (!response.data || typeof response.data.heartRate !== 'number') {
       throw new Error('Invalid data format received');
@@ -149,7 +156,7 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
     console.error('Error fetching health data:', error);
     toast({
       title: "Lỗi kết nối",
-      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
+      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị và key API.",
       variant: "destructive",
     });
     return [];
