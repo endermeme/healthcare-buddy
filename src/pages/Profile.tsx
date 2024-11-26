@@ -22,11 +22,6 @@ const formSchema = z.object({
     message: "Cân nặng phải là số dương từ 1-500kg",
   }),
   medicalHistory: z.string().min(1, "Vui lòng nhập tiền sử bệnh").max(1000, "Tiền sử bệnh quá dài"),
-  passkey: z.string()
-    .length(6, "Passkey phải có đúng 6 chữ số")
-    .refine((val) => val === "123456", {
-      message: "Passkey không đúng",
-    }),
 });
 
 export default function Profile() {
@@ -37,7 +32,6 @@ export default function Profile() {
       gender: undefined,
       weight: "",
       medicalHistory: "",
-      passkey: "",
     },
   });
 
@@ -143,31 +137,6 @@ export default function Profile() {
                     placeholder="Nhập tiền sử bệnh của bạn"
                     className="min-h-[100px]"
                     {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="passkey"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Passkey</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="text" 
-                    maxLength={6}
-                    placeholder="Nhập 6 chữ số" 
-                    {...field}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9]/g, '');
-                      if (value.length <= 6) {
-                        field.onChange(value);
-                      }
-                    }}
                   />
                 </FormControl>
                 <FormMessage />
