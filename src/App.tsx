@@ -10,8 +10,6 @@ import History from "./pages/History";
 import Detail from "./pages/Detail";
 import Profile from "./pages/Profile";
 import { fetchHealthData } from "@/services/healthData";
-import { initializeFirebase } from "@/lib/firebase";
-import { useEffect } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,10 +21,6 @@ const queryClient = new QueryClient({
 });
 
 const AppContent = () => {
-  useEffect(() => {
-    initializeFirebase();
-  }, []);
-
   useQuery({
     queryKey: ['healthData'],
     queryFn: fetchHealthData,

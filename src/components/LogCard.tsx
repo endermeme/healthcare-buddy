@@ -4,7 +4,6 @@ import { format, isAfter } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { vi } from 'date-fns/locale';
 import { HourlyLog } from '@/services/healthData';
-import { isAbnormalReading } from '@/services/healthData';
 
 interface LogCardProps {
   log: HourlyLog;
@@ -16,6 +15,7 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
   const currentTime = new Date();
   const isComplete = isAfter(currentTime, new Date(log.hour));
   
+  // Format time in Vietnam timezone
   const formattedTime = formatInTimeZone(
     hourTime,
     'Asia/Ho_Chi_Minh',
@@ -23,21 +23,19 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
     { locale: vi }
   );
 
+  // Calculate completion percentage
   const getCompletionPercentage = () => {
     if (isComplete) return 100;
+    
     const currentMinute = currentTime.getMinutes();
     return Math.min(Math.round((currentMinute / 60) * 100), 100);
   };
 
   const completionPercentage = getCompletionPercentage();
 
-  const hasAbnormalReadings = log.secondsData.some(data => isAbnormalReading(data));
-
   return (
     <Card 
-      className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-        hasAbnormalReadings ? 'border-red-500 border-2' : ''
-      }`}
+      className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
       onClick={onClick}
     >
       <div className="space-y-3">
@@ -56,23 +54,15 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className={`flex items-center space-x-2 ${
-            log.averageHeartRate < 60 || log.averageHeartRate > 100 ? 'text-red-500' : ''
-          }`}>
-            <Heart className={`h-4 w-4 ${
-              log.averageHeartRate < 60 || log.averageHeartRate > 100 ? 'text-red-500' : 'text-gray-500'
-            }`} />
-            <span className="text-sm">
+          <div className="flex items-center space-x-2">
+            <Heart className="h-4 w-4 text-red-500" />
+            <span className="text-sm text-gray-600">
               {log.averageHeartRate} BPM
             </span>
           </div>
-          <div className={`flex items-center space-x-2 ${
-            log.averageBloodOxygen < 95 ? 'text-red-500' : ''
-          }`}>
-            <Activity className={`h-4 w-4 ${
-              log.averageBloodOxygen < 95 ? 'text-red-500' : 'text-blue-500'
-            }`} />
-            <span className="text-sm">
+          <div className="flex items-center space-x-2">
+            <Activity className="h-4 w-4 text-blue-500" />
+            <span className="text-sm text-gray-600">
               {log.averageBloodOxygen}%
             </span>
           </div>

@@ -1,61 +1,73 @@
 import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
-import { 
-  API_ENDPOINT, 
-  LOGS_STORAGE_KEY, 
-  CURRENT_RECORDING_KEY,
-  ABNORMAL_THRESHOLD,
-  MIN_HEART_RATE,
-  MAX_HEART_RATE,
-  MIN_BLOOD_OXYGEN 
-} from './constants';
-import type { 
-  HealthData, 
-  ApiResponse, 
-  HourlyLog, 
-  WaterRecommendation 
-} from './types';
 
-// Re-export types and constants that are used by other modules
-export type { HealthData, HourlyLog, WaterRecommendation };
-export { LOGS_STORAGE_KEY };
+export interface HealthData {
+  heartRate: number;
+  bloodOxygen: number;
+  timestamp: string;
+  heartRates: number[];
+  oxygenLevels: number[];
+}
 
+interface ApiResponse {
+  heartRate: number;
+  spo2: number;
+}
+
+export interface HourlyLog {
+  hour: string;
+  isRecording: boolean;
+  lastRecordTime: string | null;
+  averageHeartRate: number;
+  averageBloodOxygen: number;
+  secondsData: HealthData[];
+}
+
+interface WaterRecommendation {
+  recommendation: string;
+  glassesCount: number;
+}
+
+const API_ENDPOINT = 'http://192.168.1.15/data';
+export const LOGS_STORAGE_KEY = 'health_logs';
+const CHAT_STORAGE_KEY = 'chat_messages';
+const CURRENT_RECORDING_KEY = 'current_recording';
+
+// Kiểm tra tính hợp lệ của dữ liệu
 const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
   return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
 };
 
-export const isAbnormalReading = (data: HealthData): boolean => {
-  return data.heartRate < MIN_HEART_RATE || 
-         data.heartRate > MAX_HEART_RATE || 
-         data.bloodOxygen < MIN_BLOOD_OXYGEN;
-};
-
-// Storage functions
+// Load logs từ local storage
 export const loadLogs = (): HourlyLog[] => {
   const storedLogs = localStorage.getItem(LOGS_STORAGE_KEY);
   return storedLogs ? JSON.parse(storedLogs) : [];
 };
 
+// Lưu logs vào local storage
 export const saveLogs = (logs: HourlyLog[]) => {
   localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
 };
 
+// Lấy trạng thái ghi hiện tại
 export const getCurrentRecording = (): { isRecording: boolean; currentHour: string | null } => {
   const stored = localStorage.getItem(CURRENT_RECORDING_KEY);
   return stored ? JSON.parse(stored) : { isRecording: false, currentHour: null };
 };
 
+// Cập nhật trạng thái ghi
 export const setCurrentRecording = (isRecording: boolean, currentHour: string | null) => {
   localStorage.setItem(CURRENT_RECORDING_KEY, JSON.stringify({ isRecording, currentHour }));
 };
 
-// Utility functions
+// Tính trung bình của một mảng số
 const calculateAverage = (numbers: number[]): number => {
   if (numbers.length === 0) return 0;
   const sum = numbers.reduce((a, b) => a + b, 0);
   return Math.round(sum / numbers.length);
 };
 
+// Cập nhật log cho giờ hiện tại
 const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog[] => {
   const currentHour = new Date().setMinutes(0, 0, 0);
   const hourString = new Date(currentHour).toISOString();
@@ -67,6 +79,7 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
     updatedLog.secondsData.push(newData);
     updatedLog.lastRecordTime = new Date().toISOString();
     
+    // Cập nhật trung bình
     const validHeartRates = updatedLog.secondsData.map(d => d.heartRate).filter(rate => rate > 0);
     const validOxygenLevels = updatedLog.secondsData.map(d => d.bloodOxygen).filter(level => level > 0);
     
@@ -76,31 +89,32 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
     const newLogs = [...logs];
     newLogs[existingLogIndex] = updatedLog;
     return newLogs;
+  } else {
+    // Tạo log mới cho giờ hiện tại
+    const newLog: HourlyLog = {
+      hour: hourString,
+      isRecording: true,
+      lastRecordTime: new Date().toISOString(),
+      averageHeartRate: newData.heartRate,
+      averageBloodOxygen: newData.bloodOxygen,
+      secondsData: [newData]
+    };
+    return [...logs, newLog];
   }
-
-  return [...logs, {
-    hour: hourString,
-    isRecording: true,
-    lastRecordTime: new Date().toISOString(),
-    averageHeartRate: newData.heartRate,
-    averageBloodOxygen: newData.bloodOxygen,
-    secondsData: [newData]
-  }];
 };
 
-export const checkForAbnormalReadings = (data: HealthData[]) => {
-  let abnormalCount = 0;
-  const lastReadings = data.slice(-5);
-
-  lastReadings.forEach(reading => {
-    if (isAbnormalReading(reading)) {
-      abnormalCount++;
-    }
-  });
-
-  return abnormalCount >= ABNORMAL_THRESHOLD;
+export const saveChatMessage = (message: any) => {
+  const messages = loadChatMessages();
+  messages.push(message);
+  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
 };
 
+export const loadChatMessages = () => {
+  const storedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
+  return storedMessages ? JSON.parse(storedMessages) : [];
+};
+
+// Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
     const response = await axios.get<ApiResponse>(API_ENDPOINT);
@@ -111,6 +125,7 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
 
     const { heartRate, spo2: bloodOxygen } = response.data;
 
+    // Chỉ xử lý dữ liệu hợp lệ
     if (isValidReading(heartRate, bloodOxygen)) {
       const data: HealthData = {
         heartRate,
@@ -120,20 +135,16 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
         oxygenLevels: Array(10).fill(bloodOxygen),
       };
 
+      // Cập nhật logs
       const currentLogs = loadLogs();
       const updatedLogs = updateCurrentHourLog(currentLogs, data);
       saveLogs(updatedLogs);
 
-      if (checkForAbnormalReadings([...currentLogs.flatMap(log => log.secondsData), data])) {
-        new Notification("Cảnh báo sức khỏe", {
-          body: "Phát hiện các chỉ số bất thường trong thời gian gần đây. Vui lòng kiểm tra chi tiết.",
-          icon: "/favicon.ico"
-        });
-      }
-
       return [data];
+    } else {
+      console.warn('Invalid reading detected:', { heartRate, bloodOxygen });
+      return [];
     }
-    return [];
   } catch (error) {
     console.error('Error fetching health data:', error);
     toast({
@@ -171,5 +182,3 @@ export const getWaterRecommendation = async (
     glassesCount: baseGlasses
   };
 };
-
-export { saveChatMessage, getChatMessages } from './chatStorage';
