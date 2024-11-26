@@ -78,6 +78,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             dx={0}
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}
+            width={25}
           />
           <YAxis 
             yAxisId="bloodOxygen" 
@@ -89,6 +90,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             dx={0}
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}
+            width={25}
           />
           <Tooltip content={<CustomTooltip />} />
           <Line
