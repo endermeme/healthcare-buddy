@@ -28,9 +28,7 @@ const Index = () => {
 
   const handleTimeRangeChange = (range: TimeRange) => {
     setTimeRange(range);
-    toast({
-      description: `Hiển thị dữ liệu trong ${range}`,
-    });
+    toast(`Hiển thị dữ liệu trong ${range}`);
   };
 
   return (
