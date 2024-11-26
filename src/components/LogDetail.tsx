@@ -14,14 +14,16 @@ interface LogDetailProps {
 export const LogDetail = ({ log, open, onOpenChange }: LogDetailProps) => {
   if (!log) return null;
 
-  // Tạo dữ liệu cho biểu đồ từ tất cả các phút
-  const chartData = log.minuteLogs.flatMap(minute => 
-    minute.secondsData.map(data => ({
-      timestamp: data.timestamp,
-      heartRate: data.heartRate,
-      bloodOxygen: data.bloodOxygen,
-    }))
-  );
+  // Calculate minute averages for the chart
+  const minuteAverages = log.minuteLogs.map(minute => {
+    const avgHeartRate = minute.secondsData.reduce((sum, data) => sum + data.heartRate, 0) / minute.secondsData.length;
+    const avgBloodOxygen = minute.secondsData.reduce((sum, data) => sum + data.bloodOxygen, 0) / minute.secondsData.length;
+    return {
+      timestamp: minute.minute,
+      heartRate: Math.round(avgHeartRate),
+      bloodOxygen: Math.round(avgBloodOxygen)
+    };
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -33,7 +35,7 @@ export const LogDetail = ({ log, open, onOpenChange }: LogDetailProps) => {
         </DialogHeader>
         
         <div className="space-y-6">
-          <HealthChart data={chartData} />
+          <HealthChart data={minuteAverages} />
           
           <ScrollArea className="h-[300px] rounded-md border">
             <div className="p-4 space-y-4">

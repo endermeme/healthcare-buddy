@@ -3,6 +3,7 @@ import { Clock, Activity, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { type HourLog } from '@/services/logService';
+import { HealthChart } from './HealthChart';
 
 interface LogCardProps {
   log: HourLog;
@@ -11,13 +12,19 @@ interface LogCardProps {
 
 export const LogCard = ({ log, onClick }: LogCardProps) => {
   const hourTime = new Date(log.timestamp);
-  const totalMinutes = log.minuteLogs.length;
-  const totalReadings = log.minuteLogs.reduce(
-    (sum, minute) => sum + minute.secondsData.length, 
-    0
-  );
+  
+  // Calculate minute-by-minute averages for the chart
+  const minuteAverages = log.minuteLogs.map(minute => {
+    const avgHeartRate = minute.secondsData.reduce((sum, data) => sum + data.heartRate, 0) / minute.secondsData.length;
+    const avgBloodOxygen = minute.secondsData.reduce((sum, data) => sum + data.bloodOxygen, 0) / minute.secondsData.length;
+    return {
+      timestamp: minute.minute,
+      heartRate: Math.round(avgHeartRate),
+      bloodOxygen: Math.round(avgBloodOxygen)
+    };
+  });
 
-  // Lấy chỉ số mới nhất
+  // Get latest readings
   const lastMinute = log.minuteLogs[log.minuteLogs.length - 1];
   const lastReading = lastMinute?.secondsData[lastMinute.secondsData.length - 1];
 
@@ -26,7 +33,7 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
       className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
       onClick={onClick}
     >
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Clock className="h-4 w-4 text-gray-500" />
@@ -41,6 +48,10 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
               <span className="text-green-500">Đã hoàn tất</span>
             )}
           </div>
+        </div>
+
+        <div className="h-[200px] w-full">
+          <HealthChart data={minuteAverages} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -59,7 +70,7 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
         </div>
 
         <div className="text-xs text-gray-500">
-          {totalMinutes} phút, {totalReadings} lần đo
+          {log.minuteLogs.length} phút đã ghi
         </div>
       </div>
     </Card>
