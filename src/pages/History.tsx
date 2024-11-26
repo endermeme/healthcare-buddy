@@ -7,31 +7,39 @@ import { vi } from 'date-fns/locale';
 import { Heart, Activity } from 'lucide-react';
 import { loadLogs, HourlyLog } from '@/services/healthData';
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from '@/components/ui/use-toast';
 
 const History = () => {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<HourlyLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      // Load initial logs
-      const storedLogs = loadLogs();
-      setLogs(storedLogs);
-      setIsLoading(false);
+    const loadInitialData = () => {
+      try {
+        console.log('Loading logs...');
+        const storedLogs = loadLogs();
+        console.log('Loaded logs:', storedLogs);
+        setLogs(storedLogs || []);
+      } catch (err) {
+        console.error('Error loading logs:', err);
+        toast({
+          title: "Lỗi",
+          description: "Không thể tải dữ liệu. Vui lòng thử lại sau.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      // Update logs every minute
-      const interval = setInterval(() => {
-        const updatedLogs = loadLogs();
-        setLogs(updatedLogs);
-      }, 60000);
+    loadInitialData();
 
-      return () => clearInterval(interval);
-    } catch (err) {
-      setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
-      setIsLoading(false);
-    }
+    const interval = setInterval(() => {
+      loadInitialData();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Group logs by date
@@ -58,14 +66,6 @@ const History = () => {
             <Skeleton key={i} className="h-32 w-full" />
           ))}
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
-        <div className="text-center text-red-500">{error}</div>
       </div>
     );
   }
