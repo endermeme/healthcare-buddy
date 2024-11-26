@@ -3,13 +3,22 @@ import { HourlyHealthLog } from './logService';
 
 export interface DailyLog {
   date: string;
-  hourlyLogs: HourlyHealthLog[];
+  hourlyLogs: HourlyLog[];
+}
+
+export interface HourlyLog {
+  hour: string;
+  avgHeartRate: number;
+  avgBloodOxygen: number;
+  timestamp: string;
+  aiResponses: string[];
 }
 
 const LOG_STORAGE_KEY = 'health_daily_logs';
 const FAVORITE_LOGS_KEY = 'favorite_logs';
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-export const fetchDailyLogs = async (date: Date): Promise<HourlyHealthLog[]> => {
+export const fetchDailyLogs = async (date: Date): Promise<HourlyLog[]> => {
   const dateStr = format(date, 'yyyy-MM-dd');
   const storedLogs = localStorage.getItem(LOG_STORAGE_KEY);
   if (!storedLogs) return [];
@@ -51,4 +60,13 @@ export const downloadLogs = (logs: DailyLog[]) => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+};
+
+export const cleanOldLogs = () => {
+  const allLogs = getDailyLogs();
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() - ONE_WEEK_MS);
+  
+  const filteredLogs = allLogs.filter(log => new Date(log.date) >= cutoffDate);
+  saveDailyLogs(filteredLogs);
 };
