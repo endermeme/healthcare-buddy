@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { toZonedTime } from 'date-fns-tz';
 import { vi } from 'date-fns/locale';
@@ -9,7 +9,7 @@ app.use(express.json());
 
 const PORT = 3001;
 
-app.post('/api/health-log', async (req: express.Request, res: express.Response) => {
+app.post('/api/health-log', async (req: Request, res: Response) => {
   const { bpm, oxy } = req.body;
   
   if (!Array.isArray(bpm) || !Array.isArray(oxy) || bpm.length !== oxy.length) {
