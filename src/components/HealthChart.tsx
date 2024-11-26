@@ -8,6 +8,8 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { HealthData } from '@/services/healthData';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 interface HealthChartProps {
   data: HealthData[];
@@ -24,11 +26,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
       return (
         <div className="bg-white p-4 border rounded-lg shadow-lg">
           <p className="text-sm font-medium">
-            {new Date(label).toLocaleTimeString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit'
-            })}
+            {format(new Date(label), 'HH:mm:ss', { locale: vi })}
           </p>
           <p className="text-sm text-red-500">
             Nhịp tim: {payload[0].value} BPM
@@ -43,75 +41,32 @@ export const HealthChart = ({ data }: HealthChartProps) => {
   };
 
   return (
-    <div className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px]">
+    <div className="w-full h-[350px]">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={data}
-          margin={{ top: 20, right: 0, left: -10, bottom: 20 }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke="#e2e8f0" 
-            horizontal={true}
-            vertical={false}
-          />
+          <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="timestamp"
-            tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { 
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit'
-            })}
-            stroke="#94a3b8"
-            fontSize={12}
-            dy={10}
-            tickLine={false}
-            axisLine={{ strokeWidth: 1 }}
-            padding={{ left: 0, right: 0 }}
+            tickFormatter={(time) => format(new Date(time), 'HH:mm:ss', { locale: vi })}
           />
-          <YAxis 
-            yAxisId="heartRate" 
-            stroke="#94a3b8"
-            fontSize={12}
-            tickCount={8}
-            domain={[0, yAxisMax]}
-            dx={0}
-            tickLine={false}
-            axisLine={{ strokeWidth: 1 }}
-          />
-          <YAxis 
-            yAxisId="bloodOxygen" 
-            orientation="right" 
-            stroke="#94a3b8"
-            fontSize={12}
-            tickCount={8}
-            domain={[0, yAxisMax]}
-            dx={0}
-            tickLine={false}
-            axisLine={{ strokeWidth: 1 }}
-          />
+          <YAxis domain={[0, yAxisMax]} />
           <Tooltip content={<CustomTooltip />} />
           <Line
-            yAxisId="heartRate"
             type="monotone"
             dataKey="heartRate"
             stroke="#ff4d4f"
-            strokeWidth={2}
-            dot={{ r: 3, strokeWidth: 2, fill: '#fff' }}
-            activeDot={{ r: 5, strokeWidth: 2 }}
-            name="Heart Rate"
-            connectNulls
+            name="Nhịp tim"
+            dot={{ strokeWidth: 2 }}
           />
           <Line
-            yAxisId="bloodOxygen"
             type="monotone"
             dataKey="bloodOxygen"
             stroke="#4096ff"
-            strokeWidth={2}
-            dot={{ r: 3, strokeWidth: 2, fill: '#fff' }}
-            activeDot={{ r: 5, strokeWidth: 2 }}
-            name="Blood Oxygen"
-            connectNulls
+            name="SpO2"
+            dot={{ strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>

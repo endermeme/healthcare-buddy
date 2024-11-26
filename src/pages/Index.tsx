@@ -1,99 +1,51 @@
-import { useState } from 'react';
-import { useHealthData, TimeRange } from '@/hooks/useHealthData';
+import { useState, useEffect } from 'react';
 import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
-import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { calculateAverages, type HealthData } from '@/services/healthData';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 const Index = () => {
-  const [timeRange, setTimeRange] = useState<TimeRange>('5m');
-  const { currentData, history, averages } = useHealthData(timeRange);
-
-  const handleTimeRangeChange = (range: TimeRange) => {
-    setTimeRange(range);
-    toast({
-      title: "Đã thay đổi khoảng thời gian",
-      description: `Hiển thị dữ liệu trong ${range}`,
-    });
-  };
+  const [healthData, setHealthData] = useState<HealthData[]>([]);
+  const averages = calculateAverages(healthData);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* New Health Banner */}
-      <div className="relative overflow-hidden rounded-xl mx-4 mt-4 h-32 bg-gradient-to-r from-[#4FACFE] to-[#00F2FE] shadow-lg">
-        <div className="absolute inset-0">
-          <div className="animate-marquee whitespace-nowrap">
-            {"❤️ 🏃 💪 🧘‍♀️ 🫀 🏊‍♂️ 🚴‍♂️ 🎯 ❤️ 🏃 💪 🧘‍♀️ 🫀 🏊‍♂️ 🚴‍♂️ 🎯".repeat(2).split(" ").map((emoji, index) => (
-              <span key={index} className="text-4xl mx-4 opacity-25">{emoji}</span>
-            ))}
-          </div>
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <h1 className="text-2xl font-bold text-white text-center z-10">
-            Nhịp đập số
-          </h1>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm">
-              <div className="space-y-6">
-                <HealthStats 
-                  data={currentData} 
-                  averages={averages}
-                  timeRange={timeRange}
-                  onTimeRangeChange={setTimeRange}
-                />
-                <HealthChart data={history} />
-                
-                {/* Time Range Selector */}
-                <div className="flex justify-center gap-2 pt-4">
-                  <Button
-                    variant={timeRange === '5m' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleTimeRangeChange('5m')}
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="space-y-6">
+            <HealthStats 
+              data={healthData[healthData.length - 1]} 
+              averages={averages}
+              timeRange="1m"
+              onTimeRangeChange={() => {}}
+            />
+            <HealthChart data={healthData} />
+            
+            <div className="space-y-4">
+              <h3 className="font-medium">Chi tiết đo trong 1 phút</h3>
+              <div className="grid gap-2">
+                {healthData.map((data) => (
+                  <div 
+                    key={data.timestamp}
+                    className="p-3 bg-gray-50 rounded-lg text-sm grid grid-cols-3 gap-4"
                   >
-                    5 phút
-                  </Button>
-                  <Button
-                    variant={timeRange === '15m' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleTimeRangeChange('15m')}
-                  >
-                    15 phút
-                  </Button>
-                  <Button
-                    variant={timeRange === '30m' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleTimeRangeChange('30m')}
-                  >
-                    30 phút
-                  </Button>
-                  <Button
-                    variant={timeRange === '1h' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleTimeRangeChange('1h')}
-                  >
-                    1 giờ
-                  </Button>
-                </div>
+                    <span className="font-medium">
+                      {format(new Date(data.timestamp), 'HH:mm:ss', { locale: vi })}
+                    </span>
+                    <span className="text-red-500">
+                      Nhịp tim: {data.heartRate} BPM
+                    </span>
+                    <span className="text-blue-500">
+                      SpO2: {data.bloodOxygen}%
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-
-          {/* Water Intake Section */}
-          <div className="lg:col-span-1">
-            <WaterIntakeProgress
-              heartRate={currentData?.heartRate ?? null}
-              bloodOxygen={currentData?.bloodOxygen ?? null}
-            />
-          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
