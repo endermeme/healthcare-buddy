@@ -1,19 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Send, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SetupWizard } from '@/components/SetupWizard';
 import axios from 'axios';
 import { useToast } from '@/components/ui/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { fetchHealthData } from '@/services/healthData';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Chat = () => {
   const [showSetupWizard, setShowSetupWizard] = useState(false);
   const [messages, setMessages] = useState<Array<{type: 'user' | 'bot', content: string}>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedTimeIndex, setSelectedTimeIndex] = useState<number | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch health data
+  const { data: healthData } = useQuery({
+    queryKey: ['healthData'],
+    queryFn: fetchHealthData,
+  });
 
   useEffect(() => {
     const hasCompletedSetup = localStorage.getItem('hasCompletedSetup');
@@ -26,8 +41,38 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const getSelectedHealthData = () => {
+    if (!healthData || selectedTimeIndex === null) return null;
+    
+    const sortedData = [...healthData].sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    
+    return sortedData[selectedTimeIndex];
+  };
+
+  const formatTimeString = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
+
+    const selectedData = getSelectedHealthData();
+    if (!selectedData && inputMessage.toLowerCase().includes('chỉ số')) {
+      toast({
+        variant: "destructive",
+        title: "Lỗi",
+        description: "Vui lòng chọn thời điểm dữ liệu trước khi hỏi về chỉ số.",
+      });
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -35,8 +80,8 @@ const Chat = () => {
       
       const response = await axios.post('http://service.aigate.app/v1/chat-messages', {
         inputs: {
-          nhiptim: "80 90 80 80 80 88 32 83 82 82 23 93 92 82 83 92 82 92",
-          oxy: "93 93 98 98 98 98 98 98 98 98 98 98 87 98"
+          nhiptim: selectedData ? selectedData.heartRates.join(' ') : "80 90 80 80 80 88 32 83 82 82 23 93 92 82 83 92 82 92",
+          oxy: selectedData ? selectedData.oxygenLevels.join(' ') : "93 93 98 98 98 98 98 98 98 98 98 98 87 98"
         },
         query: inputMessage,
         response_mode: "blocking",
@@ -79,6 +124,40 @@ const Chat = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <span className="text-sm font-medium">AI Assistant</span>
+          <div className="ml-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  {selectedTimeIndex !== null && healthData ? 
+                    formatTimeString(healthData[selectedTimeIndex].timestamp) :
+                    'Chọn thời điểm'
+                  }
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {healthData && [...healthData]
+                  .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                  .map((data, index) => (
+                    <DropdownMenuItem
+                      key={data.timestamp}
+                      onClick={() => setSelectedTimeIndex(index)}
+                      className="flex flex-col items-start"
+                    >
+                      <span className="font-medium">{formatTimeString(data.timestamp)}</span>
+                      <span className="text-xs text-gray-500">
+                        Nhịp tim: {data.heartRates.join(', ')} | 
+                        SpO2: {data.oxygenLevels.join(', ')}
+                      </span>
+                    </DropdownMenuItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </header>
 
