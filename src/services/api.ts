@@ -1,0 +1,44 @@
+import axios from 'axios';
+
+const API_BASE_URL = 'http://service.aigate.app/v1';
+const API_KEY = 'app-sVzMPqGDTYKCkCJCQToMs4G2';
+
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Authorization': `Bearer ${API_KEY}`,
+  },
+});
+
+// Add CORS headers to requests
+api.interceptors.request.use((config) => {
+  config.headers['Access-Control-Allow-Origin'] = '*';
+  config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+  config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization';
+  return config;
+});
+
+export const sendAudioToSpeechToText = async (audioBlob: Blob) => {
+  const formData = new FormData();
+  formData.append('audio', audioBlob, 'recording.webm');
+  
+  const response = await api.post('/speech-to-text', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  
+  return response.data;
+};
+
+export const sendChatMessage = async (inputs: any, query: string) => {
+  const response = await api.post('/chat-messages', {
+    inputs,
+    query,
+    response_mode: "blocking",
+    conversation_id: "",
+    user: "abc-123"
+  });
+  
+  return response.data;
+};
