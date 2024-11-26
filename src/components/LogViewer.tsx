@@ -16,11 +16,10 @@ import { LogDetail } from './LogDetail';
 
 // Temporary mock data
 const mockMinuteLogs: MinuteLog[] = Array.from({ length: 24 }, (_, i) => ({
-  hour: i,
-  heartRate: Math.floor(Math.random() * (100 - 60) + 60),
-  bloodOxygen: Math.floor(Math.random() * (100 - 95) + 95),
-  details: Array.from({ length: 60 }, (_, m) => ({
-    minute: m,
+  hour: new Date().toISOString(),
+  isRecording: false,
+  secondsData: Array.from({ length: 60 }, (_, m) => ({
+    timestamp: new Date().toISOString(),
     heartRate: Math.floor(Math.random() * (100 - 60) + 60),
     bloodOxygen: Math.floor(Math.random() * (100 - 95) + 95),
   }))
