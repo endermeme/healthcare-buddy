@@ -3,19 +3,13 @@ import { ChatInput } from '@/components/chat/ChatInput';
 import { AudioMessage } from '@/components/chat/AudioMessage';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { toast } from 'sonner';
-import { saveChatMessage } from '@/services/healthData';
+import { saveChatMessage, ChatMessage } from '@/services/healthData';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-interface Message {
-  id: string;
+interface Message extends ChatMessage {
   text: string;
   isUser: boolean;
-  audioUrl?: string;
-  transcription?: string;
-  timestamp: string;
-  content: string;
-  role: 'user' | 'assistant';
 }
 
 export default function Chat() {

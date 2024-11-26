@@ -37,20 +37,14 @@ const generateMockData = (): HealthData => {
 
 export const fetchHealthData = async (): Promise<HealthData> => {
   try {
-    const response = await fetch('http://localhost:3001/api/health-data');
+    const response = await fetch('https://service.aigate.app/v1/health-data');
     if (!response.ok) {
       throw new Error('Lỗi kết nối với cảm biến');
     }
     const data = await response.json();
     return data;
   } catch (error) {
-    if (window.location.pathname === '/') {
-      toast({
-        title: "Lỗi kết nối",
-        description: "Không thể kết nối với cảm biến",
-        variant: "destructive"
-      });
-    }
+    console.warn('Using mock data due to API error:', error);
     return generateMockData();
   }
 };
@@ -82,8 +76,7 @@ export const loadChatMessages = (): ChatMessage[] => {
 };
 
 export const getWaterRecommendation = async (heartRate: number, bloodOxygen: number) => {
-  // Mock recommendation logic based on heart rate and blood oxygen
-  let glassesCount = 8; // Base recommendation
+  let glassesCount = 8;
   let recommendation = 'Hãy uống đủ nước trong ngày để duy trì sức khỏe.';
 
   if (heartRate > 90) {
