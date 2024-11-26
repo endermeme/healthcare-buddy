@@ -64,17 +64,17 @@ export default function Chat() {
       });
 
       // Add AI response
-      if (response.data && response.data.text) {
+      if (response.data && (response.data.text || response.data.answer)) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: response.data.text,
+          text: response.data.text || response.data.answer,
           isUser: false,
         };
         
         setMessages(prev => [...prev, aiMessage]);
         saveChatMessage(aiMessage);
       } else {
-        throw new Error('Invalid API response');
+        throw new Error('Invalid or empty response from server');
       }
 
     } catch (error: any) {
