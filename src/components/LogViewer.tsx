@@ -111,7 +111,7 @@ export const LogViewer = () => {
         <div className="space-y-4 p-4">
           {minuteLogs.map((log) => (
             <LogCard 
-              key={log.minute}
+              key={log.hour}
               log={log}
               onClick={() => handleLogClick(log)}
             />
