@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchHealthData, HealthData } from '@/services/healthData';
-import { addHealthLog, clearOldLogs, LogHistoryIcon } from '@/services/logService';
 import { toast } from '@/components/ui/use-toast';
 
 export type TimeRange = '5m' | '15m' | '30m' | '1h';
@@ -14,27 +13,7 @@ export const useHealthData = (timeRange: TimeRange) => {
     queryFn: fetchHealthData,
     refetchInterval: 5000,
     staleTime: 4000,
-    meta: {
-      onSuccess: (data: HealthData | null) => {
-        if (data) {
-          const logDate = addHealthLog(data.heartRate, data.bloodOxygen);
-          if (logDate) {
-            toast({
-              title: "Dữ liệu đã được ghi log",
-              description: `Đã ghi log cho ngày ${logDate}:\nNhịp tim: ${data.heartRate} BPM\nỐc-xy máu: ${data.bloodOxygen}%`,
-              duration: 5000,
-            });
-          }
-        }
-      }
-    }
   });
-
-  // Xóa log cũ mỗi giờ
-  useEffect(() => {
-    const interval = setInterval(clearOldLogs, 60 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (currentData) {
@@ -75,7 +54,6 @@ export const useHealthData = (timeRange: TimeRange) => {
     currentData,
     history,
     averages: getAverages(),
-    LogHistoryIcon, // Export icon for use in UI
   };
 };
 

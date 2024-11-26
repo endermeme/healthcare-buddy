@@ -13,18 +13,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogCard, type MinuteLog } from './LogCard';
 import { LogDetail } from './LogDetail';
-import {
-  fetchDailyLogs,
-  addToFavorites,
-  downloadLogs,
-  getDailyLogs,
-  type DailyLog,
-} from '@/services/logApiService';
+
+// Temporary mock data
+const mockMinuteLogs: MinuteLog[] = Array.from({ length: 24 }, (_, i) => ({
+  hour: i,
+  heartRate: Math.floor(Math.random() * (100 - 60) + 60),
+  bloodOxygen: Math.floor(Math.random() * (100 - 95) + 95),
+  details: Array.from({ length: 60 }, (_, m) => ({
+    minute: m,
+    heartRate: Math.floor(Math.random() * (100 - 60) + 60),
+    bloodOxygen: Math.floor(Math.random() * (100 - 95) + 95),
+  }))
+}));
 
 export const LogViewer = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
-  const [minuteLogs, setMinuteLogs] = useState<MinuteLog[]>([]);
+  const [minuteLogs] = useState<MinuteLog[]>(mockMinuteLogs);
   const [selectedLog, setSelectedLog] = useState<MinuteLog | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -39,11 +43,6 @@ export const LogViewer = () => {
   });
 
   const handleAddToFavorites = () => {
-    const logToSave: DailyLog = {
-      date: format(selectedDate, 'yyyy-MM-dd'),
-      minuteLogs: minuteLogs
-    };
-    addToFavorites(logToSave);
     toast({
       title: "Đã lưu vào mục yêu thích",
       description: `Log ngày ${format(selectedDate, 'dd/MM/yyyy')} đã được lưu`,
@@ -51,8 +50,6 @@ export const LogViewer = () => {
   };
 
   const handleDownload = () => {
-    const logs = getDailyLogs();
-    downloadLogs(logs);
     toast({
       title: "Tải log thành công",
       description: "File log đã được tải về máy của bạn",
