@@ -1,179 +1,95 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useToast } from '@/components/ui/use-toast';
-import { SetupWizard } from '@/components/SetupWizard';
-import { ChatHeader } from '@/components/chat/ChatHeader';
-import { AudioMessage } from '@/components/chat/AudioMessage';
+import { useState } from 'react';
 import { ChatInput } from '@/components/chat/ChatInput';
-import { loadLogs, HourlyLog } from '@/services/healthData';
+import { AudioMessage } from '@/components/chat/AudioMessage';
+import { ChatHeader } from '@/components/chat/ChatHeader';
+import { toast } from 'sonner';
+import { saveChatMessage } from '@/services/healthData';
 
 interface Message {
-  type: 'user' | 'bot';
-  content: string;
+  id: string;
+  text: string;
+  isUser: boolean;
   audioUrl?: string;
   transcription?: string;
 }
 
-const Chat = () => {
-  const [showSetupWizard, setShowSetupWizard] = useState(false);
+export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
-  const [selectedLogData, setSelectedLogData] = useState<{
-    heartRates: number[];
-    oxygenLevels: number[];
-  } | null>(null);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const hasCompletedSetup = localStorage.getItem('hasCompletedSetup');
-    if (!hasCompletedSetup) {
-      setShowSetupWizard(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const processLogData = (log: HourlyLog) => {
-    const validData = log.secondsData.filter(data => 
-      data.heartRate > 0 && 
-      data.heartRate < 300 && 
-      data.bloodOxygen > 0 &&
-      data.bloodOxygen <= 100 
-    );
-
-    return {
-      heartRates: validData.map(d => d.heartRate),
-      oxygenLevels: validData.map(d => d.bloodOxygen)
-    };
-  };
-
-  const handleLogSelect = (logId: string) => {
-    const logs = loadLogs();
-    const selectedLog = logs.find(log => log.hour === logId);
-    
-    if (selectedLog) {
-      const processedData = processLogData(selectedLog);
-      setSelectedLogId(logId);
-      setSelectedLogData(processedData);
-    }
-  };
-
-  const sendMessage = async (text: string, audioUrl?: string, transcription?: string) => {
-    if (!text.trim()) return;
-
-    if (!selectedLogData) {
-      toast({
-        variant: "destructive",
-        title: "Lỗi",
-        description: "Vui lòng chọn bản ghi trước khi hỏi về chỉ số.",
-      });
-      return;
-    }
-
-    const newMessage: Message = {
-      type: 'user',
-      content: text,
-      audioUrl,
-      transcription
-    };
-    setMessages(prev => [...prev, newMessage]);
-
+  const handleSendMessage = async (text: string, audioUrl?: string, transcription?: string, metadata?: object) => {
     try {
       setIsLoading(true);
       
-      const response = await axios.post('http://service.aigate.app/v1/chat-messages', {
-        inputs: {
-          nhiptim: selectedLogData.heartRates.join(' '),
-          oxy: selectedLogData.oxygenLevels.join(' ')
-        },
-        query: text,
-        response_mode: "blocking",
-        conversation_id: "",
-        user: "abc-123"
-      }, {
-        headers: {
-          'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
-          'Content-Type': 'application/json'
-        }
-      });
+      // Add user message
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        text,
+        isUser: true,
+        audioUrl,
+        transcription,
+      };
+      
+      setMessages(prev => [...prev, userMessage]);
+      saveChatMessage(userMessage);
 
-      if (response.data.answer) {
-        setMessages(prev => [...prev, { type: 'bot', content: response.data.answer }]);
-      } else {
-        throw new Error('Invalid response format');
-      }
+      // Prepare API request with metadata
+      const requestBody = {
+        query: text,
+        ...metadata
+      };
+
+      // Call your API here with requestBody
+      // const response = await yourApiCall(requestBody);
+      
+      // Add AI response
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Đây là phản hồi mẫu. Hãy thay thế bằng phản hồi thực từ API.",
+        isUser: false,
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+      saveChatMessage(aiMessage);
+
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể gửi tin nhắn. Vui lòng thử lại sau.",
-      });
+      toast.error("Có lỗi xảy ra khi gửi tin nhắn");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <ChatHeader 
-        onBack={() => navigate('/')}
-        selectedLogId={selectedLogId}
-        onLogSelect={handleLogSelect}
-      />
-
-      <main className="flex-1 overflow-y-auto p-4 pb-20">
-        <div className="max-w-3xl mx-auto space-y-4">
-          {messages.length === 0 && (
-            <div className="text-center text-gray-500 mt-8">
-              <p>Xin chào! Tôi có thể giúp gì cho bạn?</p>
-              <p className="text-sm mt-2">Hãy chọn một bản ghi và đặt câu hỏi về các chỉ số sức khỏe của bạn.</p>
-            </div>
-          )}
-          {messages.map((message, index) => (
+    <div className="flex flex-col h-screen pb-16">
+      <ChatHeader />
+      
+      <div className="flex-1 overflow-y-auto p-4">
+        {messages.map(message => (
+          <div
+            key={message.id}
+            className={`mb-4 ${message.isUser ? 'text-right' : 'text-left'}`}
+          >
             <div
-              key={index}
-              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`inline-block max-w-[80%] p-3 rounded-lg ${
+                message.isUser
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted'
+              }`}
             >
-              <div
-                className={`p-4 rounded-2xl max-w-[80%] ${
-                  message.type === 'user'
-                    ? 'bg-primary text-white ml-auto'
-                    : 'bg-white shadow-sm'
-                }`}
-              >
-                {message.audioUrl && message.transcription && (
-                  <AudioMessage 
-                    audioUrl={message.audioUrl}
-                    transcription={message.transcription}
-                  />
-                )}
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-              </div>
+              {message.audioUrl ? (
+                <AudioMessage
+                  audioUrl={message.audioUrl}
+                  transcription={message.transcription}
+                />
+              ) : (
+                <p className="whitespace-pre-wrap">{message.text}</p>
+              )}
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-      </main>
+          </div>
+        ))}
+      </div>
 
-      <ChatInput 
-        onSendMessage={sendMessage}
-        isLoading={isLoading}
-      />
-
-      {showSetupWizard && (
-        <SetupWizard onClose={() => {
-          setShowSetupWizard(false);
-          localStorage.setItem('hasCompletedSetup', 'true');
-        }} />
-      )}
+      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
     </div>
   );
-};
-
-export default Chat;
+}

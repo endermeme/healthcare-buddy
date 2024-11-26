@@ -1,18 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2, Mic, MicOff } from 'lucide-react';
 import { useAudioRecording } from '@/hooks/useAudioRecording';
 
 interface ChatInputProps {
-  onSendMessage: (text: string, audioUrl?: string, transcription?: string) => void;
+  onSendMessage: (text: string, audioUrl?: string, transcription?: string, metadata?: object) => void;
   isLoading: boolean;
 }
 
 export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
   const [inputMessage, setInputMessage] = useState('');
+  const [profileData, setProfileData] = useState<any>(null);
   
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      setProfileData(JSON.parse(savedProfile));
+    }
+  }, []);
+
   const handleTranscriptionComplete = (audioUrl: string, transcription: string) => {
-    onSendMessage(transcription, audioUrl, transcription);
+    const metadata = getMetadataFromProfile();
+    onSendMessage(transcription, audioUrl, transcription, metadata);
     setInputMessage('');
   };
 
@@ -20,9 +29,21 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
     onTranscriptionComplete: handleTranscriptionComplete
   });
 
+  const getMetadataFromProfile = () => {
+    if (!profileData) return {};
+    
+    return {
+      tuoi: profileData.age || '',
+      cannang: profileData.weight || '',
+      tiensubenh: profileData.medicalHistory || '',
+      gioitinh: profileData.gender || '',
+    };
+  };
+
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
-      onSendMessage(inputMessage);
+      const metadata = getMetadataFromProfile();
+      onSendMessage(inputMessage, undefined, undefined, metadata);
       setInputMessage('');
     }
   };
