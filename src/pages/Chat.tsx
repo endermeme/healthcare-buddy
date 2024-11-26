@@ -16,7 +16,10 @@ interface Message {
 }
 
 export default function Chat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const savedMessages = localStorage.getItem('chat_messages');
+    return savedMessages ? JSON.parse(savedMessages) : [];
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -25,7 +28,6 @@ export default function Chat() {
     try {
       setIsLoading(true);
       
-      // Add user message
       const userMessage: Message = {
         id: Date.now().toString(),
         text,
@@ -34,10 +36,11 @@ export default function Chat() {
         transcription,
       };
       
-      setMessages(prev => [...prev, userMessage]);
+      const newMessages = [...messages, userMessage];
+      setMessages(newMessages);
+      localStorage.setItem('chat_messages', JSON.stringify(newMessages));
       saveChatMessage(userMessage);
 
-      // Call API
       const response = await axios({
         method: 'post',
         url: 'http://service.aigate.app/v1/chat-messages',
@@ -63,7 +66,6 @@ export default function Chat() {
         validateStatus: (status) => status >= 200 && status < 500
       });
 
-      // Add AI response
       if (response.data && (response.data.text || response.data.answer)) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -71,7 +73,9 @@ export default function Chat() {
           isUser: false,
         };
         
-        setMessages(prev => [...prev, aiMessage]);
+        const updatedMessages = [...newMessages, aiMessage];
+        setMessages(updatedMessages);
+        localStorage.setItem('chat_messages', JSON.stringify(updatedMessages));
         saveChatMessage(aiMessage);
       } else {
         throw new Error('Invalid or empty response from server');
@@ -99,6 +103,12 @@ export default function Chat() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleClearChat = () => {
+    setMessages([]);
+    localStorage.setItem('chat_messages', JSON.stringify([]));
+    toast.success("Đã xóa toàn bộ tin nhắn");
   };
 
   const handleBack = () => {
@@ -143,7 +153,11 @@ export default function Chat() {
         ))}
       </div>
 
-      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+      <ChatInput 
+        onSendMessage={handleSendMessage} 
+        isLoading={isLoading}
+        onClearChat={handleClearChat}
+      />
     </div>
   );
 }

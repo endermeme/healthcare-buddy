@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Mic, MicOff } from 'lucide-react';
+import { Send, Loader2, Mic, MicOff, Trash2, ImagePlus } from 'lucide-react';
 import { useAudioRecording } from '@/hooks/useAudioRecording';
 import { loadLogs } from '@/services/healthData';
+import { toast } from '@/components/ui/use-toast';
 
 interface ChatInputProps {
   onSendMessage: (text: string, audioUrl?: string, transcription?: string, metadata?: object) => void;
   isLoading: boolean;
+  onClearChat: () => void;
 }
 
-export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputProps) => {
   const [inputMessage, setInputMessage] = useState('');
   const [profileData, setProfileData] = useState<any>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   
   useEffect(() => {
     const savedProfile = localStorage.getItem('userProfile');
@@ -33,22 +36,18 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
   const getMetadataFromProfile = () => {
     if (!profileData) return {};
     
-    // Lấy dữ liệu nhịp tim và oxy từ lịch sử ghi và tạo chuỗi số
     const logs = loadLogs();
-    const recentLogs = logs.slice(-10); // Lấy 10 bản ghi gần nhất
+    const allData = logs.flatMap(log => log.secondsData);
     
-    const heartRates = recentLogs
-      .flatMap(log => log.secondsData)
+    // Lấy tất cả dữ liệu hợp lệ và nối thành chuỗi
+    const heartRates = allData
       .map(data => data.heartRate)
       .filter(rate => rate > 0)
-      .slice(-10)
       .join(' ');
 
-    const oxygenLevels = recentLogs
-      .flatMap(log => log.secondsData)
+    const oxygenLevels = allData
       .map(data => data.bloodOxygen)
       .filter(level => level > 0)
-      .slice(-10)
       .join(' ');
     
     return {
@@ -69,43 +68,87 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
     }
   };
 
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "Lỗi",
+          description: "Kích thước ảnh không được vượt quá 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setImageFile(file);
+      // Handle image upload logic here
+    }
+  };
+
   return (
     <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t">
       <div className="max-w-3xl mx-auto">
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className={`rounded-full w-12 h-12 ${isRecording ? 'bg-red-100 text-red-500' : ''}`}
-            onClick={isRecording ? stopRecording : startRecording}
-          >
-            {isRecording ? (
-              <MicOff className="h-5 w-5" />
-            ) : (
-              <Mic className="h-5 w-5" />
-            )}
-          </Button>
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
-            placeholder="Nhập câu hỏi của bạn..."
-            className="flex-1 p-3 border rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            disabled={isLoading || isRecording}
-          />
-          <Button 
-            onClick={handleSendMessage}
-            disabled={isLoading || isRecording}
-            size="icon"
-            className="rounded-full w-12 h-12"
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Send className="h-5 w-5" />
-            )}
-          </Button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2 justify-end">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              onClick={onClearChat}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full"
+                type="button"
+              >
+                <ImagePlus className="h-4 w-4" />
+              </Button>
+            </label>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className={`rounded-full w-12 h-12 ${isRecording ? 'bg-red-100 text-red-500' : ''}`}
+              onClick={isRecording ? stopRecording : startRecording}
+            >
+              {isRecording ? (
+                <MicOff className="h-5 w-5" />
+              ) : (
+                <Mic className="h-5 w-5" />
+              )}
+            </Button>
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
+              placeholder="Nhập câu hỏi của bạn..."
+              className="flex-1 p-3 border rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              disabled={isLoading || isRecording}
+            />
+            <Button 
+              onClick={handleSendMessage}
+              disabled={isLoading || isRecording}
+              size="icon"
+              className="rounded-full w-12 h-12"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
