@@ -6,10 +6,7 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 3000
-const TOAST_THROTTLE = 20000
-
-let lastToastTime = 0
+const TOAST_REMOVE_DELAY = 1000000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -93,6 +90,8 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
+      // ! Side effects ! - This could be extracted into a dismissToast() action,
+      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -141,16 +140,6 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
-  const now = Date.now()
-  if (now - lastToastTime < TOAST_THROTTLE) {
-    return {
-      id: "",
-      dismiss: () => {},
-      update: () => {},
-    }
-  }
-
-  lastToastTime = now
   const id = genId()
 
   const update = (props: ToasterToast) =>

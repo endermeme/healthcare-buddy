@@ -4,8 +4,6 @@ import { format, isAfter } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { vi } from 'date-fns/locale';
 import { HourlyLog } from '@/services/healthData';
-import { sendLogCompletionNotification } from '@/services/firebase';
-import { useEffect } from 'react';
 
 interface LogCardProps {
   log: HourlyLog;
@@ -17,12 +15,6 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
   const currentTime = new Date();
   const isComplete = isAfter(currentTime, new Date(log.hour));
   
-  useEffect(() => {
-    if (isComplete) {
-      sendLogCompletionNotification(log);
-    }
-  }, [isComplete, log]);
-
   // Format time in Vietnam timezone
   const formattedTime = formatInTimeZone(
     hourTime,
