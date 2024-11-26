@@ -16,6 +16,8 @@ export const LogDetail = ({ log, open, onOpenChange }: LogDetailProps) => {
     timestamp: data.timestamp,
     heartRate: data.heartRate,
     bloodOxygen: data.bloodOxygen,
+    heartRates: [data.heartRate], // Add single reading as array
+    oxygenLevels: [data.bloodOxygen], // Add single reading as array
   }));
 
   return (
