@@ -37,15 +37,16 @@ export default function Chat() {
       setMessages(prev => [...prev, userMessage]);
       saveChatMessage(userMessage);
 
-      // Call API
-      const response = await axios.post('http://service.aigate.app/v1/chat/completions', {
+      // Call API with HTTPS
+      const response = await axios.post('https://service.aigate.app/v1/chat/completions', {
         query: text,
         ...metadata
       }, {
         headers: {
           'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 30000 // 30 second timeout
       });
 
       // Add AI response
@@ -62,9 +63,17 @@ export default function Chat() {
         throw new Error('Invalid API response');
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('API Error:', error);
-      toast.error("Có lỗi xảy ra khi gửi tin nhắn");
+      if (error.code === 'ECONNABORTED') {
+        toast.error("Kết nối bị gián đoạn, vui lòng thử lại");
+      } else if (error.response) {
+        toast.error(`Lỗi từ máy chủ: ${error.response.status}`);
+      } else if (error.request) {
+        toast.error("Không thể kết nối đến máy chủ");
+      } else {
+        toast.error("Có lỗi xảy ra khi gửi tin nhắn");
+      }
     } finally {
       setIsLoading(false);
     }
