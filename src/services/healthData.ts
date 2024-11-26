@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 export interface HealthData {
   heartRate: number;
@@ -32,6 +32,10 @@ const API_ENDPOINT = 'http://192.168.1.15/data';
 export const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
+
+let lastErrorTime = 0;
+const ERROR_COOLDOWN = 20000; // 20 seconds
+const TOAST_DURATION = 3000; // 3 seconds
 
 // Kiểm tra tính hợp lệ của dữ liệu
 const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
@@ -117,7 +121,20 @@ export const loadChatMessages = () => {
 // Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
-    const response = await axios.get<ApiResponse>(API_ENDPOINT);
+    const deviceKey = localStorage.getItem('deviceKey');
+    if (!deviceKey) {
+      const now = Date.now();
+      if (now - lastErrorTime >= ERROR_COOLDOWN) {
+        toast.error("Vui lòng nhập mã thiết bị trong cài đặt", {
+          duration: TOAST_DURATION,
+          position: "bottom-center",
+        });
+        lastErrorTime = now;
+      }
+      return [];
+    }
+
+    const response = await axios.get<ApiResponse>(`${API_ENDPOINT}?key=${deviceKey}`);
     
     if (!response.data || typeof response.data.heartRate !== 'number') {
       throw new Error('Invalid data format received');
@@ -146,12 +163,14 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
       return [];
     }
   } catch (error) {
-    console.error('Error fetching health data:', error);
-    toast({
-      title: "Lỗi kết nối",
-      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
-      variant: "destructive",
-    });
+    const now = Date.now();
+    if (now - lastErrorTime >= ERROR_COOLDOWN) {
+      toast.error("Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.", {
+        duration: TOAST_DURATION,
+        position: "bottom-center",
+      });
+      lastErrorTime = now;
+    }
     return [];
   }
 };

@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 
@@ -22,6 +22,7 @@ const formSchema = z.object({
     message: "Cân nặng phải là số dương từ 1-500kg",
   }),
   medicalHistory: z.string().min(1, "Vui lòng nhập tiền sử bệnh").max(1000, "Tiền sử bệnh quá dài"),
+  deviceKey: z.string().length(6, "Mã thiết bị phải có đúng 6 ký tự"),
 });
 
 export default function Profile() {
@@ -32,6 +33,7 @@ export default function Profile() {
       gender: undefined,
       weight: "",
       medicalHistory: "",
+      deviceKey: localStorage.getItem('deviceKey') || "",
     },
   });
 
@@ -51,9 +53,10 @@ export default function Profile() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     localStorage.setItem('userProfile', JSON.stringify(values));
-    toast({
-      title: "Đã lưu thông tin",
-      description: "Thông tin cá nhân của bạn đã được lưu thành công",
+    localStorage.setItem('deviceKey', values.deviceKey);
+    toast.success("Đã lưu thông tin thành công", {
+      duration: 3000,
+      position: "bottom-center",
     });
   }
 
@@ -63,6 +66,20 @@ export default function Profile() {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="deviceKey"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mã thiết bị</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nhập mã thiết bị 6 ký tự" {...field} maxLength={6} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="age"
