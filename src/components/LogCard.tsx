@@ -2,27 +2,24 @@ import { Card } from '@/components/ui/card';
 import { Clock, Activity, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-
-interface SecondData {
-  timestamp: string;
-  heartRate: number;
-  bloodOxygen: number;
-}
-
-export interface MinuteLog {
-  minute: string;
-  isRecording: boolean;
-  secondsData: SecondData[];
-}
+import { type HourLog } from '@/services/logService';
 
 interface LogCardProps {
-  log: MinuteLog;
+  log: HourLog;
   onClick: () => void;
 }
 
 export const LogCard = ({ log, onClick }: LogCardProps) => {
-  const minuteTime = new Date(log.minute);
-  const lastReading = log.secondsData[log.secondsData.length - 1];
+  const hourTime = new Date(log.timestamp);
+  const totalMinutes = log.minuteLogs.length;
+  const totalReadings = log.minuteLogs.reduce(
+    (sum, minute) => sum + minute.secondsData.length, 
+    0
+  );
+
+  // Lấy chỉ số mới nhất
+  const lastMinute = log.minuteLogs[log.minuteLogs.length - 1];
+  const lastReading = lastMinute?.secondsData[lastMinute.secondsData.length - 1];
 
   return (
     <Card 
@@ -34,11 +31,11 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
           <div className="flex items-center space-x-2">
             <Clock className="h-4 w-4 text-gray-500" />
             <span className="font-medium">
-              {format(minuteTime, 'HH:mm', { locale: vi })}
+              {format(hourTime, 'HH:mm', { locale: vi })}
             </span>
           </div>
           <div className="text-sm">
-            {log.isRecording ? (
+            {lastMinute?.isRecording ? (
               <span className="text-blue-500">Đang ghi...</span>
             ) : (
               <span className="text-green-500">Đã hoàn tất</span>
@@ -62,7 +59,7 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
         </div>
 
         <div className="text-xs text-gray-500">
-          {log.secondsData.length} giây đã ghi
+          {totalMinutes} phút, {totalReadings} lần đo
         </div>
       </div>
     </Card>
