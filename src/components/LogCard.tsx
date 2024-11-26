@@ -13,8 +13,6 @@ export interface MinuteLog {
   minute: string;
   isRecording: boolean;
   secondsData: SecondData[];
-  avgHeartRate: number;
-  avgBloodOxygen: number;
 }
 
 interface LogCardProps {
@@ -24,6 +22,7 @@ interface LogCardProps {
 
 export const LogCard = ({ log, onClick }: LogCardProps) => {
   const minuteTime = new Date(log.minute);
+  const lastReading = log.secondsData[log.secondsData.length - 1];
 
   return (
     <Card 
@@ -51,13 +50,13 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
           <div className="flex items-center space-x-2">
             <Heart className="h-4 w-4 text-red-500" />
             <span className="text-sm text-gray-600">
-              {log.avgHeartRate} BPM
+              {lastReading?.heartRate || 0} BPM
             </span>
           </div>
           <div className="flex items-center space-x-2">
             <Activity className="h-4 w-4 text-blue-500" />
             <span className="text-sm text-gray-600">
-              {log.avgBloodOxygen}%
+              {lastReading?.bloodOxygen || 0}%
             </span>
           </div>
         </div>
