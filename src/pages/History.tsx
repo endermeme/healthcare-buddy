@@ -1,56 +1,59 @@
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useNavigate } from 'react-router-dom';
+import { Card } from "@/components/ui/card";
+import { LogCard } from '@/components/LogCard';
+import { useToast } from '@/components/ui/use-toast';
+import { getDailyLogs } from '@/services/logApiService';
+import { type HourLog } from '@/services/logService';
 import { format } from 'date-fns';
-import { Heart, Activity } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { fetchHealthData, HealthData } from '@/services/healthData';
+import { vi } from 'date-fns/locale';
 
 const History = () => {
-  const [records, setRecords] = useState<HealthData[]>([]);
-  const navigate = useNavigate();
-  
-  const { data: currentData } = useQuery({
-    queryKey: ['healthData'],
-    queryFn: fetchHealthData,
-    refetchInterval: 60000, // Fetch every minute
-  });
+  const [logs, setLogs] = useState<HourLog[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (currentData) {
-      setRecords(prev => [...prev, currentData].slice(-60)); // Keep last 60 records
-    }
-  }, [currentData]);
+    // Load logs when component mounts
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const dailyLogs = getDailyLogs();
+    const todayLogs = dailyLogs.find(log => log.date === today)?.minuteLogs || [];
+    
+    // Group logs by hour
+    const hourlyLogs: { [hour: string]: HourLog } = {};
+    
+    todayLogs.forEach(minuteLog => {
+      const hourTime = new Date(minuteLog.minute);
+      const hourKey = format(hourTime, 'HH:00');
+      
+      if (!hourlyLogs[hourKey]) {
+        hourlyLogs[hourKey] = {
+          hour: hourKey,
+          timestamp: format(hourTime, "yyyy-MM-dd'T'HH:00:00"),
+          minuteLogs: []
+        };
+      }
+      
+      hourlyLogs[hourKey].minuteLogs.push(minuteLog);
+    });
+
+    setLogs(Object.values(hourlyLogs));
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <h1 className="text-2xl font-bold mb-6">Lịch sử theo dõi</h1>
       
       <div className="grid gap-4">
-        {records.map((record, index) => (
-          <Card 
-            key={record.timestamp}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => navigate(`/detail/${index}`)}
-          >
-            <CardHeader className="p-4">
-              <CardTitle className="text-lg">
-                {format(new Date(record.timestamp), 'HH:mm:ss')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-red-500" />
-                  <span>{record.heartRate} BPM</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-blue-500" />
-                  <span>{record.bloodOxygen}%</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {logs.map((log) => (
+          <LogCard
+            key={log.timestamp}
+            log={log}
+            onClick={() => {
+              toast({
+                title: `Chi tiết giờ ${format(new Date(log.timestamp), 'HH:00', { locale: vi })}`,
+                description: `${log.minuteLogs.length} phút đã ghi`,
+              });
+            }}
+          />
         ))}
       </div>
     </div>

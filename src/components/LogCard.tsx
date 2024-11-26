@@ -38,7 +38,7 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
           <div className="flex items-center space-x-2">
             <Clock className="h-4 w-4 text-gray-500" />
             <span className="font-medium">
-              {format(hourTime, 'HH:mm', { locale: vi })}
+              {format(hourTime, 'HH:00', { locale: vi })}
             </span>
           </div>
           <div className="text-sm">
