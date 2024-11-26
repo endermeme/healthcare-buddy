@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { toast } from 'sonner';
-import { getApiEndpoint } from './apiKeyService';
+import { toast } from '@/components/ui/use-toast';
 
 export interface HealthData {
   heartRate: number;
@@ -33,10 +32,6 @@ const API_ENDPOINT = 'http://192.168.1.15/data';
 export const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
-
-let lastErrorTime = 0;
-const ERROR_COOLDOWN = 20000; // 20 seconds
-const TOAST_DURATION = 3000; // 3 seconds
 
 // Kiểm tra tính hợp lệ của dữ liệu
 const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
@@ -122,7 +117,7 @@ export const loadChatMessages = () => {
 // Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
-    const response = await axios.get<ApiResponse>(getApiEndpoint('/data'));
+    const response = await axios.get<ApiResponse>(API_ENDPOINT);
     
     if (!response.data || typeof response.data.heartRate !== 'number') {
       throw new Error('Invalid data format received');
@@ -151,14 +146,12 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
       return [];
     }
   } catch (error) {
-    const now = Date.now();
-    if (now - lastErrorTime >= ERROR_COOLDOWN) {
-      toast.error("Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.", {
-        duration: TOAST_DURATION,
-        position: "bottom-center",
-      });
-      lastErrorTime = now;
-    }
+    console.error('Error fetching health data:', error);
+    toast({
+      title: "Lỗi kết nối",
+      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
+      variant: "destructive",
+    });
     return [];
   }
 };
