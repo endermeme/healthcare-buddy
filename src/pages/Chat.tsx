@@ -21,7 +21,7 @@ export default function Chat() {
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSendMessage = async (text: string, audioUrl?: string, transcription?: string, metadata?: object) => {
+  const handleSendMessage = async (text: string, audioUrl?: string, transcription?: string, metadata?: any) => {
     try {
       setIsLoading(true);
       
@@ -40,25 +40,34 @@ export default function Chat() {
       // Call API
       const response = await axios({
         method: 'post',
-        url: 'https://service.aigate.app/v1/chat/completions',
+        url: 'http://service.aigate.app/v1/chat-messages',
         headers: {
           'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
         data: {
+          inputs: {
+            nhiptim: metadata?.nhiptim || "",
+            oxy: metadata?.oxy || "",
+            tuoi: metadata?.tuoi || "",
+            tiensubenh: metadata?.tiensubenh || "",
+            gioitinh: metadata?.gioitinh || "",
+            cannang: metadata?.cannang || ""
+          },
           query: text,
-          ...metadata
+          response_mode: "blocking",
+          conversation_id: "",
+          user: "abc-123"
         },
-        timeout: 60000, // Tăng timeout lên 60 giây
-        validateStatus: (status) => status >= 200 && status < 500 // Chấp nhận status 2xx, 3xx, 4xx
+        timeout: 60000,
+        validateStatus: (status) => status >= 200 && status < 500
       });
 
       // Add AI response
-      if (response.data && response.data.answer) {
+      if (response.data && response.data.text) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: response.data.answer,
+          text: response.data.text,
           isUser: false,
         };
         
@@ -71,11 +80,9 @@ export default function Chat() {
     } catch (error: any) {
       console.error('API Error:', error);
       
-      // Xử lý các loại lỗi cụ thể
       if (error.code === 'ECONNABORTED') {
         toast.error("Yêu cầu quá thời gian, vui lòng thử lại");
       } else if (error.response) {
-        // Lỗi từ server với status code
         const status = error.response.status;
         if (status === 401) {
           toast.error("Lỗi xác thực, vui lòng đăng nhập lại");
@@ -85,7 +92,6 @@ export default function Chat() {
           toast.error(`Lỗi từ máy chủ: ${status}`);
         }
       } else if (error.request) {
-        // Không nhận được phản hồi từ server
         toast.error("Không thể kết nối đến máy chủ, vui lòng kiểm tra kết nối mạng");
       } else {
         toast.error("Có lỗi xảy ra: " + error.message);
