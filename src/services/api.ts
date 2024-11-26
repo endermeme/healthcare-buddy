@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://service.aigate.app/v1');
+const API_BASE_URL = 'https://service.aigate.app/v1';
 const API_KEY = 'app-sVzMPqGDTYKCkCJCQToMs4G2';
 
 // Create axios instance with custom config
@@ -11,6 +11,14 @@ export const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   }
+});
+
+// Add CORS headers to requests
+api.interceptors.request.use((config) => {
+  config.headers['Access-Control-Allow-Origin'] = '*';
+  config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+  config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization';
+  return config;
 });
 
 export const sendAudioToSpeechToText = async (audioBlob: Blob) => {
