@@ -14,11 +14,33 @@ interface HealthChartProps {
 }
 
 export const HealthChart = ({ data }: HealthChartProps) => {
-  // Tìm giá trị max của cả 2 chỉ số
   const maxHeartRate = Math.max(...data.map(d => d.heartRate));
   const maxBloodOxygen = Math.max(...data.map(d => d.bloodOxygen));
   const maxValue = Math.max(maxHeartRate, maxBloodOxygen);
-  const yAxisMax = Math.ceil((maxValue + 10) / 10) * 10; // Làm tròn lên đến chục gần nhất và thêm 10 đơn vị
+  const yAxisMax = Math.ceil((maxValue + 10) / 10) * 10;
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-4 border rounded-lg shadow-lg">
+          <p className="text-sm font-medium">
+            {new Date(label).toLocaleTimeString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            })}
+          </p>
+          <p className="text-sm text-red-500">
+            Nhịp tim: {payload[0].value} BPM
+          </p>
+          <p className="text-sm text-blue-500">
+            SpO2: {payload[1].value}%
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[550px]">
@@ -36,9 +58,9 @@ export const HealthChart = ({ data }: HealthChartProps) => {
           <XAxis
             dataKey="timestamp"
             tickFormatter={(time) => new Date(time).toLocaleTimeString('vi-VN', { 
-              timeZone: 'Asia/Ho_Chi_Minh',
               hour: '2-digit',
-              minute: '2-digit'
+              minute: '2-digit',
+              second: '2-digit'
             })}
             stroke="#94a3b8"
             fontSize={12}
@@ -68,24 +90,7 @@ export const HealthChart = ({ data }: HealthChartProps) => {
             tickLine={false}
             axisLine={{ strokeWidth: 1 }}
           />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #e2e8f0',
-              borderRadius: '8px',
-              padding: '12px 16px',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            }}
-            labelFormatter={(label) => new Date(label).toLocaleString('vi-VN', { 
-              timeZone: 'Asia/Ho_Chi_Minh',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-            formatter={(value, name) => {
-              if (name === 'Heart Rate') return [`${value} BPM`, 'Nhịp tim'];
-              return [`${value}%`, 'SpO2'];
-            }}
-          />
+          <Tooltip content={<CustomTooltip />} />
           <Line
             yAxisId="heartRate"
             type="monotone"
