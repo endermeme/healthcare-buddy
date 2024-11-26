@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2, Mic, MicOff } from 'lucide-react';
 import { useAudioRecording } from '@/hooks/useAudioRecording';
+import { loadLogs } from '@/services/healthData';
 
 interface ChatInputProps {
   onSendMessage: (text: string, audioUrl?: string, transcription?: string, metadata?: object) => void;
@@ -32,7 +33,14 @@ export const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
   const getMetadataFromProfile = () => {
     if (!profileData) return {};
     
+    // Lấy dữ liệu nhịp tim và oxy từ lịch sử ghi
+    const logs = loadLogs();
+    const latestLog = logs[logs.length - 1];
+    const latestData = latestLog?.secondsData[latestLog.secondsData.length - 1];
+    
     return {
+      nhiptim: latestData?.heartRate || '',
+      oxy: latestData?.bloodOxygen || '',
       tuoi: profileData.age || '',
       cannang: profileData.weight || '',
       tiensubenh: profileData.medicalHistory || '',

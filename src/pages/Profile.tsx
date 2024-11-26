@@ -35,13 +35,16 @@ export default function Profile() {
     },
   });
 
-  // Load saved data from localStorage on component mount
   React.useEffect(() => {
     const savedProfile = localStorage.getItem('userProfile');
     if (savedProfile) {
       const parsedProfile = JSON.parse(savedProfile);
       Object.keys(parsedProfile).forEach((key) => {
-        form.setValue(key as keyof z.infer<typeof formSchema>, parsedProfile[key]);
+        form.setValue(key as keyof z.infer<typeof formSchema>, parsedProfile[key], {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
       });
     }
   }, [form]);
@@ -83,7 +86,7 @@ export default function Profile() {
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                     className="flex space-x-4"
                   >
                     <FormItem className="flex items-center space-x-2">
