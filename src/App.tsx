@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
+import History from "./pages/History";
+import Detail from "./pages/Detail";
 
 const queryClient = new QueryClient();
 
@@ -14,10 +16,12 @@ const App = () => {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <div className="pb-16"> {/* Add padding to bottom to account for nav */}
+          <div className="pb-16">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/chat" element={<Chat />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/detail/:id" element={<Detail />} />
             </Routes>
             <BottomNav />
           </div>

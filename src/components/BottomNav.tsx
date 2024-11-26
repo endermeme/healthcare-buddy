@@ -1,4 +1,4 @@
-import { Home, MessageSquare, BookOpen } from 'lucide-react';
+import { Home, MessageSquare, History, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
@@ -30,11 +30,17 @@ export const BottomNav = () => {
         </Button>
         <Button 
           variant={location.pathname === '/chat' ? 'default' : 'ghost'}
-          className={location.pathname === '/chat' ? 'bg-primary text-white' : ''}
           size="icon"
           onClick={() => handleClick('/chat')}
         >
           <MessageSquare className="h-5 w-5" />
+        </Button>
+        <Button 
+          variant={location.pathname === '/history' ? 'default' : 'ghost'}
+          size="icon"
+          onClick={() => handleClick('/history')}
+        >
+          <History className="h-5 w-5" />
         </Button>
         <Button 
           variant="ghost" 

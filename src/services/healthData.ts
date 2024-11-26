@@ -12,6 +12,31 @@ interface ApiResponse {
   spo2: number;
 }
 
+let isRecording = false;
+let lastRecordTime: string | null = null;
+
+export const startRecording = () => {
+  isRecording = true;
+  toast({
+    title: "Đang ghi dữ liệu",
+    description: "Hệ thống đang thu thập dữ liệu sức khỏe của bạn.",
+  });
+};
+
+export const stopRecording = () => {
+  isRecording = false;
+  lastRecordTime = new Date().toISOString();
+  toast({
+    title: "Đã hoàn thành ghi",
+    description: `Lần ghi cuối: ${new Date(lastRecordTime).toLocaleTimeString('vi-VN')}`,
+  });
+};
+
+export const getRecordingStatus = () => ({
+  isRecording,
+  lastRecordTime,
+});
+
 const API_ENDPOINT = 'http://192.168.1.15/data';
 
 export const fetchHealthData = async (): Promise<HealthData | null> => {
