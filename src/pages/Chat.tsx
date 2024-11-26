@@ -6,14 +6,23 @@ import { SetupWizard } from '@/components/SetupWizard';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import axios from 'axios';
 import { useToast } from '@/components/ui/use-toast';
-import { loadLogs } from '@/services/healthData';
+import { loadLogs, HourlyLog } from '@/services/healthData';
+
+interface Message {
+  type: 'user' | 'bot';
+  content: string;
+}
 
 const Chat = () => {
   const [showSetupWizard, setShowSetupWizard] = useState(false);
-  const [messages, setMessages] = useState<Array<{type: 'user' | 'bot', content: string}>>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [selectedLogData, setSelectedLogData] = useState<{
+    heartRates: number[];
+    oxygenLevels: number[];
+  } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -29,17 +38,36 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const getSelectedLogData = () => {
-    if (!selectedLogId) return null;
+  const processLogData = (log: HourlyLog) => {
+    // Filter out invalid readings (0 or undefined values)
+    const validData = log.secondsData.filter(data => 
+      data.heartRate > 0 && 
+      data.heartRate < 300 && // Reasonable max heart rate
+      data.bloodOxygen > 0 &&
+      data.bloodOxygen <= 100 // Valid blood oxygen range
+    );
+
+    return {
+      heartRates: validData.map(d => d.heartRate),
+      oxygenLevels: validData.map(d => d.bloodOxygen)
+    };
+  };
+
+  const handleLogSelect = (logId: string) => {
     const logs = loadLogs();
-    return logs.find(log => log.hour === selectedLogId);
+    const selectedLog = logs.find(log => log.hour === logId);
+    
+    if (selectedLog) {
+      const processedData = processLogData(selectedLog);
+      setSelectedLogId(logId);
+      setSelectedLogData(processedData);
+    }
   };
 
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    const selectedData = getSelectedLogData();
-    if (!selectedData && inputMessage.toLowerCase().includes('chỉ số')) {
+    if (!selectedLogData) {
       toast({
         variant: "destructive",
         title: "Lỗi",
@@ -54,8 +82,8 @@ const Chat = () => {
       
       const response = await axios.post('http://service.aigate.app/v1/chat-messages', {
         inputs: {
-          nhiptim: selectedData ? selectedData.secondsData.map(d => d.heartRate).join(' ') : "",
-          oxy: selectedData ? selectedData.secondsData.map(d => d.bloodOxygen).join(' ') : ""
+          nhiptim: selectedLogData.heartRates.join(' '),
+          oxy: selectedLogData.oxygenLevels.join(' ')
         },
         query: inputMessage,
         response_mode: "blocking",
@@ -90,7 +118,7 @@ const Chat = () => {
       <ChatHeader 
         onBack={() => navigate('/')}
         selectedLogId={selectedLogId}
-        onLogSelect={setSelectedLogId}
+        onLogSelect={handleLogSelect}
       />
 
       <main className="flex-1 overflow-y-auto p-4 pb-20">
@@ -98,7 +126,7 @@ const Chat = () => {
           {messages.length === 0 && (
             <div className="text-center text-gray-500 mt-8">
               <p>Xin chào! Tôi có thể giúp gì cho bạn?</p>
-              <p className="text-sm mt-2">Hãy đặt câu hỏi về các chỉ số sức khỏe của bạn.</p>
+              <p className="text-sm mt-2">Hãy chọn một bản ghi và đặt câu hỏi về các chỉ số sức khỏe của bạn.</p>
             </div>
           )}
           {messages.map((message, index) => (
