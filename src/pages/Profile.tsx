@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
-import { KeySettings } from "@/components/KeySettings";
 
 const formSchema = z.object({
   age: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 150, {
@@ -62,15 +61,8 @@ export default function Profile() {
     <div className="container max-w-2xl mx-auto p-4 pb-20">
       <h1 className="text-2xl font-bold mb-6">Thông tin cá nhân</h1>
       
-      <div className="space-y-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Cài đặt cảm biến</h2>
-          <KeySettings />
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="age"
@@ -162,10 +154,8 @@ export default function Profile() {
           <Button type="submit" className="w-full">
             Lưu thông tin
           </Button>
-            </form>
-          </Form>
-        </div>
-      </div>
+        </form>
+      </Form>
     </div>
   );
 }

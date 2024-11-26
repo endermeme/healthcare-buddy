@@ -120,30 +120,54 @@ export const WaterIntakeProgress = ({ heartRate, bloodOxygen }: WaterIntakeProgr
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium text-left">Lượng nước uống trong ngày</h3>
-      
-      <div className="flex items-center justify-between text-sm">
-        <span>{currentGlasses} / {targetGlasses} cốc</span>
-        <span>{Math.round(progress)}%</span>
+    <div className="p-6 bg-white rounded-2xl shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Droplet className="text-blue-500" />
+          <h3 className="font-semibold">Lượng nước uống trong ngày</h3>
+        </div>
+        <HoverCard>
+          <HoverCardTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Info className="h-4 w-4" />
+            </Button>
+          </HoverCardTrigger>
+          <HoverCardContent className="w-80">
+            <div className="space-y-2">
+              <h4 className="font-semibold">Lời khuyên cho bạn</h4>
+              <p className="text-sm text-muted-foreground">
+                {userProfile?.age ? getAdviceByAge(userProfile.age) : "Hãy uống nước đều đặn trong ngày để đảm bảo sức khỏe."}
+              </p>
+            </div>
+          </HoverCardContent>
+        </HoverCard>
       </div>
+      
+      <div className="space-y-4">
+        <div>
+          <Progress value={progress} className="mb-2 h-4" />
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>{currentGlasses} / {targetGlasses} cốc</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+        </div>
 
-      <div className="space-y-2">
-        <Progress value={progress} className="h-2" />
-        <div className="text-sm text-gray-600">Tiến độ theo thời gian</div>
-        <div className="flex justify-between text-xs text-gray-500">
-          <span>6:00</span>
-          <span>22:00</span>
+        <div>
+          <div className="text-sm text-gray-600 mb-2">Tiến độ theo thời gian</div>
+          <Progress value={expectedProgress} className="h-2 bg-gray-100" />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>6:00</span>
+            <span>22:00</span>
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-4 justify-center mt-4">
+      <div className="flex gap-4 justify-center my-4">
         <Button 
           variant="outline" 
           size="icon"
           onClick={removeGlass}
           disabled={currentGlasses === 0}
-          className="border-gray-300"
         >
           <Minus className="h-4 w-4" />
         </Button>
@@ -152,11 +176,16 @@ export const WaterIntakeProgress = ({ heartRate, bloodOxygen }: WaterIntakeProgr
           size="icon"
           onClick={addGlass}
           disabled={currentGlasses === targetGlasses}
-          className="border-gray-300"
         >
           <Plus className="h-4 w-4" />
         </Button>
       </div>
+      
+      {recommendation && (
+        <p className="mt-2 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+          💧 {recommendation}
+        </p>
+      )}
     </div>
   );
 };

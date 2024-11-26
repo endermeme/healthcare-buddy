@@ -1,39 +1,108 @@
-import { useHealthData } from '@/hooks/useHealthData';
+import { useState } from 'react';
+import { useHealthData, TimeRange } from '@/hooks/useHealthData';
+import { HealthChart } from '@/components/HealthChart';
 import { HealthStats } from '@/components/HealthStats';
 import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
+
+const EMOJIS = ["❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯", "❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯"];
 
 const Index = () => {
-  const { currentData } = useHealthData('5m');
+  const [timeRange, setTimeRange] = useState<TimeRange>('5m');
+  const { currentData, history, averages } = useHealthData(timeRange);
+
+  const handleTimeRangeChange = (range: TimeRange) => {
+    setTimeRange(range);
+    toast({
+      title: "Đã thay đổi khoảng thời gian",
+      description: `Hiển thị dữ liệu trong ${range}`,
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-white px-4 py-2">
-      {/* Header with emojis */}
-      <div className="overflow-x-auto whitespace-nowrap mb-2">
-        <div className="flex gap-1">
-          {"❤️🏃💪🧘‍♀️🫀🏊‍♂️❤️🏃💪🧘‍♀️🫀🏊‍♂️❤️"}
+    <div className="min-h-screen bg-gray-50">
+      {/* Health Banner */}
+      <div className="relative overflow-hidden rounded-xl mx-4 mt-4 h-32 bg-gradient-to-r from-[#4FACFE] to-[#00F2FE] shadow-lg">
+        <div className="absolute inset-0 overflow-hidden">
+          {EMOJIS.map((emoji, index) => (
+            <span
+              key={index}
+              className="absolute animate-emoji-fall opacity-0"
+              style={{
+                left: `${(index / EMOJIS.length) * 100}%`,
+                animationDelay: `${index * 0.3}s`
+              }}
+            >
+              {emoji}
+            </span>
+          ))}
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <h1 className="text-2xl font-bold text-white text-center z-10">
+            Nhịp đập số
+          </h1>
         </div>
       </div>
 
-      {/* Title */}
-      <h1 className="text-2xl font-bold text-left mb-6">Nhịp đập số</h1>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm">
+              <div className="space-y-6">
+                <HealthStats 
+                  data={currentData} 
+                  averages={averages}
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
+                />
+                <HealthChart data={history} />
+                
+                {/* Time Range Selector */}
+                <div className="flex justify-center gap-2 pt-4">
+                  <Button
+                    variant={timeRange === '5m' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleTimeRangeChange('5m')}
+                  >
+                    5 phút
+                  </Button>
+                  <Button
+                    variant={timeRange === '15m' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleTimeRangeChange('15m')}
+                  >
+                    15 phút
+                  </Button>
+                  <Button
+                    variant={timeRange === '30m' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleTimeRangeChange('30m')}
+                  >
+                    30 phút
+                  </Button>
+                  <Button
+                    variant={timeRange === '1h' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleTimeRangeChange('1h')}
+                  >
+                    1 giờ
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      {/* Health Stats */}
-      <div className="space-y-6">
-        <HealthStats 
-          data={currentData} 
-          averages={{avgHeartRate: 0, avgBloodOxygen: 0}}
-          timeRange="5m"
-          onTimeRangeChange={() => {}}
-        />
-      </div>
-
-      {/* Water Intake Section */}
-      <div className="mt-6">
-        <WaterIntakeProgress
-          heartRate={currentData?.heartRate ?? null}
-          bloodOxygen={currentData?.bloodOxygen ?? null}
-        />
-      </div>
+          {/* Water Intake Section */}
+          <div className="lg:col-span-1">
+            <WaterIntakeProgress
+              heartRate={currentData?.heartRate ?? null}
+              bloodOxygen={currentData?.bloodOxygen ?? null}
+            />
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

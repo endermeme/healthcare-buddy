@@ -117,8 +117,7 @@ export const loadChatMessages = () => {
 // Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
-    const key = localStorage.getItem('sensor_key') || '261107';
-    const response = await axios.get<ApiResponse>(`${API_ENDPOINT}?key=${key}`);
+    const response = await axios.get<ApiResponse>(API_ENDPOINT);
     
     if (!response.data || typeof response.data.heartRate !== 'number') {
       throw new Error('Invalid data format received');
