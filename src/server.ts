@@ -9,7 +9,7 @@ app.use(express.json());
 
 const PORT = 3001;
 
-app.post('/api/health-log', (req, res) => {
+app.post('/api/health-log', (req: express.Request, res: express.Response) => {
   const { bpm, oxy } = req.body;
   
   if (!Array.isArray(bpm) || !Array.isArray(oxy) || bpm.length !== oxy.length) {
