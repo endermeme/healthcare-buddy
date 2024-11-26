@@ -1,5 +1,4 @@
 import { toast } from "@/components/ui/use-toast";
-import { fetchSensorData } from './api';
 import axios from 'axios';
 
 export interface HealthData {
@@ -98,8 +97,8 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
   }
 
   try {
-    const data = await fetchSensorData(apiKey);
-    const { heartRate, spo2: bloodOxygen } = data;
+    const response = await axios.get(`http://192.168.1.15/data?key=${apiKey}`);
+    const { heartRate, spo2: bloodOxygen } = response.data;
 
     if (isValidReading(heartRate, bloodOxygen)) {
       const healthData: HealthData = {
@@ -163,4 +162,11 @@ export const getWaterRecommendation = async (
     recommendation,
     glassesCount: baseGlasses
   };
+};
+
+// Save chat message
+export const saveChatMessage = (message: any) => {
+  const messages = JSON.parse(localStorage.getItem(CHAT_STORAGE_KEY) || '[]');
+  messages.push(message);
+  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
 };
