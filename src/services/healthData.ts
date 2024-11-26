@@ -28,7 +28,7 @@ interface WaterRecommendation {
   glassesCount: number;
 }
 
-const API_ENDPOINT = 'http://192.168.1.15/data';
+const BASE_API_ENDPOINT = 'http://192.168.1.15/data';
 export const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
@@ -115,16 +115,14 @@ export const loadChatMessages = () => {
 };
 
 // Fetch health data từ sensor
-const getApiKey = () => localStorage.getItem('apiKey');
-
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
-    const apiKey = getApiKey();
+    const apiKey = localStorage.getItem('apiKey');
     if (!apiKey) {
       throw new Error('API key not found');
     }
 
-    const response = await axios.get<ApiResponse>(`${API_ENDPOINT}?key=${apiKey}`);
+    const response = await axios.get<ApiResponse>(`${BASE_API_ENDPOINT}?key=${apiKey}`);
     
     if (!response.data || typeof response.data.heartRate !== 'number') {
       throw new Error('Invalid data format received');
