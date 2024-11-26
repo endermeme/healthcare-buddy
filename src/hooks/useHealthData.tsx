@@ -21,11 +21,12 @@ export const useHealthData = (timeRange: TimeRange) => {
         const now = new Date();
         const timeLimit = new Date(now.getTime() - getTimeRangeInMs(timeRange));
         
-        const updatedHistory = [...prev, currentData]
+        // Ensure currentData is treated as an array
+        const newData = Array.isArray(currentData) ? currentData : [currentData];
+        
+        return [...prev, ...newData]
           .filter(data => new Date(data.timestamp) > timeLimit)
           .slice(-1000);
-
-        return updatedHistory;
       });
     }
   }, [currentData, timeRange]);
@@ -51,7 +52,7 @@ export const useHealthData = (timeRange: TimeRange) => {
   };
 
   return {
-    currentData,
+    currentData: Array.isArray(currentData) ? currentData[0] : currentData,
     history,
     averages: getAverages(),
   };

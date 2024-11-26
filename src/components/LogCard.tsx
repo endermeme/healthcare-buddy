@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Clock, Activity, Heart } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isAfter } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { vi } from 'date-fns/locale';
 import { HourlyLog } from '@/services/healthData';
 
@@ -11,6 +12,26 @@ interface LogCardProps {
 
 export const LogCard = ({ log, onClick }: LogCardProps) => {
   const hourTime = new Date(log.hour);
+  const currentTime = new Date();
+  const isComplete = isAfter(currentTime, new Date(log.hour));
+  
+  // Format time in Vietnam timezone
+  const formattedTime = formatInTimeZone(
+    hourTime,
+    'Asia/Ho_Chi_Minh',
+    'HH:00',
+    { locale: vi }
+  );
+
+  // Calculate completion percentage
+  const getCompletionPercentage = () => {
+    if (isComplete) return 100;
+    
+    const currentMinute = currentTime.getMinutes();
+    return Math.min(Math.round((currentMinute / 60) * 100), 100);
+  };
+
+  const completionPercentage = getCompletionPercentage();
 
   return (
     <Card 
@@ -21,15 +42,13 @@ export const LogCard = ({ log, onClick }: LogCardProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Clock className="h-4 w-4 text-gray-500" />
-            <span className="font-medium">
-              {format(hourTime, 'HH:00', { locale: vi })}
-            </span>
+            <span className="font-medium">{formattedTime}</span>
           </div>
           <div className="text-sm">
-            {log.isRecording ? (
-              <span className="text-blue-500">Đang ghi...</span>
-            ) : (
+            {isComplete ? (
               <span className="text-green-500">Đã hoàn tất</span>
+            ) : (
+              <span className="text-blue-500">{completionPercentage}%</span>
             )}
           </div>
         </div>
