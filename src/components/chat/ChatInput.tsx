@@ -39,7 +39,6 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
     const logs = loadLogs();
     const allData = logs.flatMap(log => log.secondsData);
     
-    // Lấy tất cả dữ liệu hợp lệ và nối thành chuỗi
     const heartRates = allData
       .map(data => data.heartRate)
       .filter(rate => rate > 0)
@@ -51,8 +50,8 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
       .join(' ');
     
     return {
-      nhiptim: heartRates || '90 90 90 90 90', // Fallback nếu không có dữ liệu
-      oxy: oxygenLevels || '98 98 98 98 98', // Fallback nếu không có dữ liệu
+      nhiptim: heartRates || '90 90 90 90 90',
+      oxy: oxygenLevels || '98 98 98 98 98',
       tuoi: profileData.age?.toString() || '',
       cannang: profileData.weight?.toString() || '',
       tiensubenh: profileData.medicalHistory || '',
@@ -80,23 +79,22 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
         return;
       }
       setImageFile(file);
-      // Handle image upload logic here
     }
   };
 
   return (
-    <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t">
+    <div className="fixed bottom-16 left-0 right-0 bg-white border-t p-2">
       <div className="max-w-3xl mx-auto">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           {/* Utility buttons row */}
-          <div className="flex justify-end gap-2 px-2">
+          <div className="flex justify-end gap-1 px-1">
             <Button
               variant="ghost"
               size="sm"
-              className="h-8"
+              className="h-6 w-6 p-0"
               onClick={onClearChat}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3 w-3" />
             </Button>
             <label className="cursor-pointer">
               <input
@@ -108,37 +106,37 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8"
+                className="h-6 w-6 p-0"
                 type="button"
               >
-                <ImagePlus className="h-4 w-4" />
+                <ImagePlus className="h-3 w-3" />
               </Button>
             </label>
           </div>
           
           {/* Main input row */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button
               variant="outline"
               size="icon"
-              className={`rounded-full w-12 h-12 flex-shrink-0 ${isRecording ? 'bg-red-100 text-red-500' : ''}`}
+              className={`rounded-full w-8 h-8 flex-shrink-0 ${isRecording ? 'bg-red-100 text-red-500' : ''}`}
               onClick={isRecording ? stopRecording : startRecording}
             >
               {isRecording ? (
-                <MicOff className="h-5 w-5" />
+                <MicOff className="h-4 w-4" />
               ) : (
-                <Mic className="h-5 w-5" />
+                <Mic className="h-4 w-4" />
               )}
             </Button>
             
-            <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2">
+            <div className="flex-1 flex items-center gap-1 bg-gray-50 rounded-full px-3 py-1">
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
                 placeholder="Nhập câu hỏi của bạn..."
-                className="flex-1 bg-transparent border-none focus:outline-none"
+                className="flex-1 bg-transparent border-none focus:outline-none text-sm"
                 disabled={isLoading || isRecording}
               />
               <Button 
@@ -146,12 +144,12 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
                 disabled={isLoading || isRecording}
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8"
+                className="h-6 w-6 p-0"
               >
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
-                  <Send className="h-4 w-4" />
+                  <Send className="h-3 w-3" />
                 )}
               </Button>
             </div>
