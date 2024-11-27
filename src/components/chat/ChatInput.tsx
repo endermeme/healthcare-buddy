@@ -56,7 +56,7 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
     
     const { heartRates, oxygenLevels, timestamps } = getValidReadingsFromSelectedLogs();
     
-    // Chỉ lấy thông tin từ profile người dùng và dữ liệu cảm biến
+    // Chỉ lấy thông tin cơ bản từ profile người dùng và dữ liệu cảm biến
     return {
       nhiptim: heartRates,
       oxy: oxygenLevels,
@@ -65,11 +65,6 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
       tiensubenh: profileData.medicalHistory || '',
       gioitinh: profileData.gender || '',
       chieucao: profileData.height?.toString() || '',
-      huyetap: profileData.bloodPressure || '',
-      duonghuyet: profileData.bloodSugar || '',
-      cholesterol: profileData.cholesterol || '',
-      thuocdieutri: profileData.medications || '',
-      dichung: profileData.allergies || '',
       thoigian: timestamps
     };
   };
