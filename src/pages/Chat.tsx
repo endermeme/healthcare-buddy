@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChatInput } from '@/components/chat/ChatInput';
-import { AudioMessage } from '@/components/chat/AudioMessage';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { toast } from 'sonner';
 import { saveChatMessage } from '@/services/healthData';
@@ -11,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { X } from "lucide-react";
 
 const SELECTED_LOGS_KEY = 'selected_chat_logs';
+const TTS_ENABLED_KEY = 'tts_enabled';
 
 interface Message {
   id: string;
@@ -41,10 +41,19 @@ export default function Chat() {
       return [];
     }
   });
+  
+  const [ttsEnabled, setTtsEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(TTS_ENABLED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+  
   const [showServerError, setShowServerError] = useState(false);
-
   const navigate = useNavigate();
   const processingMessageRef = useRef<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     try {
@@ -62,9 +71,42 @@ export default function Chat() {
     }
   }, [selectedLogIds]);
 
+  useEffect(() => {
+    localStorage.setItem(TTS_ENABLED_KEY, ttsEnabled.toString());
+  }, [ttsEnabled]);
+
   const handleClearChat = () => {
     setMessages([]);
     localStorage.removeItem('chat_messages');
+  };
+
+  const playTTS = async (messageId: string, text: string) => {
+    try {
+      const response = await axios({
+        method: 'post',
+        url: 'http://service.aigate.app/v1/text-to-audio',
+        headers: {
+          'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
+        },
+        data: {
+          message_id: messageId,
+          text: text,
+          user: "abc-123"
+        },
+        responseType: 'blob'
+      });
+
+      const audioBlob = new Blob([response.data], { type: 'audio/wav' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.play();
+      }
+    } catch (error) {
+      console.error('TTS Error:', error);
+      toast.error('Không thể chuyển đổi văn bản thành giọng nói');
+    }
   };
 
   const handleSendMessage = async (text: string, audioUrl?: string, transcription?: string, metadata?: any) => {
@@ -116,6 +158,11 @@ export default function Chat() {
         setMessages(prevMessages => [...prevMessages, aiMessage]);
         saveChatMessage(aiMessage);
         setShowServerError(false);
+
+        // Automatically play TTS if enabled
+        if (ttsEnabled) {
+          playTTS(aiMessage.id, aiMessage.text);
+        }
       } else {
         throw new Error('Invalid or empty response from server');
       }
@@ -153,23 +200,24 @@ export default function Chat() {
   return (
     <div className="flex flex-col h-[100dvh] bg-white">
       {showServerError && (
-        <Alert variant="destructive" className="fixed top-0 left-0 right-0 z-50 rounded-none flex items-center justify-between">
-          <AlertDescription>
-            Không thể kết nối tới máy chủ chatbot
-          </AlertDescription>
+        <Alert variant="destructive" className="fixed top-0 left-0 right-0 z-50 rounded-none flex items-center justify-between py-1.5">
+          <span className="text-sm font-medium">Không tìm thấy cảm biến</span>
           <button 
             onClick={() => setShowServerError(false)}
             className="p-1 hover:bg-destructive/10 rounded-full"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3 w-3" />
           </button>
         </Alert>
       )}
+      
       <ChatHeader 
         onBack={handleBack}
         selectedLogIds={selectedLogIds}
         onLogSelect={setSelectedLogIds}
         onClearChat={handleClearChat}
+        onTtsToggle={setTtsEnabled}
+        ttsEnabled={ttsEnabled}
       />
       
       <ChatMessages messages={messages} />
@@ -179,6 +227,8 @@ export default function Chat() {
         isLoading={isLoading}
         selectedLogIds={selectedLogIds}
       />
+
+      <audio ref={audioRef} className="hidden" />
     </div>
   );
 }
