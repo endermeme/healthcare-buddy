@@ -33,65 +33,18 @@ export const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
 
-// Kiểm tra tính hợp lệ của dữ liệu cho 5 lần ghi đầu tiên
-const isValidFirstFiveReading = (heartRate: number, bloodOxygen: number): boolean => {
-  return (
-    heartRate > 0 && 
-    heartRate <= 100 && // Chỉ lấy BPM <= 100 cho 5 lần đầu
-    bloodOxygen > 0 && 
-    bloodOxygen <= 100
-  );
-};
-
-// Kiểm tra tính hợp lệ của dữ liệu cho các lần ghi sau
-const isValidLaterReading = (heartRate: number, bloodOxygen: number): boolean => {
-  return (
-    heartRate > 0 && 
-    bloodOxygen > 0 && 
-    bloodOxygen <= 100 // Chỉ kiểm tra SpO2 <= 100 cho các lần sau
-  );
+// Kiểm tra tính hợp lệ của dữ liệu
+const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
+  return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
 };
 
 // Load logs từ local storage
 export const loadLogs = (): HourlyLog[] => {
   const storedLogs = localStorage.getItem(LOGS_STORAGE_KEY);
-  const logs = storedLogs ? JSON.parse(storedLogs) : [];
-  
-  // Lọc lại dữ liệu hợp lệ cho mỗi log
-  return logs.map((log: HourlyLog) => {
-    // Tách ra 5 bản ghi đầu và các bản ghi còn lại
-    const firstFive = log.secondsData.slice(0, 5);
-    const remaining = log.secondsData.slice(5);
-
-    // Lọc 5 bản ghi đầu với điều kiện nghiêm ngặt hơn
-    const validFirstFive = firstFive
-      .filter(data => isValidFirstFiveReading(data.heartRate, data.bloodOxygen));
-
-    // Lọc các bản ghi còn lại với điều kiện chỉ kiểm tra SpO2
-    const validRemaining = remaining
-      .filter(data => isValidLaterReading(data.heartRate, data.bloodOxygen));
-
-    // Kết hợp lại
-    const validData = [...validFirstFive, ...validRemaining];
-
-    // Tính lại trung bình dựa trên dữ liệu hợp lệ
-    const avgHeartRate = validData.length > 0
-      ? Math.round(validData.reduce((sum, data) => sum + data.heartRate, 0) / validData.length)
-      : 0;
-    
-    const avgBloodOxygen = validData.length > 0
-      ? Math.round(validData.reduce((sum, data) => sum + data.bloodOxygen, 0) / validData.length)
-      : 0;
-
-    return {
-      ...log,
-      secondsData: validData,
-      averageHeartRate: avgHeartRate,
-      averageBloodOxygen: avgBloodOxygen
-    };
-  });
+  return storedLogs ? JSON.parse(storedLogs) : [];
 };
 
+// Lưu logs vào local storage
 export const saveLogs = (logs: HourlyLog[]) => {
   localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
 };
@@ -123,39 +76,15 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   
   if (existingLogIndex >= 0) {
     const updatedLog = { ...logs[existingLogIndex] };
-    
-    // Kiểm tra số lượng bản ghi hợp lệ hiện tại
-    const validFirstFive = updatedLog.secondsData
-      .slice(0, 5)
-      .filter(data => isValidFirstFiveReading(data.heartRate, data.bloodOxygen));
-
-    // Nếu chưa đủ 5 bản ghi hợp lệ đầu tiên, áp dụng điều kiện nghiêm ngặt
-    if (validFirstFive.length < 5) {
-      if (isValidFirstFiveReading(newData.heartRate, newData.bloodOxygen)) {
-        updatedLog.secondsData.push(newData);
-      }
-    } else {
-      // Nếu đã đủ 5 bản ghi đầu, chỉ kiểm tra SpO2
-      if (isValidLaterReading(newData.heartRate, newData.bloodOxygen)) {
-        updatedLog.secondsData.push(newData);
-      }
-    }
-    
+    updatedLog.secondsData.push(newData);
     updatedLog.lastRecordTime = new Date().toISOString();
     
-    // Tính lại trung bình với tất cả dữ liệu hợp lệ
-    const validFirstFiveData = updatedLog.secondsData
-      .slice(0, 5)
-      .filter(data => isValidFirstFiveReading(data.heartRate, data.bloodOxygen));
-      
-    const validRemainingData = updatedLog.secondsData
-      .slice(5)
-      .filter(data => isValidLaterReading(data.heartRate, data.bloodOxygen));
-
-    const allValidData = [...validFirstFiveData, ...validRemainingData];
+    // Cập nhật trung bình
+    const validHeartRates = updatedLog.secondsData.map(d => d.heartRate).filter(rate => rate > 0);
+    const validOxygenLevels = updatedLog.secondsData.map(d => d.bloodOxygen).filter(level => level > 0);
     
-    updatedLog.averageHeartRate = calculateAverage(allValidData.map(d => d.heartRate));
-    updatedLog.averageBloodOxygen = calculateAverage(allValidData.map(d => d.bloodOxygen));
+    updatedLog.averageHeartRate = calculateAverage(validHeartRates);
+    updatedLog.averageBloodOxygen = calculateAverage(validOxygenLevels);
     
     const newLogs = [...logs];
     newLogs[existingLogIndex] = updatedLog;
@@ -174,6 +103,24 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   }
 };
 
+export const saveChatMessage = (message: any) => {
+  try {
+    const messages = loadChatMessages();
+    // Check if message with same ID already exists
+    if (!messages.some(m => m.id === message.id)) {
+      messages.push(message);
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    }
+  } catch (error) {
+    console.error('Error saving chat message:', error);
+  }
+};
+
+export const loadChatMessages = () => {
+  const storedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
+  return storedMessages ? JSON.parse(storedMessages) : [];
+};
+
 // Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
@@ -186,7 +133,7 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
     const { heartRate, spo2: bloodOxygen } = response.data;
 
     // Chỉ xử lý dữ liệu hợp lệ
-    if (isValidFirstFiveReading(heartRate, bloodOxygen) || isValidLaterReading(heartRate, bloodOxygen)) {
+    if (isValidReading(heartRate, bloodOxygen)) {
       const data: HealthData = {
         heartRate,
         bloodOxygen,
@@ -242,3 +189,4 @@ export const getWaterRecommendation = async (
     glassesCount: baseGlasses
   };
 };
+
