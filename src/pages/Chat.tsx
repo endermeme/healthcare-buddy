@@ -40,8 +40,7 @@ export default function Chat() {
   };
 
   const handleSendMessage = async (text: string, audioUrl?: string, transcription?: string, metadata?: any) => {
-    // Prevent duplicate processing of the same message
-    if (processingMessageRef.current === text) {
+    if (isLoading || processingMessageRef.current === text) {
       return;
     }
 
@@ -49,17 +48,17 @@ export default function Chat() {
       setIsLoading(true);
       processingMessageRef.current = text;
       
+      const messageId = Date.now().toString();
       const userMessage: Message = {
-        id: Date.now().toString(),
+        id: messageId,
         text,
         isUser: true,
         audioUrl,
         transcription,
       };
       
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
-      localStorage.setItem('chat_messages', JSON.stringify(newMessages));
+      setMessages(prev => [...prev, userMessage]);
+      localStorage.setItem('chat_messages', JSON.stringify([...messages, userMessage]));
       saveChatMessage(userMessage);
 
       const response = await axios({
@@ -89,14 +88,13 @@ export default function Chat() {
 
       if (response.data && (response.data.text || response.data.answer)) {
         const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
+          id: `ai-${Date.now()}`,
           text: response.data.text || response.data.answer,
           isUser: false,
         };
         
-        const updatedMessages = [...newMessages, aiMessage];
-        setMessages(updatedMessages);
-        localStorage.setItem('chat_messages', JSON.stringify(updatedMessages));
+        setMessages(prev => [...prev, aiMessage]);
+        localStorage.setItem('chat_messages', JSON.stringify([...messages, userMessage, aiMessage]));
         saveChatMessage(aiMessage);
       } else {
         throw new Error('Invalid or empty response from server');
