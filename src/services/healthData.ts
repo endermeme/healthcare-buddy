@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
+import { checkHealthMetrics } from '@/services/notificationService';
 
 export interface HealthData {
   heartRate: number;
@@ -33,41 +34,34 @@ export const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
 
-// Kiểm tra tính hợp lệ của dữ liệu
 const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
   return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
 };
 
-// Load logs từ local storage
 export const loadLogs = (): HourlyLog[] => {
   const storedLogs = localStorage.getItem(LOGS_STORAGE_KEY);
   return storedLogs ? JSON.parse(storedLogs) : [];
 };
 
-// Lưu logs vào local storage
 export const saveLogs = (logs: HourlyLog[]) => {
   localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
 };
 
-// Lấy trạng thái ghi hiện tại
 export const getCurrentRecording = (): { isRecording: boolean; currentHour: string | null } => {
   const stored = localStorage.getItem(CURRENT_RECORDING_KEY);
   return stored ? JSON.parse(stored) : { isRecording: false, currentHour: null };
 };
 
-// Cập nhật trạng thái ghi
 export const setCurrentRecording = (isRecording: boolean, currentHour: string | null) => {
   localStorage.setItem(CURRENT_RECORDING_KEY, JSON.stringify({ isRecording, currentHour }));
 };
 
-// Tính trung bình của một mảng số
 const calculateAverage = (numbers: number[]): number => {
   if (numbers.length === 0) return 0;
   const sum = numbers.reduce((a, b) => a + b, 0);
   return Math.round(sum / numbers.length);
 };
 
-// Cập nhật log cho giờ hiện tại
 const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog[] => {
   const currentHour = new Date().setMinutes(0, 0, 0);
   const hourString = new Date(currentHour).toISOString();
@@ -79,7 +73,6 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
     updatedLog.secondsData.push(newData);
     updatedLog.lastRecordTime = new Date().toISOString();
     
-    // Cập nhật trung bình
     const validHeartRates = updatedLog.secondsData.map(d => d.heartRate).filter(rate => rate > 0);
     const validOxygenLevels = updatedLog.secondsData.map(d => d.bloodOxygen).filter(level => level > 0);
     
@@ -90,7 +83,6 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
     newLogs[existingLogIndex] = updatedLog;
     return newLogs;
   } else {
-    // Tạo log mới cho giờ hiện tại
     const newLog: HourlyLog = {
       hour: hourString,
       isRecording: true,
@@ -106,7 +98,6 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
 export const saveChatMessage = (message: any) => {
   try {
     const messages = loadChatMessages();
-    // Check if message with same ID already exists
     if (!messages.some(m => m.id === message.id)) {
       messages.push(message);
       localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
@@ -121,7 +112,6 @@ export const loadChatMessages = () => {
   return storedMessages ? JSON.parse(storedMessages) : [];
 };
 
-// Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
     const response = await axios.get<ApiResponse>(API_ENDPOINT);
@@ -132,7 +122,15 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
 
     const { heartRate, spo2: bloodOxygen } = response.data;
 
-    // Chỉ xử lý dữ liệu hợp lệ
+    const alerts = checkHealthMetrics(heartRate, bloodOxygen);
+    if (alerts.length > 0) {
+      toast({
+        title: "Cảnh báo sức khỏe",
+        description: alerts.join('. ') + '. Vui lòng kiểm tra lại tình trạng sức khỏe hoặc liên hệ bác sĩ.',
+        variant: "destructive",
+      });
+    }
+
     if (isValidReading(heartRate, bloodOxygen)) {
       const data: HealthData = {
         heartRate,
@@ -142,10 +140,20 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
         oxygenLevels: Array(10).fill(bloodOxygen),
       };
 
-      // Cập nhật logs
       const currentLogs = loadLogs();
       const updatedLogs = updateCurrentHourLog(currentLogs, data);
       saveLogs(updatedLogs);
+
+      const currentHour = new Date().setMinutes(0, 0, 0);
+      const hourString = new Date(currentHour).toISOString();
+      const currentHourLog = updatedLogs.find(log => log.hour === hourString);
+      
+      if (currentHourLog && currentHourLog.secondsData.length >= 3600) {
+        toast({
+          title: "Hoàn thành ghi dữ liệu",
+          description: "Đã hoàn thành ghi dữ liệu sức khỏe trong 1 giờ.",
+        });
+      }
 
       return [data];
     } else {
@@ -189,4 +197,3 @@ export const getWaterRecommendation = async (
     glassesCount: baseGlasses
   };
 };
-
