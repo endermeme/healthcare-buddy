@@ -8,10 +8,10 @@ import { toast } from '@/components/ui/use-toast';
 interface ChatInputProps {
   onSendMessage: (text: string, audioUrl?: string, transcription?: string, metadata?: object) => void;
   isLoading: boolean;
-  selectedLogId?: string;
+  selectedLogIds?: string[];
 }
 
-export const ChatInput = ({ onSendMessage, isLoading, selectedLogId }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInputProps) => {
   const [inputMessage, setInputMessage] = useState('');
   const [profileData, setProfileData] = useState<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -33,31 +33,33 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogId }: ChatInput
     onTranscriptionComplete: handleTranscriptionComplete
   });
 
-  const getValidReadingsFromSelectedLog = () => {
-    if (!selectedLogId) return { heartRates: '', oxygenLevels: '' };
+  const getValidReadingsFromSelectedLogs = () => {
+    if (!selectedLogIds?.length) return { heartRates: '', oxygenLevels: '' };
 
     const logs = loadLogs();
-    const selectedLog = logs.find(log => log.hour === selectedLogId);
+    const selectedLogs = logs.filter(log => selectedLogIds.includes(log.hour));
     
-    if (!selectedLog) return { heartRates: '', oxygenLevels: '' };
+    if (!selectedLogs.length) return { heartRates: '', oxygenLevels: '' };
 
-    const validReadings = selectedLog.secondsData.filter(data => 
-      data.heartRate > 30 && 
-      data.heartRate < 200 && 
-      data.bloodOxygen >= 85 && 
-      data.bloodOxygen <= 100
+    const allValidReadings = selectedLogs.flatMap(log => 
+      log.secondsData.filter(data => 
+        data.heartRate > 30 && 
+        data.heartRate < 200 && 
+        data.bloodOxygen >= 85 && 
+        data.bloodOxygen <= 100
+      )
     );
 
     return {
-      heartRates: validReadings.map(data => data.heartRate.toFixed(1)).join(' '),
-      oxygenLevels: validReadings.map(data => data.bloodOxygen.toFixed(1)).join(' ')
+      heartRates: allValidReadings.map(data => data.heartRate.toFixed(1)).join(' '),
+      oxygenLevels: allValidReadings.map(data => data.bloodOxygen.toFixed(1)).join(' ')
     };
   };
 
   const getMetadataFromProfile = () => {
     if (!profileData) return {};
     
-    const { heartRates, oxygenLevels } = getValidReadingsFromSelectedLog();
+    const { heartRates, oxygenLevels } = getValidReadingsFromSelectedLogs();
     
     return {
       nhiptim: heartRates || '',

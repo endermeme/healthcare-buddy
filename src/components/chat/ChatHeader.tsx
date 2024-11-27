@@ -1,93 +1,107 @@
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, ChevronDown, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { loadLogs } from '@/services/healthData';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface ChatHeaderProps {
   onBack: () => void;
-  selectedLogId: string | null;
-  onLogSelect: (logId: string) => void;
+  selectedLogIds: string[];
+  onLogSelect: (logIds: string[]) => void;
   onClearChat: () => void;
 }
 
-export const ChatHeader = ({ 
-  onBack, 
-  selectedLogId,
-  onLogSelect,
-  onClearChat
-}: ChatHeaderProps) => {
+export const ChatHeader = ({ onBack, selectedLogIds, onLogSelect, onClearChat }: ChatHeaderProps) => {
   const logs = loadLogs();
   
-  const selectedLog = logs.find(log => log.hour === selectedLogId);
+  // Group logs by date
+  const groupedLogs = logs.reduce((groups: { [key: string]: typeof logs }, log) => {
+    const date = format(new Date(log.hour), 'yyyy-MM-dd');
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(log);
+    return groups;
+  }, {});
 
-  const formatTimeString = (timestamp: string) => {
-    return format(new Date(timestamp), 'HH:mm - dd/MM/yyyy', { locale: vi });
+  const handleLogSelect = (value: string) => {
+    if (value.startsWith('day-')) {
+      // If a day is selected, include all logs from that day
+      const date = value.replace('day-', '');
+      const dayLogs = groupedLogs[date] || [];
+      const logIds = dayLogs.map(log => log.hour);
+      onLogSelect(logIds);
+    } else {
+      // For individual log selection
+      const currentSelection = [...selectedLogIds];
+      const index = currentSelection.indexOf(value);
+      
+      if (index === -1) {
+        currentSelection.push(value);
+      } else {
+        currentSelection.splice(index, 1);
+      }
+      
+      onLogSelect(currentSelection);
+    }
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-white shadow-sm">
-      <div className="flex h-14 items-center px-4">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={onBack}
-          className="mr-2"
-        >
+    <div className="fixed top-0 left-0 right-0 bg-white border-b z-10">
+      <div className="max-w-3xl mx-auto px-4 py-2 flex items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={onBack}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <span className="text-sm font-medium">AI Assistant</span>
-        <div className="ml-auto flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                {selectedLog ? 
-                  formatTimeString(selectedLog.hour) :
-                  'Chọn bản ghi'
-                }
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {logs
-                .sort((a, b) => new Date(b.hour).getTime() - new Date(a.hour).getTime())
-                .map((log) => (
-                  <DropdownMenuItem
+
+        <Select
+          value={selectedLogIds.length === 1 ? selectedLogIds[0] : ''}
+          onValueChange={handleLogSelect}
+        >
+          <SelectTrigger className="flex-1">
+            <SelectValue placeholder="Chọn bản ghi..." />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(groupedLogs).map(([date, dayLogs]) => (
+              <SelectGroup key={date}>
+                <SelectLabel className="px-2 py-1.5">
+                  {format(new Date(date), 'EEEE, dd/MM/yyyy', { locale: vi })}
+                </SelectLabel>
+                <SelectItem value={`day-${date}`} className="pl-4 font-medium">
+                  Tất cả bản ghi trong ngày
+                </SelectItem>
+                {dayLogs.map((log) => (
+                  <SelectItem
                     key={log.hour}
-                    onClick={() => onLogSelect(log.hour)}
-                    className="flex flex-col items-start"
+                    value={log.hour}
+                    className="pl-6"
                   >
-                    <span className="font-medium">
-                      {formatTimeString(log.hour)}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Nhịp tim: {log.averageHeartRate} BPM | 
-                      SpO2: {log.averageBloodOxygen}%
-                    </span>
-                  </DropdownMenuItem>
+                    {format(new Date(log.hour), 'HH:00')}
+                  </SelectItem>
                 ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClearChat}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <Trash2 className="h-5 w-5" />
-          </Button>
-        </div>
+              </SelectGroup>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={onClearChat}
+          className="text-red-500 hover:text-red-600"
+        >
+          <Trash2 className="h-5 w-5" />
+        </Button>
       </div>
-    </header>
+    </div>
   );
 };

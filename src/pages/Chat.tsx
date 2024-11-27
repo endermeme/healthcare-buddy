@@ -21,7 +21,7 @@ export default function Chat() {
     return savedMessages ? JSON.parse(savedMessages) : [];
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+  const [selectedLogIds, setSelectedLogIds] = useState<string[]>([]);
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const processingMessageRef = useRef<string | null>(null);
@@ -131,16 +131,12 @@ export default function Chat() {
     navigate(-1);
   };
 
-  const handleLogSelect = (logId: string) => {
-    setSelectedLogId(logId);
-  };
-
   return (
     <div className="flex flex-col h-screen">
       <ChatHeader 
         onBack={handleBack}
-        selectedLogId={selectedLogId}
-        onLogSelect={handleLogSelect}
+        selectedLogIds={selectedLogIds}
+        onLogSelect={setSelectedLogIds}
         onClearChat={handleClearChat}
       />
       
@@ -174,7 +170,7 @@ export default function Chat() {
       <ChatInput 
         onSendMessage={handleSendMessage} 
         isLoading={isLoading}
-        selectedLogId={selectedLogId}
+        selectedLogIds={selectedLogIds}
       />
     </div>
   );
