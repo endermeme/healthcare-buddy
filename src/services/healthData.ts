@@ -35,16 +35,44 @@ const CURRENT_RECORDING_KEY = 'current_recording';
 
 // Kiểm tra tính hợp lệ của dữ liệu
 const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
-  return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
+  return (
+    heartRate > 0 && 
+    heartRate <= 100 && // Chỉ lấy BPM <= 100
+    bloodOxygen > 0 && 
+    bloodOxygen <= 100 // Chỉ lấy SpO2 <= 100
+  );
 };
 
 // Load logs từ local storage
 export const loadLogs = (): HourlyLog[] => {
   const storedLogs = localStorage.getItem(LOGS_STORAGE_KEY);
-  return storedLogs ? JSON.parse(storedLogs) : [];
+  const logs = storedLogs ? JSON.parse(storedLogs) : [];
+  
+  // Lọc lại dữ liệu hợp lệ cho mỗi log
+  return logs.map((log: HourlyLog) => {
+    // Lọc và giới hạn 5 bản ghi hợp lệ đầu tiên
+    const validData = log.secondsData
+      .filter(data => isValidReading(data.heartRate, data.bloodOxygen))
+      .slice(0, 5);
+
+    // Tính lại trung bình dựa trên dữ liệu hợp lệ
+    const avgHeartRate = validData.length > 0
+      ? Math.round(validData.reduce((sum, data) => sum + data.heartRate, 0) / validData.length)
+      : 0;
+    
+    const avgBloodOxygen = validData.length > 0
+      ? Math.round(validData.reduce((sum, data) => sum + data.bloodOxygen, 0) / validData.length)
+      : 0;
+
+    return {
+      ...log,
+      secondsData: validData,
+      averageHeartRate: avgHeartRate,
+      averageBloodOxygen: avgBloodOxygen
+    };
+  });
 };
 
-// Lưu logs vào local storage
 export const saveLogs = (logs: HourlyLog[]) => {
   localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
 };
@@ -76,15 +104,25 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   
   if (existingLogIndex >= 0) {
     const updatedLog = { ...logs[existingLogIndex] };
-    updatedLog.secondsData.push(newData);
+    
+    // Chỉ thêm dữ liệu mới nếu chưa đủ 5 bản ghi hợp lệ
+    const validDataCount = updatedLog.secondsData.filter(
+      data => isValidReading(data.heartRate, data.bloodOxygen)
+    ).length;
+
+    if (validDataCount < 5) {
+      updatedLog.secondsData.push(newData);
+    }
+    
     updatedLog.lastRecordTime = new Date().toISOString();
     
-    // Cập nhật trung bình
-    const validHeartRates = updatedLog.secondsData.map(d => d.heartRate).filter(rate => rate > 0);
-    const validOxygenLevels = updatedLog.secondsData.map(d => d.bloodOxygen).filter(level => level > 0);
+    // Lọc và tính trung bình chỉ với dữ liệu hợp lệ
+    const validData = updatedLog.secondsData
+      .filter(data => isValidReading(data.heartRate, data.bloodOxygen))
+      .slice(0, 5);
     
-    updatedLog.averageHeartRate = calculateAverage(validHeartRates);
-    updatedLog.averageBloodOxygen = calculateAverage(validOxygenLevels);
+    updatedLog.averageHeartRate = calculateAverage(validData.map(d => d.heartRate));
+    updatedLog.averageBloodOxygen = calculateAverage(validData.map(d => d.bloodOxygen));
     
     const newLogs = [...logs];
     newLogs[existingLogIndex] = updatedLog;
@@ -189,4 +227,3 @@ export const getWaterRecommendation = async (
     glassesCount: baseGlasses
   };
 };
-
