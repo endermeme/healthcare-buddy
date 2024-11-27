@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   age: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 150, {
@@ -35,6 +36,8 @@ export default function Profile() {
     },
   });
 
+  const [deviceKey, setDeviceKey] = React.useState("");
+
   React.useEffect(() => {
     const savedProfile = localStorage.getItem('userProfile');
     if (savedProfile) {
@@ -47,6 +50,11 @@ export default function Profile() {
         });
       });
     }
+
+    const savedKey = localStorage.getItem('deviceKey');
+    if (savedKey) {
+      setDeviceKey(savedKey);
+    }
   }, [form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -54,6 +62,22 @@ export default function Profile() {
     toast({
       title: "Đã lưu thông tin",
       description: "Thông tin cá nhân của bạn đã được lưu thành công",
+    });
+  }
+
+  const handleSaveDeviceKey = () => {
+    if (deviceKey.length !== 6 || isNaN(Number(deviceKey))) {
+      toast({
+        title: "Lỗi",
+        description: "Mã thiết bị phải là 6 chữ số",
+        variant: "destructive",
+      });
+      return;
+    }
+    localStorage.setItem('deviceKey', deviceKey);
+    toast({
+      title: "Đã lưu mã thiết bị",
+      description: "Mã thiết bị của bạn đã được lưu thành công",
     });
   }
 
@@ -156,6 +180,28 @@ export default function Profile() {
           </Button>
         </form>
       </Form>
+
+      <Separator className="my-8" />
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Mã thiết bị</h2>
+        <div className="flex gap-4">
+          <Input
+            type="text"
+            maxLength={6}
+            placeholder="Nhập mã 6 số"
+            value={deviceKey}
+            onChange={(e) => setDeviceKey(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+            className="flex-1"
+          />
+          <Button 
+            onClick={handleSaveDeviceKey}
+            variant="secondary"
+          >
+            Lưu mã
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
