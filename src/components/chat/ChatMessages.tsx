@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { AudioMessage } from './AudioMessage';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -44,7 +45,11 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
                 transcription={message.transcription}
               />
             ) : (
-              <p className="whitespace-pre-wrap">{message.text}</p>
+              <div className={`prose ${message.isUser ? 'prose-invert' : ''} max-w-none`}>
+                <ReactMarkdown>
+                  {message.text}
+                </ReactMarkdown>
+              </div>
             )}
           </div>
         </div>
