@@ -33,21 +33,27 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
     onTranscriptionComplete: handleTranscriptionComplete
   });
 
+  const getValidReadingsFromLog = () => {
+    const logs = loadLogs();
+    const validReadings = logs.flatMap(log => 
+      log.secondsData.filter(data => 
+        data.heartRate > 30 && 
+        data.heartRate < 200 && 
+        data.bloodOxygen >= 85 && 
+        data.bloodOxygen <= 100
+      )
+    );
+
+    return {
+      heartRates: validReadings.map(data => data.heartRate.toFixed(1)).join(' '),
+      oxygenLevels: validReadings.map(data => data.bloodOxygen.toFixed(1)).join(' ')
+    };
+  };
+
   const getMetadataFromProfile = () => {
     if (!profileData) return {};
     
-    const logs = loadLogs();
-    const allData = logs.flatMap(log => log.secondsData);
-    
-    const heartRates = allData
-      .map(data => data.heartRate)
-      .filter(rate => rate > 0)
-      .join(' ');
-
-    const oxygenLevels = allData
-      .map(data => data.bloodOxygen)
-      .filter(level => level > 0)
-      .join(' ');
+    const { heartRates, oxygenLevels } = getValidReadingsFromLog();
     
     return {
       nhiptim: heartRates || '90 90 90 90 90',
@@ -86,7 +92,6 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
     <div className="fixed bottom-16 left-0 right-0 bg-white border-t p-2">
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-col gap-1">
-          {/* Utility buttons row */}
           <div className="flex justify-end gap-1 px-1">
             <Button
               variant="ghost"
@@ -114,7 +119,6 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
             </label>
           </div>
           
-          {/* Main input row */}
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
