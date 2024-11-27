@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Check, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { loadLogs } from '@/services/healthData';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -12,7 +18,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ChatHeaderProps {
   onBack: () => void;
@@ -22,6 +30,8 @@ interface ChatHeaderProps {
 }
 
 export const ChatHeader = ({ onBack, selectedLogIds, onLogSelect, onClearChat }: ChatHeaderProps) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [tempSelectedLogs, setTempSelectedLogs] = useState<string[]>([]);
   const logs = loadLogs();
   
   // Group logs by date
@@ -41,19 +51,38 @@ export const ChatHeader = ({ onBack, selectedLogIds, onLogSelect, onClearChat }:
       const dayLogs = groupedLogs[date] || [];
       const logIds = dayLogs.map(log => log.hour);
       onLogSelect(logIds);
+      setIsDialogOpen(false);
     } else {
-      // For individual log selection
-      const currentSelection = [...selectedLogIds];
-      const index = currentSelection.indexOf(value);
-      
-      if (index === -1) {
-        currentSelection.push(value);
-      } else {
-        currentSelection.splice(index, 1);
-      }
-      
-      onLogSelect(currentSelection);
+      setIsDialogOpen(true);
+      setTempSelectedLogs(selectedLogIds);
     }
+  };
+
+  const handleConfirmSelection = () => {
+    onLogSelect(tempSelectedLogs);
+    setIsDialogOpen(false);
+  };
+
+  const handleCheckboxChange = (logId: string) => {
+    setTempSelectedLogs(prev => {
+      if (prev.includes(logId)) {
+        return prev.filter(id => id !== logId);
+      }
+      return [...prev, logId];
+    });
+  };
+
+  const handleSelectAllDay = (date: string) => {
+    const dayLogs = groupedLogs[date] || [];
+    const dayLogIds = dayLogs.map(log => log.hour);
+    
+    setTempSelectedLogs(prev => {
+      const allSelected = dayLogIds.every(id => prev.includes(id));
+      if (allSelected) {
+        return prev.filter(id => !dayLogIds.includes(id));
+      }
+      return [...new Set([...prev, ...dayLogIds])];
+    });
   };
 
   return (
@@ -102,6 +131,48 @@ export const ChatHeader = ({ onBack, selectedLogIds, onLogSelect, onClearChat }:
           <Trash2 className="h-5 w-5" />
         </Button>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Chọn bản ghi</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4 p-4">
+              {Object.entries(groupedLogs).map(([date, dayLogs]) => (
+                <div key={date} className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={dayLogs.every(log => tempSelectedLogs.includes(log.hour))}
+                      onCheckedChange={() => handleSelectAllDay(date)}
+                    />
+                    <span className="font-medium">
+                      {format(new Date(date), 'EEEE, dd/MM/yyyy', { locale: vi })}
+                    </span>
+                  </div>
+                  <div className="ml-6 space-y-1">
+                    {dayLogs.map((log) => (
+                      <div key={log.hour} className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={tempSelectedLogs.includes(log.hour)}
+                          onCheckedChange={() => handleCheckboxChange(log.hour)}
+                        />
+                        <span>{format(new Date(log.hour), 'HH:00')}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+          <div className="flex justify-end">
+            <Button onClick={handleConfirmSelection}>
+              <Check className="mr-2 h-4 w-4" />
+              Đồng ý
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
