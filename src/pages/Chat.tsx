@@ -33,6 +33,11 @@ export default function Chat() {
     scrollToBottom();
   }, [messages]);
 
+  const handleClearChat = () => {
+    setMessages([]);
+    localStorage.removeItem('chat_messages');
+  };
+
   const handleSendMessage = async (text: string, audioUrl?: string, transcription?: string, metadata?: any) => {
     try {
       setIsLoading(true);
@@ -128,6 +133,7 @@ export default function Chat() {
         onBack={handleBack}
         selectedLogId={selectedLogId}
         onLogSelect={handleLogSelect}
+        onClearChat={handleClearChat}
       />
       
       <div className="flex-1 overflow-y-auto p-4 pb-32">
@@ -139,8 +145,8 @@ export default function Chat() {
             <div
               className={`inline-block max-w-[80%] p-3 rounded-lg ${
                 message.isUser
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted'
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100'
               }`}
             >
               {message.audioUrl ? (

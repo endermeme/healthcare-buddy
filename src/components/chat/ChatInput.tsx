@@ -95,7 +95,7 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogId }: ChatInput
   return (
     <div className="fixed bottom-16 left-0 right-0 bg-white border-t p-4">
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <label className="cursor-pointer">
             <input
               type="file"
@@ -106,14 +106,14 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogId }: ChatInput
             <Button
               variant="outline"
               size="icon"
-              className="h-12 w-12 rounded-full"
+              className="h-10 w-10 rounded-full"
               type="button"
             >
-              <ImagePlus className="h-5 w-5" />
+              <ImagePlus className="h-4 w-4" />
             </Button>
           </label>
           
-          <div className="flex-1 flex items-center gap-3 bg-gray-50 rounded-full px-4 py-2">
+          <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-full px-4 py-2">
             <input
               type="text"
               value={inputMessage}
@@ -141,13 +141,13 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogId }: ChatInput
           <Button
             variant="outline"
             size="icon"
-            className={`h-12 w-12 rounded-full ${isRecording ? 'bg-red-100 text-red-500' : ''}`}
+            className={`h-14 w-14 rounded-full ${isRecording ? 'bg-red-100 text-red-500' : ''}`}
             onClick={isRecording ? stopRecording : startRecording}
           >
             {isRecording ? (
-              <MicOff className="h-5 w-5" />
+              <MicOff className="h-6 w-6" />
             ) : (
-              <Mic className="h-5 w-5" />
+              <Mic className="h-6 w-6" />
             )}
           </Button>
         </div>

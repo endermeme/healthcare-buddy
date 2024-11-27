@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import {
@@ -14,12 +14,14 @@ interface ChatHeaderProps {
   onBack: () => void;
   selectedLogId: string | null;
   onLogSelect: (logId: string) => void;
+  onClearChat: () => void;
 }
 
 export const ChatHeader = ({ 
   onBack, 
   selectedLogId,
-  onLogSelect 
+  onLogSelect,
+  onClearChat
 }: ChatHeaderProps) => {
   const logs = loadLogs();
   
@@ -41,7 +43,7 @@ export const ChatHeader = ({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <span className="text-sm font-medium">AI Assistant</span>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
@@ -76,6 +78,14 @@ export const ChatHeader = ({
                 ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClearChat}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </header>
