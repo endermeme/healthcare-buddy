@@ -34,12 +34,12 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
   });
 
   const getValidReadingsFromSelectedLogs = () => {
-    if (!selectedLogIds?.length) return { heartRates: '', oxygenLevels: '', timestamps: [] };
+    if (!selectedLogIds?.length) return { heartRates: '', oxygenLevels: '' };
 
     const logs = loadLogs();
     const selectedLogs = logs.filter(log => selectedLogIds.includes(log.hour));
     
-    if (!selectedLogs.length) return { heartRates: '', oxygenLevels: '', timestamps: [] };
+    if (!selectedLogs.length) return { heartRates: '', oxygenLevels: '' };
 
     const allValidReadings = selectedLogs.flatMap(log => 
       log.secondsData.filter(data => 
@@ -50,20 +50,16 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
       )
     );
 
-    // Sắp xếp theo thời gian
-    allValidReadings.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-
     return {
       heartRates: allValidReadings.map(data => data.heartRate.toFixed(1)).join(' '),
-      oxygenLevels: allValidReadings.map(data => data.bloodOxygen.toFixed(1)).join(' '),
-      timestamps: allValidReadings.map(data => new Date(data.timestamp).toISOString())
+      oxygenLevels: allValidReadings.map(data => data.bloodOxygen.toFixed(1)).join(' ')
     };
   };
 
   const getMetadataFromProfile = () => {
     if (!profileData) return {};
     
-    const { heartRates, oxygenLevels, timestamps } = getValidReadingsFromSelectedLogs();
+    const { heartRates, oxygenLevels } = getValidReadingsFromSelectedLogs();
     
     return {
       nhiptim: heartRates || '',
@@ -72,13 +68,6 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
       cannang: profileData.weight?.toString() || '',
       tiensubenh: profileData.medicalHistory || '',
       gioitinh: profileData.gender || '',
-      chieucao: profileData.height?.toString() || '',
-      huyetap: profileData.bloodPressure || '',
-      duonghuyet: profileData.bloodSugar || '',
-      cholesterol: profileData.cholesterol || '',
-      thuocdieutri: profileData.medications || '',
-      dichung: profileData.allergies || '',
-      thoigian: timestamps || []
     };
   };
 

@@ -7,8 +7,6 @@ import { saveChatMessage } from '@/services/healthData';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ChatMessages } from '@/components/chat/ChatMessages';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X } from "lucide-react";
 
 const SELECTED_LOGS_KEY = 'selected_chat_logs';
 
@@ -41,7 +39,6 @@ export default function Chat() {
       return [];
     }
   });
-  const [showServerError, setShowServerError] = useState(false);
 
   const navigate = useNavigate();
   const processingMessageRef = useRef<string | null>(null);
@@ -74,22 +71,22 @@ export default function Chat() {
       return;
     }
 
-    setIsLoading(true);
-    processingMessageRef.current = text;
-    
-    const messageId = Date.now().toString();
-    const userMessage: Message = {
-      id: messageId,
-      text,
-      isUser: true,
-      audioUrl,
-      transcription,
-    };
-    
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    saveChatMessage(userMessage);
-
     try {
+      setIsLoading(true);
+      processingMessageRef.current = text;
+      
+      const messageId = Date.now().toString();
+      const userMessage: Message = {
+        id: messageId,
+        text,
+        isUser: true,
+        audioUrl,
+        transcription,
+      };
+      
+      setMessages(prevMessages => [...prevMessages, userMessage]);
+      saveChatMessage(userMessage);
+
       const response = await axios({
         method: 'post',
         url: 'http://service.aigate.app/v1/chat-messages',
@@ -124,14 +121,12 @@ export default function Chat() {
         
         setMessages(prevMessages => [...prevMessages, aiMessage]);
         saveChatMessage(aiMessage);
-        setShowServerError(false);
       } else {
         throw new Error('Invalid or empty response from server');
       }
 
     } catch (error: any) {
       console.error('API Error:', error);
-      setShowServerError(true);
       
       if (error.code === 'ECONNABORTED') {
         toast.error("Yêu cầu quá thời gian, vui lòng thử lại");
@@ -161,19 +156,6 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col h-[100dvh] bg-white">
-      {showServerError && (
-        <Alert variant="destructive" className="fixed top-0 left-0 right-0 z-50 rounded-none flex items-center justify-between">
-          <AlertDescription>
-            Không thể kết nối tới máy chủ chatbot
-          </AlertDescription>
-          <button 
-            onClick={() => setShowServerError(false)}
-            className="p-1 hover:bg-destructive/10 rounded-full"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </Alert>
-      )}
       <ChatHeader 
         onBack={handleBack}
         selectedLogIds={selectedLogIds}

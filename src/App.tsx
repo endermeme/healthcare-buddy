@@ -4,16 +4,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X } from "lucide-react";
-import { toast } from "sonner";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import History from "./pages/History";
 import Detail from "./pages/Detail";
 import Profile from "./pages/Profile";
 import { fetchHealthData } from "@/services/healthData";
-import { useState, useEffect } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,46 +23,15 @@ const queryClient = new QueryClient({
 const AppContent = () => {
   const location = useLocation();
   const showBottomNav = location.pathname !== '/chat';
-  const [lastNotificationTime, setLastNotificationTime] = useState(0);
-  const [showSensorError, setShowSensorError] = useState(false);
   
-  const { error } = useQuery({
+  useQuery({
     queryKey: ['healthData'],
     queryFn: fetchHealthData,
     staleTime: 4000,
-    retry: 2,
-    meta: {
-      onError: () => {
-        const now = Date.now();
-        if (now - lastNotificationTime >= 300000) { // 5 minutes
-          toast.error("Không tìm thấy cảm biến", {
-            duration: 3000,
-          });
-          setLastNotificationTime(now);
-        }
-        setShowSensorError(true);
-      },
-      onSuccess: () => {
-        setShowSensorError(false);
-      }
-    }
   });
 
   return (
     <div className={showBottomNav ? "pb-16" : ""}>
-      {showSensorError && (
-        <Alert variant="destructive" className="fixed top-0 left-0 right-0 z-50 rounded-none flex items-center justify-between">
-          <AlertDescription>
-            Không tìm thấy cảm biến
-          </AlertDescription>
-          <button 
-            onClick={() => setShowSensorError(false)}
-            className="p-1 hover:bg-destructive/10 rounded-full"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </Alert>
-      )}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/chat" element={<Chat />} />
