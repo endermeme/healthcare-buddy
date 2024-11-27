@@ -35,18 +35,20 @@ const AppContent = () => {
     queryFn: fetchHealthData,
     staleTime: 4000,
     retry: 2,
-    onError: () => {
-      const now = Date.now();
-      if (now - lastNotificationTime >= 300000) { // 5 minutes
-        toast.error("Không tìm thấy cảm biến", {
-          duration: 3000,
-        });
-        setLastNotificationTime(now);
+    meta: {
+      onError: () => {
+        const now = Date.now();
+        if (now - lastNotificationTime >= 300000) { // 5 minutes
+          toast.error("Không tìm thấy cảm biến", {
+            duration: 3000,
+          });
+          setLastNotificationTime(now);
+        }
+        setShowSensorError(true);
+      },
+      onSuccess: () => {
+        setShowSensorError(false);
       }
-      setShowSensorError(true);
-    },
-    onSuccess: () => {
-      setShowSensorError(false);
     }
   });
 
