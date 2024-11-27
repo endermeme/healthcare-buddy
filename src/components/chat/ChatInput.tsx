@@ -23,16 +23,6 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
     }
   }, []);
 
-  const handleTranscriptionComplete = (audioUrl: string, transcription: string) => {
-    const metadata = getMetadataFromProfile();
-    onSendMessage(transcription, audioUrl, transcription, metadata);
-    setInputMessage('');
-  };
-
-  const { isRecording, startRecording, stopRecording } = useAudioRecording({
-    onTranscriptionComplete: handleTranscriptionComplete
-  });
-
   const getValidReadingsFromSelectedLogs = () => {
     if (!selectedLogIds?.length) return { heartRates: '', oxygenLevels: '', timestamps: [] };
 
@@ -41,6 +31,7 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
     
     if (!selectedLogs.length) return { heartRates: '', oxygenLevels: '', timestamps: [] };
 
+    // Chỉ lấy các số đo hợp lệ từ cảm biến
     const allValidReadings = selectedLogs.flatMap(log => 
       log.secondsData.filter(data => 
         data.heartRate > 30 && 
@@ -65,9 +56,10 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
     
     const { heartRates, oxygenLevels, timestamps } = getValidReadingsFromSelectedLogs();
     
+    // Chỉ lấy thông tin từ profile người dùng và dữ liệu cảm biến
     return {
-      nhiptim: heartRates || '',
-      oxy: oxygenLevels || '',
+      nhiptim: heartRates,
+      oxy: oxygenLevels,
       tuoi: profileData.age?.toString() || '',
       cannang: profileData.weight?.toString() || '',
       tiensubenh: profileData.medicalHistory || '',
@@ -78,9 +70,19 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
       cholesterol: profileData.cholesterol || '',
       thuocdieutri: profileData.medications || '',
       dichung: profileData.allergies || '',
-      thoigian: timestamps || []
+      thoigian: timestamps
     };
   };
+
+  const handleTranscriptionComplete = (audioUrl: string, transcription: string) => {
+    const metadata = getMetadataFromProfile();
+    onSendMessage(transcription, audioUrl, transcription, metadata);
+    setInputMessage('');
+  };
+
+  const { isRecording, startRecording, stopRecording } = useAudioRecording({
+    onTranscriptionComplete: handleTranscriptionComplete
+  });
 
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
