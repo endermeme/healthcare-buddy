@@ -1,7 +1,7 @@
 export const isValidFirstFiveReading = (heartRate: number, bloodOxygen: number): boolean => {
   return (
     heartRate > 0 && 
-    heartRate <= 100 && // Only accept BPM <= 100 for first 5 readings
+    heartRate <= 100 && 
     bloodOxygen > 0 && 
     bloodOxygen <= 100
   );
@@ -11,7 +11,7 @@ export const isValidLaterReading = (heartRate: number, bloodOxygen: number): boo
   return (
     heartRate > 0 && 
     bloodOxygen > 0 && 
-    bloodOxygen <= 100 // Only check SpO2 <= 100 for later readings
+    bloodOxygen <= 100
   );
 };
 

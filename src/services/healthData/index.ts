@@ -5,12 +5,11 @@ export * from './validation';
 import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
 import { ApiResponse, HealthData, HourlyLog, WaterRecommendation } from './types';
-import { isValidFirstFiveReading, isValidLaterReading, calculateAverage } from './validation';
 import { loadLogs, saveLogs } from './storage';
+import { isValidFirstFiveReading, isValidLaterReading, calculateAverage } from './validation';
 
 const API_ENDPOINT = 'http://192.168.1.15/data';
 
-// Update current hour log
 const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog[] => {
   const currentHour = new Date().setMinutes(0, 0, 0);
   const hourString = new Date(currentHour).toISOString();
@@ -19,7 +18,6 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   
   if (existingLogIndex >= 0) {
     const updatedLog = { ...logs[existingLogIndex] };
-    
     const validFirstFive = updatedLog.secondsData
       .slice(0, 5)
       .filter(data => isValidFirstFiveReading(data.heartRate, data.bloodOxygen));
@@ -64,7 +62,6 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   }];
 };
 
-// Fetch health data from sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
     const response = await axios.get<ApiResponse>(API_ENDPOINT);
