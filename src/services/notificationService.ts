@@ -6,7 +6,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDRXHGRo4znriUUyBe2ZhKF0xQzUwiYstg",
   authDomain: "nhipdapso-86d9a.firebaseapp.com",
   projectId: "nhipdapso-86d9a",
-  storageBucket: "nhipdapso-86d9a.firebasestorage.app",
+  storageBucket: "nhipdapso-86d9a.appspot.com",
   messagingSenderId: "125390927602",
   appId: "1:125390927602:web:83085896632e037f41826b",
   measurementId: "G-0FCQRNN6S5"
@@ -21,7 +21,9 @@ export const requestNotificationPermission = async () => {
   try {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      const token = await getToken(messaging);
+      const token = await getToken(messaging, {
+        vapidKey: 'YOUR_VAPID_KEY_HERE' // You'll need to add your VAPID key here
+      });
       return token;
     }
     return null;
