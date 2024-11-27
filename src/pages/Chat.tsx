@@ -132,7 +132,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-[100dvh] bg-white">
       <ChatHeader 
         onBack={handleBack}
         selectedLogIds={selectedLogIds}
@@ -140,7 +140,7 @@ export default function Chat() {
         onClearChat={handleClearChat}
       />
       
-      <div className="flex-1 overflow-y-auto p-4 pb-32">
+      <div className="flex-1 overflow-y-auto px-4 pt-20 pb-36">
         {messages.map(message => (
           <div
             key={message.id}

@@ -95,8 +95,8 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
   };
 
   return (
-    <div className="fixed bottom-16 left-0 right-0 bg-white border-t p-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
+      <div className="max-w-3xl mx-auto p-4">
         <div className="flex items-center gap-2">
           <label className="cursor-pointer">
             <input

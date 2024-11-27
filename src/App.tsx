@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
@@ -21,6 +21,9 @@ const queryClient = new QueryClient({
 });
 
 const AppContent = () => {
+  const location = useLocation();
+  const showBottomNav = location.pathname !== '/chat';
+  
   useQuery({
     queryKey: ['healthData'],
     queryFn: fetchHealthData,
@@ -28,7 +31,7 @@ const AppContent = () => {
   });
 
   return (
-    <div className="pb-16">
+    <div className={showBottomNav ? "pb-16" : ""}>
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/chat" element={<Chat />} />
@@ -36,7 +39,7 @@ const AppContent = () => {
         <Route path="/detail/:id" element={<Detail />} />
         <Route path="/profile" element={<Profile />} />
       </Routes>
-      <BottomNav />
+      {showBottomNav && <BottomNav />}
     </div>
   );
 };
