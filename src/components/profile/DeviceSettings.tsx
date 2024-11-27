@@ -67,6 +67,18 @@ export const DeviceSettings = () => {
         </Button>
       </div>
 
+      <div className="bg-gray-100 p-4 rounded-lg space-y-2 mt-2">
+        <p className="text-sm text-gray-600">
+          Lưu ý khi setup mạng lần đầu:
+        </p>
+        <p className="text-sm">
+          <span className="font-semibold">Tên mạng:</span> Cảm biến tim
+        </p>
+        <p className="text-sm">
+          <span className="font-semibold">Mật khẩu:</span> binhbinhthanh
+        </p>
+      </div>
+
       <Dialog open={showWifiSetup} onOpenChange={setShowWifiSetup}>
         <DialogContent className="sm:max-w-[800px] h-[600px]">
           <iframe
