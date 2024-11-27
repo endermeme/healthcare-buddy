@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChatInput } from '@/components/chat/ChatInput';
-import { AudioMessage } from '@/components/chat/AudioMessage';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { toast } from 'sonner';
 import { saveChatMessage } from '@/services/healthData';
@@ -8,9 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ChatMessages } from '@/components/chat/ChatMessages';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { X } from "lucide-react";
-
-const SELECTED_LOGS_KEY = 'selected_chat_logs';
+import { X, Volume2 } from "lucide-react";
+import { textToSpeech } from '@/services/ttsService';
+import { Button } from '@/components/ui/button';
 
 interface Message {
   id: string;
@@ -34,7 +33,7 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLogIds, setSelectedLogIds] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem(SELECTED_LOGS_KEY);
+      const saved = localStorage.getItem('selected_chat_logs');
       return saved ? JSON.parse(saved) : [];
     } catch (error) {
       console.error('Error parsing selected logs:', error);
@@ -42,6 +41,7 @@ export default function Chat() {
     }
   });
   const [showServerError, setShowServerError] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
 
   const navigate = useNavigate();
   const processingMessageRef = useRef<string | null>(null);
@@ -56,7 +56,7 @@ export default function Chat() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(SELECTED_LOGS_KEY, JSON.stringify(selectedLogIds));
+      localStorage.setItem('selected_chat_logs', JSON.stringify(selectedLogIds));
     } catch (error) {
       console.error('Error saving selected logs:', error);
     }
@@ -116,6 +116,11 @@ export default function Chat() {
         setMessages(prevMessages => [...prevMessages, aiMessage]);
         saveChatMessage(aiMessage);
         setShowServerError(false);
+
+        // Play TTS if enabled
+        if (ttsEnabled) {
+          await textToSpeech(aiMessage.text);
+        }
       } else {
         throw new Error('Invalid or empty response from server');
       }
@@ -165,12 +170,24 @@ export default function Chat() {
           </button>
         </Alert>
       )}
-      <ChatHeader 
-        onBack={handleBack}
-        selectedLogIds={selectedLogIds}
-        onLogSelect={setSelectedLogIds}
-        onClearChat={handleClearChat}
-      />
+      <div className="fixed top-0 left-0 right-0 bg-white border-b z-10">
+        <div className="max-w-3xl mx-auto px-4 py-2 flex items-center gap-2">
+          <ChatHeader 
+            onBack={handleBack}
+            selectedLogIds={selectedLogIds}
+            onLogSelect={setSelectedLogIds}
+            onClearChat={handleClearChat}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTtsEnabled(!ttsEnabled)}
+            className={`ml-2 ${ttsEnabled ? 'text-primary' : ''}`}
+          >
+            <Volume2 className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
       
       <ChatMessages messages={messages} />
 
