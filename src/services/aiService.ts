@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: 'sk-alloy-YourKeyHere', // Replace with your actual API key
+  apiKey: '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',
   baseURL: 'https://api.alloy.ai/v1', // Replace with actual Alloy API endpoint
 });
 
