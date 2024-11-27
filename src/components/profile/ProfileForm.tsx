@@ -21,7 +21,15 @@ const formSchema = z.object({
   weight: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 500, {
     message: "Cân nặng phải là số dương từ 1-500kg",
   }),
+  height: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 300, {
+    message: "Chiều cao phải là số dương từ 1-300cm",
+  }),
+  bloodPressure: z.string().optional(),
+  bloodSugar: z.string().optional(),
+  cholesterol: z.string().optional(),
   medicalHistory: z.string().min(1, "Vui lòng nhập tiền sử bệnh").max(1000, "Tiền sử bệnh quá dài"),
+  medications: z.string().optional(),
+  allergies: z.string().optional(),
 });
 
 export const ProfileForm = () => {
@@ -31,7 +39,13 @@ export const ProfileForm = () => {
       age: "",
       gender: undefined,
       weight: "",
+      height: "",
+      bloodPressure: "",
+      bloodSugar: "",
+      cholesterol: "",
       medicalHistory: "",
+      medications: "",
+      allergies: "",
     },
   });
 
@@ -125,6 +139,62 @@ export const ProfileForm = () => {
 
         <FormField
           control={form.control}
+          name="height"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Chiều cao (cm)</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="Nhập chiều cao" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="bloodPressure"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Huyết áp (mmHg)</FormLabel>
+              <FormControl>
+                <Input placeholder="VD: 120/80" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="bloodSugar"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Đường huyết (mg/dL)</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="VD: 100" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="cholesterol"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cholesterol (mg/dL)</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="VD: 200" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="medicalHistory"
           render={({ field }) => (
             <FormItem>
@@ -132,6 +202,42 @@ export const ProfileForm = () => {
               <FormControl>
                 <Textarea
                   placeholder="Nhập tiền sử bệnh của bạn"
+                  className="min-h-[100px]"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="medications"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Thuốc điều trị</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Nhập các loại thuốc đang sử dụng"
+                  className="min-h-[100px]"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="allergies"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dị ứng</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Nhập các loại dị ứng nếu có"
                   className="min-h-[100px]"
                   {...field}
                 />
