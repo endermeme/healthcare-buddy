@@ -1,21 +1,15 @@
 import { ArrowLeft, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LogSelector } from "./LogSelector";
-import { useState } from "react";
 
 interface ChatHeaderProps {
   onBack: () => void;
-  selectedLogIds: string[];
-  onLogSelect: (ids: string[]) => void;
   onClearChat: () => void;
   onTtsToggle?: (enabled: boolean) => void;
   ttsEnabled?: boolean;
 }
 
 export function ChatHeader({ 
-  onBack, 
-  selectedLogIds, 
-  onLogSelect, 
+  onBack,
   onClearChat,
   onTtsToggle,
   ttsEnabled = false
@@ -59,13 +53,6 @@ export function ChatHeader({
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-
-        <div className="px-4 py-2">
-          <LogSelector
-            selectedLogIds={selectedLogIds}
-            onLogSelect={onLogSelect}
-          />
         </div>
       </div>
     </div>
