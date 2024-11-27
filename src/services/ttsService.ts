@@ -3,7 +3,7 @@ export const textToSpeech = async (text: string): Promise<void> => {
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer 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',
+        'Authorization': 'Bearer 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',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
