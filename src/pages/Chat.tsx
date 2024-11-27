@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChatInput } from '@/components/chat/ChatInput';
-import { AudioMessage } from '@/components/chat/AudioMessage';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { toast } from 'sonner';
 import { saveChatMessage } from '@/services/healthData';
@@ -43,7 +42,6 @@ export default function Chat() {
   const navigate = useNavigate();
   const processingMessageRef = useRef<string | null>(null);
 
-  // Save messages to localStorage whenever they change
   useEffect(() => {
     try {
       localStorage.setItem('chat_messages', JSON.stringify(messages));
@@ -52,7 +50,6 @@ export default function Chat() {
     }
   }, [messages]);
 
-  // Save selected logs to localStorage whenever they change
   useEffect(() => {
     try {
       localStorage.setItem(SELECTED_LOGS_KEY, JSON.stringify(selectedLogIds));
@@ -75,7 +72,7 @@ export default function Chat() {
       setIsLoading(true);
       processingMessageRef.current = text;
       
-      const messageId = Date.now().toString();
+      const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const userMessage: Message = {
         id: messageId,
         text,
@@ -114,7 +111,7 @@ export default function Chat() {
 
       if (response.data && (response.data.text || response.data.answer)) {
         const aiMessage: Message = {
-          id: `ai-${Date.now()}`,
+          id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           text: response.data.text || response.data.answer,
           isUser: false,
         };
