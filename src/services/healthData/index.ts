@@ -1,12 +1,12 @@
+export * from './types';
+export * from './storage';
+export * from './validation';
+
 import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
-import { ApiResponse, HealthData, WaterRecommendation } from './types';
+import { ApiResponse, HealthData, HourlyLog, WaterRecommendation } from './types';
 import { isValidFirstFiveReading, isValidLaterReading, calculateAverage } from './validation';
 import { loadLogs, saveLogs } from './storage';
-
-export * from './types';
-export * from './validation';
-export * from './storage';
 
 const API_ENDPOINT = 'http://192.168.1.15/data';
 
@@ -64,7 +64,7 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   }];
 };
 
-// Fetch health data từ sensor
+// Fetch health data from sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
     const response = await axios.get<ApiResponse>(API_ENDPOINT);
