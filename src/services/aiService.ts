@@ -2,8 +2,8 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: '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',
-  baseURL: 'https://api.alloy.ai/v1', // Replace with actual Alloy API endpoint
-  dangerouslyAllowBrowser: true // Added this option to allow browser usage
+  baseURL: 'https://api.alloy.ai/v1',
+  dangerouslyAllowBrowser: true
 });
 
 export const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
@@ -22,7 +22,7 @@ export const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
 
 export const getChatResponse = async (message: string, metadata?: any) => {
   const response = await openai.chat.completions.create({
-    model: 'gpt-4-alloy', // Replace with actual Alloy model name
+    model: 'gpt-4-alloy',
     messages: [
       {
         role: 'system',
@@ -43,7 +43,7 @@ export const getChatResponse = async (message: string, metadata?: any) => {
 export const textToSpeech = async (text: string, messageId: string) => {
   const response = await openai.audio.speech.create({
     model: 'tts-1',
-    voice: 'alloy',
+    voice: 'nova', // Changed from 'alloy' to 'nova' for Vietnamese voice
     input: text,
   });
 
