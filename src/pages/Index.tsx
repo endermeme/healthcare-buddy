@@ -6,7 +6,7 @@ import { WaterIntakeProgress } from '@/components/WaterIntakeProgress';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
-const EMOJIS = ["❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯", "❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯"];
+const EMOJIS = ["❤️", "🏃", "💪", "🧘‍♀️", "🫀", "🏊‍♂️", "🚴‍♂️", "🎯"];
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState<TimeRange>('5m');
@@ -26,16 +26,19 @@ const Index = () => {
       <div className="relative overflow-hidden rounded-xl mx-4 mt-4 h-32 bg-gradient-to-r from-[#4FACFE] to-[#00F2FE] shadow-lg">
         <div className="absolute inset-0 overflow-hidden">
           {EMOJIS.map((emoji, index) => (
-            <span
-              key={index}
-              className="absolute animate-emoji-fall opacity-0"
-              style={{
-                left: `${(index / EMOJIS.length) * 100}%`,
-                animationDelay: `${index * 0.3}s`
-              }}
-            >
-              {emoji}
-            </span>
+            Array.from({ length: 3 }).map((_, subIndex) => (
+              <span
+                key={`${index}-${subIndex}`}
+                className="absolute animate-emoji-fall opacity-0"
+                style={{
+                  left: `${(index / EMOJIS.length) * 100}%`,
+                  '--random-x': `${Math.random() * 100 - 50}px`,
+                  animationDelay: `${(index * 0.3 + subIndex * 1.5)}s`
+                } as React.CSSProperties}
+              >
+                {emoji}
+              </span>
+            ))
           ))}
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
