@@ -17,8 +17,13 @@ interface Message {
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>(() => {
-    const savedMessages = localStorage.getItem('chat_messages');
-    return savedMessages ? JSON.parse(savedMessages) : [];
+    try {
+      const savedMessages = localStorage.getItem('chat_messages');
+      return savedMessages ? JSON.parse(savedMessages) : [];
+    } catch (error) {
+      console.error('Error parsing saved messages:', error);
+      return [];
+    }
   });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLogIds, setSelectedLogIds] = useState<string[]>([]);
@@ -32,6 +37,15 @@ export default function Chat() {
 
   useEffect(() => {
     scrollToBottom();
+  }, [messages]);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('chat_messages', JSON.stringify(messages));
+    } catch (error) {
+      console.error('Error saving messages:', error);
+    }
   }, [messages]);
 
   const handleClearChat = () => {
@@ -57,8 +71,7 @@ export default function Chat() {
         transcription,
       };
       
-      setMessages(prev => [...prev, userMessage]);
-      localStorage.setItem('chat_messages', JSON.stringify([...messages, userMessage]));
+      setMessages(prevMessages => [...prevMessages, userMessage]);
       saveChatMessage(userMessage);
 
       const response = await axios({
@@ -93,8 +106,7 @@ export default function Chat() {
           isUser: false,
         };
         
-        setMessages(prev => [...prev, aiMessage]);
-        localStorage.setItem('chat_messages', JSON.stringify([...messages, userMessage, aiMessage]));
+        setMessages(prevMessages => [...prevMessages, aiMessage]);
         saveChatMessage(aiMessage);
       } else {
         throw new Error('Invalid or empty response from server');

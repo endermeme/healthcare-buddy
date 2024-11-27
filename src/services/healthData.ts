@@ -104,9 +104,16 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
 };
 
 export const saveChatMessage = (message: any) => {
-  const messages = loadChatMessages();
-  messages.push(message);
-  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  try {
+    const messages = loadChatMessages();
+    // Check if message with same ID already exists
+    if (!messages.some(m => m.id === message.id)) {
+      messages.push(message);
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    }
+  } catch (error) {
+    console.error('Error saving chat message:', error);
+  }
 };
 
 export const loadChatMessages = () => {
@@ -182,3 +189,4 @@ export const getWaterRecommendation = async (
     glassesCount: baseGlasses
   };
 };
+
