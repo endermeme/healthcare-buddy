@@ -24,12 +24,12 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
   }, []);
 
   const getValidReadingsFromSelectedLogs = () => {
-    if (!selectedLogIds?.length) return { heartRates: '', oxygenLevels: '', timestamps: [] };
+    if (!selectedLogIds?.length) return { heartRates: [], oxygenLevels: [], timestamps: [] };
 
     const logs = loadLogs();
     const selectedLogs = logs.filter(log => selectedLogIds.includes(log.hour));
     
-    if (!selectedLogs.length) return { heartRates: '', oxygenLevels: '', timestamps: [] };
+    if (!selectedLogs.length) return { heartRates: [], oxygenLevels: [], timestamps: [] };
 
     // Chỉ lấy các số đo hợp lệ từ cảm biến
     const allValidReadings = selectedLogs.flatMap(log => 
@@ -45,8 +45,8 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
     allValidReadings.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
     return {
-      heartRates: allValidReadings.map(data => data.heartRate.toFixed(1)).join(' '),
-      oxygenLevels: allValidReadings.map(data => data.bloodOxygen.toFixed(1)).join(' '),
+      heartRates: allValidReadings.map(data => data.heartRate),
+      oxygenLevels: allValidReadings.map(data => data.bloodOxygen),
       timestamps: allValidReadings.map(data => new Date(data.timestamp).toISOString())
     };
   };
@@ -56,16 +56,20 @@ export const ChatInput = ({ onSendMessage, isLoading, selectedLogIds }: ChatInpu
     
     const { heartRates, oxygenLevels, timestamps } = getValidReadingsFromSelectedLogs();
     
-    // Chỉ lấy thông tin cơ bản từ profile người dùng và dữ liệu cảm biến
+    // Tạo chuỗi dữ liệu cho API
+    const heartRateStr = heartRates.map(rate => rate.toFixed(1)).join(' ');
+    const oxygenStr = oxygenLevels.map(oxy => oxy.toFixed(1)).join(' ');
+    const timestampStr = timestamps.join(',');
+    
     return {
-      nhiptim: heartRates,
-      oxy: oxygenLevels,
+      nhiptim: heartRateStr,
+      oxy: oxygenStr,
       tuoi: profileData.age?.toString() || '',
       cannang: profileData.weight?.toString() || '',
       tiensubenh: profileData.medicalHistory || '',
       gioitinh: profileData.gender || '',
       chieucao: profileData.height?.toString() || '',
-      thoigian: timestamps
+      thoigian: timestampStr
     };
   };
 

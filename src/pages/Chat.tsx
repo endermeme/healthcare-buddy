@@ -46,7 +46,6 @@ export default function Chat() {
   const navigate = useNavigate();
   const processingMessageRef = useRef<string | null>(null);
 
-  // Save messages to localStorage whenever they change
   useEffect(() => {
     try {
       localStorage.setItem('chat_messages', JSON.stringify(messages));
@@ -55,7 +54,6 @@ export default function Chat() {
     }
   }, [messages]);
 
-  // Save selected logs to localStorage whenever they change
   useEffect(() => {
     try {
       localStorage.setItem(SELECTED_LOGS_KEY, JSON.stringify(selectedLogIds));
@@ -98,14 +96,7 @@ export default function Chat() {
           'Content-Type': 'application/json'
         },
         data: {
-          inputs: {
-            nhiptim: metadata?.nhiptim || "",
-            oxy: metadata?.oxy || "",
-            tuoi: metadata?.tuoi || "",
-            tiensubenh: metadata?.tiensubenh || "",
-            gioitinh: metadata?.gioitinh || "",
-            cannang: metadata?.cannang || ""
-          },
+          inputs: metadata,
           query: text,
           response_mode: "blocking",
           conversation_id: "",
