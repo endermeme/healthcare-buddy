@@ -24,6 +24,7 @@ export default function Chat() {
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const processingMessageRef = useRef<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -39,8 +40,14 @@ export default function Chat() {
   };
 
   const handleSendMessage = async (text: string, audioUrl?: string, transcription?: string, metadata?: any) => {
+    // Prevent duplicate processing of the same message
+    if (processingMessageRef.current === text) {
+      return;
+    }
+
     try {
       setIsLoading(true);
+      processingMessageRef.current = text;
       
       const userMessage: Message = {
         id: Date.now().toString(),
@@ -116,6 +123,7 @@ export default function Chat() {
       }
     } finally {
       setIsLoading(false);
+      processingMessageRef.current = null;
     }
   };
 
