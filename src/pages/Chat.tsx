@@ -157,6 +157,7 @@ export default function Chat() {
         onSendMessage={handleSendMessage} 
         isLoading={isLoading}
         onClearChat={handleClearChat}
+        selectedLogId={selectedLogId}
       />
     </div>
   );

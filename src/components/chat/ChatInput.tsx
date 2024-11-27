@@ -9,9 +9,10 @@ interface ChatInputProps {
   onSendMessage: (text: string, audioUrl?: string, transcription?: string, metadata?: object) => void;
   isLoading: boolean;
   onClearChat: () => void;
+  selectedLogId?: string;
 }
 
-export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, isLoading, onClearChat, selectedLogId }: ChatInputProps) => {
   const [inputMessage, setInputMessage] = useState('');
   const [profileData, setProfileData] = useState<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -33,15 +34,20 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
     onTranscriptionComplete: handleTranscriptionComplete
   });
 
-  const getValidReadingsFromLog = () => {
+  const getValidReadingsFromSelectedLog = () => {
+    if (!selectedLogId) return { heartRates: '', oxygenLevels: '' };
+
     const logs = loadLogs();
-    const validReadings = logs.flatMap(log => 
-      log.secondsData.filter(data => 
-        data.heartRate > 30 && 
-        data.heartRate < 200 && 
-        data.bloodOxygen >= 85 && 
-        data.bloodOxygen <= 100
-      )
+    const selectedLog = logs.find(log => log.hour === selectedLogId);
+    
+    if (!selectedLog) return { heartRates: '', oxygenLevels: '' };
+
+    // Chỉ lấy các số đo hợp lệ từ secondsData của bản ghi được chọn
+    const validReadings = selectedLog.secondsData.filter(data => 
+      data.heartRate > 30 && 
+      data.heartRate < 200 && 
+      data.bloodOxygen >= 85 && 
+      data.bloodOxygen <= 100
     );
 
     return {
@@ -53,7 +59,7 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat }: ChatInputPr
   const getMetadataFromProfile = () => {
     if (!profileData) return {};
     
-    const { heartRates, oxygenLevels } = getValidReadingsFromLog();
+    const { heartRates, oxygenLevels } = getValidReadingsFromSelectedLog();
     
     return {
       nhiptim: heartRates || '90 90 90 90 90',
