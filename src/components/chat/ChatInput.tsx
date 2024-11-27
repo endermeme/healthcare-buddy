@@ -62,8 +62,8 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat, selectedLogId
     const { heartRates, oxygenLevels } = getValidReadingsFromSelectedLog();
     
     return {
-      nhiptim: heartRates || '90 90 90 90 90',
-      oxy: oxygenLevels || '98 98 98 98 98',
+      nhiptim: heartRates || '',
+      oxy: oxygenLevels || '',
       tuoi: profileData.age?.toString() || '',
       cannang: profileData.weight?.toString() || '',
       tiensubenh: profileData.medicalHistory || '',
