@@ -15,6 +15,8 @@ interface Message {
   transcription?: string;
 }
 
+const SELECTED_LOGS_KEY = 'selected_chat_logs';
+
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
@@ -25,8 +27,18 @@ export default function Chat() {
       return [];
     }
   });
+
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedLogIds, setSelectedLogIds] = useState<string[]>([]);
+  const [selectedLogIds, setSelectedLogIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(SELECTED_LOGS_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Error parsing selected logs:', error);
+      return [];
+    }
+  });
+
   const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const processingMessageRef = useRef<string | null>(null);
@@ -47,6 +59,15 @@ export default function Chat() {
       console.error('Error saving messages:', error);
     }
   }, [messages]);
+
+  // Save selected logs to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(SELECTED_LOGS_KEY, JSON.stringify(selectedLogIds));
+    } catch (error) {
+      console.error('Error saving selected logs:', error);
+    }
+  }, [selectedLogIds]);
 
   const handleClearChat = () => {
     setMessages([]);
