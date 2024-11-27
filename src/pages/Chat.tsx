@@ -213,8 +213,6 @@ export default function Chat() {
       
       <ChatHeader 
         onBack={handleBack}
-        selectedLogIds={selectedLogIds}
-        onLogSelect={setSelectedLogIds}
         onClearChat={handleClearChat}
         onTtsToggle={setTtsEnabled}
         ttsEnabled={ttsEnabled}
