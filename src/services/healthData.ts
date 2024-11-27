@@ -33,22 +33,9 @@ export const LOGS_STORAGE_KEY = 'health_logs';
 const CHAT_STORAGE_KEY = 'chat_messages';
 const CURRENT_RECORDING_KEY = 'current_recording';
 
-// Cập nhật phạm vi hợp lệ theo dữ liệu thực tế
+// Kiểm tra tính hợp lệ của dữ liệu
 const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
-  // Nhịp tim: cho phép từ 1-200 BPM theo dữ liệu thực tế
-  const isValidHeartRate = heartRate >= 1 && heartRate <= 200;
-  
-  // SpO2: cho phép từ 45-100% theo dữ liệu thực tế
-  const isValidOxygen = bloodOxygen >= 45 && bloodOxygen <= 100;
-  
-  // Chỉ hợp lệ khi CẢ HAI chỉ số đều nằm trong phạm vi
-  return isValidHeartRate && isValidOxygen;
-};
-
-// Làm sạch dữ liệu thô
-const cleanRawReading = (value: number): number => {
-  // Làm tròn đến 2 chữ số thập phân và đảm bảo số dương
-  return Math.max(0, Math.round(value * 100) / 100);
+  return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
 };
 
 // Load logs từ local storage
@@ -60,18 +47,6 @@ export const loadLogs = (): HourlyLog[] => {
 // Lưu logs vào local storage
 export const saveLogs = (logs: HourlyLog[]) => {
   localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
-};
-
-// Khôi phục các hàm xử lý chat messages
-export const saveChatMessage = (message: any) => {
-  const messages = loadChatMessages();
-  messages.push(message);
-  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
-};
-
-export const loadChatMessages = () => {
-  const storedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
-  return storedMessages ? JSON.parse(storedMessages) : [];
 };
 
 // Lấy trạng thái ghi hiện tại
@@ -89,7 +64,7 @@ export const setCurrentRecording = (isRecording: boolean, currentHour: string | 
 const calculateAverage = (numbers: number[]): number => {
   if (numbers.length === 0) return 0;
   const sum = numbers.reduce((a, b) => a + b, 0);
-  return Math.round(sum / numbers.length * 100) / 100;
+  return Math.round(sum / numbers.length);
 };
 
 // Cập nhật log cho giờ hiện tại
@@ -104,18 +79,18 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
     updatedLog.secondsData.push(newData);
     updatedLog.lastRecordTime = new Date().toISOString();
     
-    // Chỉ tính trung bình từ các bản ghi hợp lệ
-    const validData = updatedLog.secondsData.filter(d => 
-      isValidReading(d.heartRate, d.bloodOxygen)
-    );
+    // Cập nhật trung bình
+    const validHeartRates = updatedLog.secondsData.map(d => d.heartRate).filter(rate => rate > 0);
+    const validOxygenLevels = updatedLog.secondsData.map(d => d.bloodOxygen).filter(level => level > 0);
     
-    updatedLog.averageHeartRate = calculateAverage(validData.map(d => d.heartRate));
-    updatedLog.averageBloodOxygen = calculateAverage(validData.map(d => d.bloodOxygen));
+    updatedLog.averageHeartRate = calculateAverage(validHeartRates);
+    updatedLog.averageBloodOxygen = calculateAverage(validOxygenLevels);
     
     const newLogs = [...logs];
     newLogs[existingLogIndex] = updatedLog;
     return newLogs;
   } else {
+    // Tạo log mới cho giờ hiện tại
     const newLog: HourlyLog = {
       hour: hourString,
       isRecording: true,
@@ -128,6 +103,17 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   }
 };
 
+export const saveChatMessage = (message: any) => {
+  const messages = loadChatMessages();
+  messages.push(message);
+  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+};
+
+export const loadChatMessages = () => {
+  const storedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
+  return storedMessages ? JSON.parse(storedMessages) : [];
+};
+
 // Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
@@ -137,18 +123,16 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
       throw new Error('Invalid data format received');
     }
 
-    // Làm sạch dữ liệu thô
-    const heartRate = cleanRawReading(response.data.heartRate);
-    const bloodOxygen = cleanRawReading(response.data.spo2);
+    const { heartRate, spo2: bloodOxygen } = response.data;
 
-    // Chỉ xử lý khi cả hai chỉ số đều hợp lệ
+    // Chỉ xử lý dữ liệu hợp lệ
     if (isValidReading(heartRate, bloodOxygen)) {
       const data: HealthData = {
         heartRate,
         bloodOxygen,
         timestamp: new Date().toISOString(),
-        heartRates: [heartRate],
-        oxygenLevels: [bloodOxygen]
+        heartRates: Array(10).fill(heartRate),
+        oxygenLevels: Array(10).fill(bloodOxygen),
       };
 
       // Cập nhật logs
@@ -159,11 +143,6 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
       return [data];
     } else {
       console.warn('Invalid reading detected:', { heartRate, bloodOxygen });
-      toast({
-        title: "Dữ liệu không hợp lệ",
-        description: "Một trong hai chỉ số nằm ngoài phạm vi cho phép. Bỏ qua bản ghi này.",
-        variant: "destructive",
-      });
       return [];
     }
   } catch (error) {
@@ -203,4 +182,3 @@ export const getWaterRecommendation = async (
     glassesCount: baseGlasses
   };
 };
-
