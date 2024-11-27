@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import axios from 'axios';
+import { transcribeAudio } from '@/services/aiService';
 
 interface UseAudioRecordingProps {
   onTranscriptionComplete: (audioUrl: string, transcription: string) => void;
@@ -12,12 +12,8 @@ export const useAudioRecording = ({ onTranscriptionComplete }: UseAudioRecording
   const chunksRef = useRef<Blob[]>([]);
   const startTimeRef = useRef<number>(0);
 
-  const showToast = useCallback((title: string, description: string, variant: "default" | "destructive" = "destructive") => {
-    toast({
-      variant,
-      title,
-      description,
-    });
+  const showToast = useCallback((title: string, description: string) => {
+    toast({ title, description, variant: "destructive" });
   }, []);
 
   const startRecording = async () => {
@@ -38,10 +34,7 @@ export const useAudioRecording = ({ onTranscriptionComplete }: UseAudioRecording
         const duration = Date.now() - startTimeRef.current;
         
         if (duration < 1000) {
-          showToast(
-            "Ghi âm quá ngắn",
-            "Vui lòng ghi âm ít nhất 1 giây."
-          );
+          showToast("Ghi âm quá ngắn", "Vui lòng ghi âm ít nhất 1 giây.");
           return;
         }
 
@@ -49,24 +42,8 @@ export const useAudioRecording = ({ onTranscriptionComplete }: UseAudioRecording
         const audioUrl = URL.createObjectURL(audioBlob);
 
         try {
-          const formData = new FormData();
-          formData.append('file', audioBlob, 'audio.wav');
-
-          const response = await axios.post(
-            'http://service.aigate.app/v1/audio-to-text',
-            formData,
-            {
-              headers: {
-                'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
-                'Content-Type': 'multipart/form-data',
-                'Accept-Language': 'vi',
-              },
-            }
-          );
-
-          if (response.data.text) {
-            onTranscriptionComplete(audioUrl, response.data.text);
-          }
+          const transcription = await transcribeAudio(audioBlob);
+          onTranscriptionComplete(audioUrl, transcription);
         } catch (error) {
           showToast(
             "Lỗi",
@@ -93,9 +70,5 @@ export const useAudioRecording = ({ onTranscriptionComplete }: UseAudioRecording
     }
   }, [isRecording]);
 
-  return {
-    isRecording,
-    startRecording,
-    stopRecording
-  };
+  return { isRecording, startRecording, stopRecording };
 };
