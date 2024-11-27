@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
-import { HourlyLog } from '@/services/healthData';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { AudioMessage } from '@/components/chat/AudioMessage';
 import { ChatHeader } from '@/components/chat/ChatHeader';
@@ -23,6 +23,15 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = async (text: string, audioUrl?: string, transcription?: string, metadata?: any) => {
     try {
@@ -105,12 +114,6 @@ export default function Chat() {
     }
   };
 
-  const handleClearChat = () => {
-    setMessages([]);
-    localStorage.setItem('chat_messages', JSON.stringify([]));
-    toast.success("Đã xóa toàn bộ tin nhắn");
-  };
-
   const handleBack = () => {
     navigate(-1);
   };
@@ -120,14 +123,14 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-screen pb-16">
+    <div className="flex flex-col h-screen">
       <ChatHeader 
         onBack={handleBack}
         selectedLogId={selectedLogId}
         onLogSelect={handleLogSelect}
       />
       
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 pb-32">
         {messages.map(message => (
           <div
             key={message.id}
@@ -151,12 +154,12 @@ export default function Chat() {
             </div>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <ChatInput 
         onSendMessage={handleSendMessage} 
         isLoading={isLoading}
-        onClearChat={handleClearChat}
         selectedLogId={selectedLogId}
       />
     </div>

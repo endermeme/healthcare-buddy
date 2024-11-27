@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Mic, MicOff, Trash2, ImagePlus } from 'lucide-react';
+import { Send, Loader2, Mic, MicOff, ImagePlus } from 'lucide-react';
 import { useAudioRecording } from '@/hooks/useAudioRecording';
 import { loadLogs } from '@/services/healthData';
 import { toast } from '@/components/ui/use-toast';
@@ -8,11 +8,10 @@ import { toast } from '@/components/ui/use-toast';
 interface ChatInputProps {
   onSendMessage: (text: string, audioUrl?: string, transcription?: string, metadata?: object) => void;
   isLoading: boolean;
-  onClearChat: () => void;
   selectedLogId?: string;
 }
 
-export const ChatInput = ({ onSendMessage, isLoading, onClearChat, selectedLogId }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, isLoading, selectedLogId }: ChatInputProps) => {
   const [inputMessage, setInputMessage] = useState('');
   const [profileData, setProfileData] = useState<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -42,7 +41,6 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat, selectedLogId
     
     if (!selectedLog) return { heartRates: '', oxygenLevels: '' };
 
-    // Chỉ lấy các số đo hợp lệ từ secondsData của bản ghi được chọn
     const validReadings = selectedLog.secondsData.filter(data => 
       data.heartRate > 30 && 
       data.heartRate < 200 && 
@@ -95,75 +93,63 @@ export const ChatInput = ({ onSendMessage, isLoading, onClearChat, selectedLogId
   };
 
   return (
-    <div className="fixed bottom-16 left-0 right-0 bg-white border-t p-2">
+    <div className="fixed bottom-16 left-0 right-0 bg-white border-t p-4">
       <div className="max-w-3xl mx-auto">
-        <div className="flex flex-col gap-1">
-          <div className="flex justify-end gap-1 px-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={onClearChat}
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageSelect}
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                type="button"
-              >
-                <ImagePlus className="h-3 w-3" />
-              </Button>
-            </label>
-          </div>
-          
-          <div className="flex items-center gap-1">
+        <div className="flex items-center gap-3">
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageSelect}
+            />
             <Button
               variant="outline"
               size="icon"
-              className={`rounded-full w-8 h-8 flex-shrink-0 ${isRecording ? 'bg-red-100 text-red-500' : ''}`}
-              onClick={isRecording ? stopRecording : startRecording}
+              className="h-12 w-12 rounded-full"
+              type="button"
             >
-              {isRecording ? (
-                <MicOff className="h-4 w-4" />
+              <ImagePlus className="h-5 w-5" />
+            </Button>
+          </label>
+          
+          <div className="flex-1 flex items-center gap-3 bg-gray-50 rounded-full px-4 py-2">
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
+              placeholder="Nhập câu hỏi của bạn..."
+              className="flex-1 bg-transparent border-none focus:outline-none text-sm"
+              disabled={isLoading || isRecording}
+            />
+            <Button 
+              onClick={handleSendMessage}
+              disabled={isLoading || isRecording}
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 p-0"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Mic className="h-4 w-4" />
+                <Send className="h-5 w-5" />
               )}
             </Button>
-            
-            <div className="flex-1 flex items-center gap-1 bg-gray-50 rounded-full px-3 py-1">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
-                placeholder="Nhập câu hỏi của bạn..."
-                className="flex-1 bg-transparent border-none focus:outline-none text-sm"
-                disabled={isLoading || isRecording}
-              />
-              <Button 
-                onClick={handleSendMessage}
-                disabled={isLoading || isRecording}
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Send className="h-3 w-3" />
-                )}
-              </Button>
-            </div>
           </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className={`h-12 w-12 rounded-full ${isRecording ? 'bg-red-100 text-red-500' : ''}`}
+            onClick={isRecording ? stopRecording : startRecording}
+          >
+            {isRecording ? (
+              <MicOff className="h-5 w-5" />
+            ) : (
+              <Mic className="h-5 w-5" />
+            )}
+          </Button>
         </div>
       </div>
     </div>
