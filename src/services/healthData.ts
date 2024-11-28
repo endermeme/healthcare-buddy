@@ -179,7 +179,7 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
   }
 };
 
-const getWaterRecommendation = async (
+export const getWaterRecommendation = async (
   heartRate: number,
   bloodOxygen: number
 ): Promise<{ recommendation: string; glassesCount: number }> => {
