@@ -1,1 +1,45 @@
-/* This file will be replaced by React Native StyleSheet */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    font-family: 'Inter', sans-serif;
+  }
+
+  body {
+    @apply bg-gray-50;
+  }
+}
+
+@layer components {
+  .health-card {
+    @apply relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:shadow-lg;
+  }
+
+  .health-card:hover {
+    @apply animate-scale-up;
+  }
+
+  .health-icon {
+    @apply mb-4 rounded-full bg-primary-light p-4 text-primary;
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.animate-wave {
+  animation: wave 1s ease-in-out infinite;
+}

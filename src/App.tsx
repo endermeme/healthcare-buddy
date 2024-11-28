@@ -1,10 +1,8 @@
-import { SafeAreaView, View, Platform } from 'react-native';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { Alert } from "@/components/ui/alert";
 import { X } from "lucide-react";
@@ -17,8 +15,6 @@ import Profile from "./pages/Profile";
 import { fetchHealthData } from "@/services/healthData";
 import { useState, useEffect } from "react";
 
-const Stack = createNativeStackNavigator();
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -29,6 +25,8 @@ const queryClient = new QueryClient({
 });
 
 const AppContent = () => {
+  const location = useLocation();
+  const showBottomNav = location.pathname !== '/chat';
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   const [showSensorError, setShowSensorError] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -41,12 +39,12 @@ const AppContent = () => {
     meta: {
       onError: () => {
         const now = Date.now();
-        if (isInitialLoad || now - lastNotificationTime >= 300000) {
+        if (isInitialLoad || now - lastNotificationTime >= 300000) { // Initial load or 5 minutes
           toast.error("Lỗi kết nối", {
             duration: 3000,
           });
           setLastNotificationTime(now);
-          setShowSensorError(false);
+          setShowSensorError(true);
         }
       },
       onSuccess: () => {
@@ -62,54 +60,36 @@ const AppContent = () => {
   }, [isInitialLoad]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={{ flex: 1 }}>
-        {showSensorError && (
-          <Alert 
-            variant="destructive" 
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 50,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingVertical: 4,
-            }}
+    <div className={showBottomNav ? "pb-16" : ""}>
+      {showSensorError && (
+        <Alert 
+          variant="destructive" 
+          className="fixed top-0 left-0 right-0 z-50 rounded-none flex items-center justify-between py-1"
+        >
+          <span className="text-sm">Lỗi kết nối</span>
+          <button 
+            onClick={() => setShowSensorError(false)}
+            className="p-1 hover:bg-destructive/10 rounded-full"
           >
-            <Text style={{ fontSize: 14 }}>Lỗi kết nối</Text>
-            <Pressable 
-              onPress={() => setShowSensorError(false)}
-              style={({ pressed }) => ({
-                padding: 4,
-                borderRadius: 9999,
-                backgroundColor: pressed ? 'rgba(255, 0, 0, 0.1)' : 'transparent'
-              })}
-            >
-              <X style={{ height: 12, width: 12 }} />
-            </Pressable>
-          </Alert>
-        )}
-        
-        <Stack.Navigator>
-          <Stack.Screen name="Home" component={Index} />
-          <Stack.Screen name="Chat" component={Chat} />
-          <Stack.Screen name="History" component={History} />
-          <Stack.Screen name="Detail" component={Detail} />
-          <Stack.Screen name="Profile" component={Profile} />
-        </Stack.Navigator>
-        
-        <BottomNav />
-      </View>
-    </SafeAreaView>
+            <X className="h-3 w-3" />
+          </button>
+        </Alert>
+      )}
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/detail/:id" element={<Detail />} />
+        <Route path="/profile" element={<Profile />} />
+      </Routes>
+      {showBottomNav && <BottomNav />}
+    </div>
   );
 };
 
 const App = () => {
   return (
-    <NavigationContainer>
+    <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <AppContent />
@@ -117,7 +97,7 @@ const App = () => {
           <Sonner />
         </TooltipProvider>
       </QueryClientProvider>
-    </NavigationContainer>
+    </BrowserRouter>
   );
 };
 
