@@ -23,6 +23,8 @@ export interface HourlyLog {
   secondsData: HealthData[];
 }
 
+export const LOGS_STORAGE_KEY = 'health_logs';
+
 let currentSensorUrl: string | null = null;
 
 const generateIpAddresses = function* () {
@@ -55,7 +57,10 @@ async function findSensorUrl(): Promise<string | null> {
   for (const ip of ipGenerator) {
     if (await pingAddress(ip)) {
       currentSensorUrl = ip;
-      toast.success("Đã khôi phục kết nối với cảm biến");
+      toast({
+        title: "Kết nối thành công",
+        description: "Đã khôi phục kết nối với cảm biến"
+      });
       return ip;
     }
   }
@@ -67,12 +72,12 @@ const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
 };
 
 export const loadLogs = (): HourlyLog[] => {
-  const storedLogs = localStorage.getItem('health_logs');
+  const storedLogs = localStorage.getItem(LOGS_STORAGE_KEY);
   return storedLogs ? JSON.parse(storedLogs) : [];
 };
 
 export const saveLogs = (logs: HourlyLog[]) => {
-  localStorage.setItem('health_logs', JSON.stringify(logs));
+  localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
 };
 
 export const getCurrentRecording = (): { isRecording: boolean; currentHour: string | null } => {
