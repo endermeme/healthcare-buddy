@@ -1,37 +1,123 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { Alert } from "./components/ui/alert";
-import Index from './pages/Index';
-import Chat from './pages/Chat';
-import History from './pages/History';
-import Detail from './pages/Detail';
-import Profile from './pages/Profile';
-import BottomNav from './components/BottomNav';
+import { SafeAreaView, View, Platform } from 'react-native';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { BottomNav } from "@/components/BottomNav";
+import { Alert } from "@/components/ui/alert";
+import { X } from "lucide-react";
+import { toast } from "sonner";
+import Index from "./pages/Index";
+import Chat from "./pages/Chat";
+import History from "./pages/History";
+import Detail from "./pages/Detail";
+import Profile from "./pages/Profile";
+import { fetchHealthData } from "@/services/healthData";
+import { useState, useEffect } from "react";
+
+const Stack = createNativeStackNavigator();
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchInterval: 5000,
+      refetchIntervalInBackground: true,
+    },
+  },
+});
+
+const AppContent = () => {
+  const [lastNotificationTime, setLastNotificationTime] = useState(0);
+  const [showSensorError, setShowSensorError] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  const { error } = useQuery({
+    queryKey: ['healthData'],
+    queryFn: fetchHealthData,
+    staleTime: 4000,
+    retry: 2,
+    meta: {
+      onError: () => {
+        const now = Date.now();
+        if (isInitialLoad || now - lastNotificationTime >= 300000) {
+          toast.error("Lỗi kết nối", {
+            duration: 3000,
+          });
+          setLastNotificationTime(now);
+          setShowSensorError(false);
+        }
+      },
+      onSuccess: () => {
+        setShowSensorError(false);
+      }
+    }
+  });
+
+  useEffect(() => {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+    }
+  }, [isInitialLoad]);
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        {showSensorError && (
+          <Alert 
+            variant="destructive" 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 50,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 4,
+            }}
+          >
+            <Text style={{ fontSize: 14 }}>Lỗi kết nối</Text>
+            <Pressable 
+              onPress={() => setShowSensorError(false)}
+              style={({ pressed }) => ({
+                padding: 4,
+                borderRadius: 9999,
+                backgroundColor: pressed ? 'rgba(255, 0, 0, 0.1)' : 'transparent'
+              })}
+            >
+              <X style={{ height: 12, width: 12 }} />
+            </Pressable>
+          </Alert>
+        )}
+        
+        <Stack.Navigator>
+          <Stack.Screen name="Home" component={Index} />
+          <Stack.Screen name="Chat" component={Chat} />
+          <Stack.Screen name="History" component={History} />
+          <Stack.Screen name="Detail" component={Detail} />
+          <Stack.Screen name="Profile" component={Profile} />
+        </Stack.Navigator>
+        
+        <BottomNav />
+      </View>
+    </SafeAreaView>
+  );
+};
 
 const App = () => {
   return (
-    <Router>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 pb-20">
-          <Alert id="app-alert">
-            <div className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">Welcome to Health Assistant</h2>
-              <p>Track your health data and get personalized insights</p>
-            </div>
-          </Alert>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/detail/:id" element={<Detail />} />
-            <Route path="/profile" element={<Profile />} />
-          </Routes>
-        </div>
-        <BottomNav />
-        <Toaster />
-      </div>
-    </Router>
+    <NavigationContainer>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <AppContent />
+          <Toaster />
+          <Sonner />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </NavigationContainer>
   );
 };
 
