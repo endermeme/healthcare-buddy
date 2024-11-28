@@ -1,5 +1,5 @@
 export const textToSpeech = async (text: string): Promise<void> => {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  const apiKey = import.meta.env.VITE_OPENAI_TTS_KEY;
   
   if (!apiKey) {
     console.error('OpenAI API key is not set in environment variables');
@@ -16,7 +16,8 @@ export const textToSpeech = async (text: string): Promise<void> => {
       body: JSON.stringify({
         model: 'tts-1',
         input: text,
-        voice: 'alloy'
+        voice: 'alloy',
+        response_format: 'mp3'
       })
     });
 
@@ -29,6 +30,11 @@ export const textToSpeech = async (text: string): Promise<void> => {
     const audioUrl = URL.createObjectURL(audioBlob);
     const audio = new Audio(audioUrl);
     await audio.play();
+
+    // Cleanup URL after playing
+    audio.onended = () => {
+      URL.revokeObjectURL(audioUrl);
+    };
   } catch (error) {
     console.error('TTS error:', error);
     throw error;
