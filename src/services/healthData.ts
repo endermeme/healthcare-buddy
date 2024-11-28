@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
-import { HealthData, ApiResponse, HourlyLog } from './types';
 import { generateIpAddresses } from './networkUtils';
 import { 
   loadLogs, 
@@ -11,6 +10,28 @@ import {
   loadChatMessages,
   LOGS_STORAGE_KEY
 } from './storageUtils';
+
+export interface HealthData {
+  heartRate: number;
+  bloodOxygen: number;
+  timestamp: string;
+  heartRates: number[];
+  oxygenLevels: number[];
+}
+
+export interface ApiResponse {
+  heartRate: number;
+  spo2: number;
+}
+
+export interface HourlyLog {
+  hour: string;
+  isRecording: boolean;
+  lastRecordTime: string | null;
+  averageHeartRate: number;
+  averageBloodOxygen: number;
+  secondsData: HealthData[];
+}
 
 let currentSensorUrl: string | null = null;
 
@@ -46,6 +67,30 @@ async function findSensorUrl(): Promise<string | null> {
   }
   return null;
 }
+
+export const getWaterRecommendation = async (heartRate: number, bloodOxygen: number) => {
+  // Simple recommendation logic based on heart rate and blood oxygen
+  let glassesCount = 8; // Base recommendation
+  let recommendation = "Hãy uống nước đều đặn trong ngày.";
+
+  if (heartRate > 100) {
+    glassesCount += 2;
+    recommendation = "Nhịp tim cao, hãy uống thêm nước để giữ đủ nước cho cơ thể.";
+  } else if (heartRate < 60) {
+    glassesCount -= 1;
+    recommendation = "Nhịp tim thấp, uống nước vừa phải và theo dõi sức khỏe.";
+  }
+
+  if (bloodOxygen < 95) {
+    glassesCount += 1;
+    recommendation += " SpO2 thấp, cần bổ sung nước để hỗ trợ quá trình trao đổi oxy.";
+  }
+
+  return {
+    glassesCount: Math.max(6, Math.min(glassesCount, 15)), // Keep between 6-15 glasses
+    recommendation
+  };
+};
 
 const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
   return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
