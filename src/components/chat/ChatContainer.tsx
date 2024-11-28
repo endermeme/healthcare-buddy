@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ChatMessages } from './ChatMessages';
 import { ChatInput } from './ChatInput';
 import { ChatHeader } from './ChatHeader';
-import { textToSpeech } from '@/services/ttsService';
 import { toast } from 'sonner';
 import axios from 'axios';
 
@@ -80,14 +79,6 @@ export const ChatContainer = () => {
         
         setMessages(prevMessages => [...prevMessages, aiMessage]);
         saveChatMessage(aiMessage);
-
-        // Tự động đọc tin nhắn từ chatbot
-        try {
-          await textToSpeech(aiMessage.text);
-        } catch (error) {
-          console.error('TTS error:', error);
-          toast.error("Không thể chuyển đổi văn bản thành giọng nói");
-        }
       }
     } catch (error: any) {
       console.error('API Error:', error);
