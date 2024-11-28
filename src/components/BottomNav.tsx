@@ -1,89 +1,45 @@
-import { View, Pressable } from 'react-native';
-import { Home, MessageSquare, History, User } from 'lucide-react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Home, MessageCircle, Clock, User } from 'lucide-react';
 
-export const BottomNav = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
+const BottomNav = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handlePress = (routeName: string) => {
-    // @ts-ignore - This is a valid navigation call, but TypeScript doesn't know about the screen names
-    navigation.navigate(routeName);
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <View style={{
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      borderTopWidth: 1,
-      borderTopColor: '#e5e7eb',
-      backgroundColor: 'white',
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      padding: 8,
-    }}>
-      <Pressable 
-        onPress={() => handlePress('Home')}
-        style={({ pressed }) => ({
-          padding: 8,
-          backgroundColor: pressed ? '#f3f4f6' : 'transparent',
-          borderRadius: 8,
-        })}
-      >
-        <Home style={{ 
-          height: 20, 
-          width: 20,
-          color: route.name === 'Home' ? '#000' : '#6b7280'
-        }} />
-      </Pressable>
-      
-      <Pressable 
-        onPress={() => handlePress('Chat')}
-        style={({ pressed }) => ({
-          padding: 8,
-          backgroundColor: pressed ? '#f3f4f6' : 'transparent',
-          borderRadius: 8,
-        })}
-      >
-        <MessageSquare style={{ 
-          height: 20, 
-          width: 20,
-          color: route.name === 'Chat' ? '#000' : '#6b7280'
-        }} />
-      </Pressable>
-      
-      <Pressable 
-        onPress={() => handlePress('History')}
-        style={({ pressed }) => ({
-          padding: 8,
-          backgroundColor: pressed ? '#f3f4f6' : 'transparent',
-          borderRadius: 8,
-        })}
-      >
-        <History style={{ 
-          height: 20, 
-          width: 20,
-          color: route.name === 'History' ? '#000' : '#6b7280'
-        }} />
-      </Pressable>
-      
-      <Pressable 
-        onPress={() => handlePress('Profile')}
-        style={({ pressed }) => ({
-          padding: 8,
-          backgroundColor: pressed ? '#f3f4f6' : 'transparent',
-          borderRadius: 8,
-        })}
-      >
-        <User style={{ 
-          height: 20, 
-          width: 20,
-          color: route.name === 'Profile' ? '#000' : '#6b7280'
-        }} />
-      </Pressable>
-    </View>
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-around items-center">
+          <button
+            onClick={() => navigate('/')}
+            className={`p-2 rounded-lg ${isActive('/') ? 'text-primary' : 'text-gray-500'}`}
+          >
+            <Home size={24} />
+          </button>
+          <button
+            onClick={() => navigate('/chat')}
+            className={`p-2 rounded-lg ${isActive('/chat') ? 'text-primary' : 'text-gray-500'}`}
+          >
+            <MessageCircle size={24} />
+          </button>
+          <button
+            onClick={() => navigate('/history')}
+            className={`p-2 rounded-lg ${isActive('/history') ? 'text-primary' : 'text-gray-500'}`}
+          >
+            <Clock size={24} />
+          </button>
+          <button
+            onClick={() => navigate('/profile')}
+            className={`p-2 rounded-lg ${isActive('/profile') ? 'text-primary' : 'text-gray-500'}`}
+          >
+            <User size={24} />
+          </button>
+        </div>
+      </div>
+    </nav>
   );
 };
+
+export default BottomNav;
