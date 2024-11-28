@@ -51,14 +51,14 @@ export default {
         },
         "emoji-fall": {
           "0%": { 
-            transform: "translateY(-200%)",
+            transform: "translateY(-100%) translateX(0)",
             opacity: "0"
           },
-          "50%": {
+          "10%": {
             opacity: "1"
           },
           "100%": { 
-            transform: "translateY(200%)",
+            transform: "translateY(400%) translateX(var(--random-x))",
             opacity: "0"
           }
         }
@@ -66,7 +66,7 @@ export default {
       animation: {
         "scale-up": "scale-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
-        "emoji-fall": "emoji-fall 5s linear infinite",
+        "emoji-fall": "emoji-fall 3s linear infinite",
       },
     },
   },
