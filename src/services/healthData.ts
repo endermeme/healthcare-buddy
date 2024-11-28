@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
 
+export const LOGS_STORAGE_KEY = 'health_logs';
+
 export interface HealthData {
   heartRate: number;
   bloodOxygen: number;
@@ -55,24 +57,23 @@ async function findSensorUrl(): Promise<string | null> {
   for (const ip of ipGenerator) {
     if (await pingAddress(ip)) {
       currentSensorUrl = ip;
-      toast.success("Đã khôi phục kết nối với cảm biến");
+      toast({
+        title: "Đã khôi phục kết nối với cảm biến",
+        description: `Kết nối thành công tới ${ip}`,
+      });
       return ip;
     }
   }
   return null;
 }
 
-const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
-  return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
-};
-
 export const loadLogs = (): HourlyLog[] => {
-  const storedLogs = localStorage.getItem('health_logs');
+  const storedLogs = localStorage.getItem(LOGS_STORAGE_KEY);
   return storedLogs ? JSON.parse(storedLogs) : [];
 };
 
 export const saveLogs = (logs: HourlyLog[]) => {
-  localStorage.setItem('health_logs', JSON.stringify(logs));
+  localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
 };
 
 export const getCurrentRecording = (): { isRecording: boolean; currentHour: string | null } => {
@@ -123,21 +124,31 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
   }
 };
 
-export const saveChatMessage = (message: any) => {
-  try {
-    const messages = loadChatMessages();
-    if (!messages.some(m => m.id === message.id)) {
-      messages.push(message);
-      localStorage.setItem('chat_messages', JSON.stringify(messages));
-    }
-  } catch (error) {
-    console.error('Error saving chat message:', error);
+export const getWaterRecommendation = async (
+  heartRate: number,
+  bloodOxygen: number
+): Promise<{ recommendation: string; glassesCount: number }> => {
+  let baseGlasses = 8;
+  
+  if (heartRate > 100) {
+    baseGlasses += 2;
+  } else if (heartRate < 60) {
+    baseGlasses -= 1;
   }
-};
+  
+  if (bloodOxygen < 95) {
+    baseGlasses += 1;
+  }
 
-export const loadChatMessages = () => {
-  const storedMessages = localStorage.getItem('chat_messages');
-  return storedMessages ? JSON.parse(storedMessages) : [];
+  let recommendation = "Hãy uống đủ nước để duy trì sức khỏe tốt.";
+  if (heartRate > 100 || bloodOxygen < 95) {
+    recommendation = "Bạn nên uống nhiều nước hơn để cải thiện các chỉ số sức khỏe.";
+  }
+
+  return {
+    recommendation,
+    glassesCount: baseGlasses
+  };
 };
 
 export const fetchHealthData = async (): Promise<HealthData[]> => {
@@ -179,29 +190,6 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
   }
 };
 
-const getWaterRecommendation = async (
-  heartRate: number,
-  bloodOxygen: number
-): Promise<{ recommendation: string; glassesCount: number }> => {
-  let baseGlasses = 8;
-  
-  if (heartRate > 100) {
-    baseGlasses += 2;
-  } else if (heartRate < 60) {
-    baseGlasses -= 1;
-  }
-  
-  if (bloodOxygen < 95) {
-    baseGlasses += 1;
-  }
-
-  let recommendation = "Hãy uống đủ nước để duy trì sức khỏe tốt.";
-  if (heartRate > 100 || bloodOxygen < 95) {
-    recommendation = "Bạn nên uống nhiều nước hơn để cải thiện các chỉ số sức khỏe.";
-  }
-
-  return {
-    recommendation,
-    glassesCount: baseGlasses
-  };
+const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
+  return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
 };
