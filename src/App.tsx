@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
-import { Alert } from "@/components/ui/alert";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import Index from "./pages/Index";
@@ -27,8 +27,7 @@ const queryClient = new QueryClient({
 const AppContent = () => {
   const location = useLocation();
   const showBottomNav = location.pathname !== '/chat';
-  const [lastNotificationTime, setLastNotificationTime] = useState(0);
-  const [showSensorError, setShowSensorError] = useState(false);
+  const [showConnectionError, setShowConnectionError] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   const { error } = useQuery({
@@ -38,17 +37,15 @@ const AppContent = () => {
     retry: 2,
     meta: {
       onError: () => {
-        const now = Date.now();
-        if (isInitialLoad || now - lastNotificationTime >= 300000) { // Initial load or 5 minutes
-          toast.error("Lỗi kết nối", {
-            duration: 3000,
-          });
-          setLastNotificationTime(now);
-          setShowSensorError(true);
+        if (isInitialLoad) {
+          setShowConnectionError(true);
+          setTimeout(() => {
+            setShowConnectionError(false);
+          }, 10000);
         }
       },
       onSuccess: () => {
-        setShowSensorError(false);
+        setShowConnectionError(false);
       }
     }
   });
@@ -61,20 +58,23 @@ const AppContent = () => {
 
   return (
     <div className={showBottomNav ? "pb-16" : ""}>
-      {showSensorError && (
-        <Alert 
-          variant="destructive" 
-          className="fixed top-0 left-0 right-0 z-50 rounded-none flex items-center justify-between py-1"
-        >
-          <span className="text-sm">Lỗi kết nối</span>
-          <button 
-            onClick={() => setShowSensorError(false)}
-            className="p-1 hover:bg-destructive/10 rounded-full"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        </Alert>
-      )}
+      <Dialog open={showConnectionError} onOpenChange={setShowConnectionError}>
+        <DialogContent className="sm:max-w-[425px]">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Lỗi kết nối</h3>
+            <button 
+              onClick={() => setShowConnectionError(false)}
+              className="p-1 hover:bg-gray-100 rounded-full"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <p className="text-sm text-gray-600">
+            Không thể kết nối với cảm biến. Đang thử kết nối lại...
+          </p>
+        </DialogContent>
+      </Dialog>
+
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/chat" element={<Chat />} />

@@ -23,51 +23,73 @@ export interface HourlyLog {
   secondsData: HealthData[];
 }
 
-interface WaterRecommendation {
-  recommendation: string;
-  glassesCount: number;
+let currentSensorUrl: string | null = null;
+
+const generateIpAddresses = function* () {
+  const networks = ['192.168.1', '192.168.0', '10.10.0'];
+  for (const network of networks) {
+    yield `${network}.15`;
+  }
+};
+
+async function pingAddress(ip: string): Promise<boolean> {
+  try {
+    const response = await axios.get(`http://${ip}/data`, { timeout: 1000 });
+    return response.status === 200;
+  } catch {
+    return false;
+  }
 }
 
-const API_ENDPOINT = 'http://192.168.1.15/data';
-export const LOGS_STORAGE_KEY = 'health_logs';
-const CHAT_STORAGE_KEY = 'chat_messages';
-const CURRENT_RECORDING_KEY = 'current_recording';
+async function findSensorUrl(): Promise<string | null> {
+  if (currentSensorUrl) {
+    try {
+      await axios.get(`http://${currentSensorUrl}/data`, { timeout: 1000 });
+      return currentSensorUrl;
+    } catch {
+      currentSensorUrl = null;
+    }
+  }
 
-// Kiểm tra tính hợp lệ của dữ liệu
+  const ipGenerator = generateIpAddresses();
+  for (const ip of ipGenerator) {
+    if (await pingAddress(ip)) {
+      currentSensorUrl = ip;
+      toast.success("Đã khôi phục kết nối với cảm biến");
+      return ip;
+    }
+  }
+  return null;
+}
+
 const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
   return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
 };
 
-// Load logs từ local storage
 export const loadLogs = (): HourlyLog[] => {
-  const storedLogs = localStorage.getItem(LOGS_STORAGE_KEY);
+  const storedLogs = localStorage.getItem('health_logs');
   return storedLogs ? JSON.parse(storedLogs) : [];
 };
 
-// Lưu logs vào local storage
 export const saveLogs = (logs: HourlyLog[]) => {
-  localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
+  localStorage.setItem('health_logs', JSON.stringify(logs));
 };
 
-// Lấy trạng thái ghi hiện tại
 export const getCurrentRecording = (): { isRecording: boolean; currentHour: string | null } => {
-  const stored = localStorage.getItem(CURRENT_RECORDING_KEY);
+  const stored = localStorage.getItem('current_recording');
   return stored ? JSON.parse(stored) : { isRecording: false, currentHour: null };
 };
 
-// Cập nhật trạng thái ghi
 export const setCurrentRecording = (isRecording: boolean, currentHour: string | null) => {
-  localStorage.setItem(CURRENT_RECORDING_KEY, JSON.stringify({ isRecording, currentHour }));
+  localStorage.setItem('current_recording', JSON.stringify({ isRecording, currentHour }));
 };
 
-// Tính trung bình của một mảng số
 const calculateAverage = (numbers: number[]): number => {
   if (numbers.length === 0) return 0;
   const sum = numbers.reduce((a, b) => a + b, 0);
   return Math.round(sum / numbers.length);
 };
 
-// Cập nhật log cho giờ hiện tại
 const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog[] => {
   const currentHour = new Date().setMinutes(0, 0, 0);
   const hourString = new Date(currentHour).toISOString();
@@ -79,7 +101,6 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
     updatedLog.secondsData.push(newData);
     updatedLog.lastRecordTime = new Date().toISOString();
     
-    // Cập nhật trung bình
     const validHeartRates = updatedLog.secondsData.map(d => d.heartRate).filter(rate => rate > 0);
     const validOxygenLevels = updatedLog.secondsData.map(d => d.bloodOxygen).filter(level => level > 0);
     
@@ -90,7 +111,6 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
     newLogs[existingLogIndex] = updatedLog;
     return newLogs;
   } else {
-    // Tạo log mới cho giờ hiện tại
     const newLog: HourlyLog = {
       hour: hourString,
       isRecording: true,
@@ -106,10 +126,9 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
 export const saveChatMessage = (message: any) => {
   try {
     const messages = loadChatMessages();
-    // Check if message with same ID already exists
     if (!messages.some(m => m.id === message.id)) {
       messages.push(message);
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+      localStorage.setItem('chat_messages', JSON.stringify(messages));
     }
   } catch (error) {
     console.error('Error saving chat message:', error);
@@ -117,14 +136,18 @@ export const saveChatMessage = (message: any) => {
 };
 
 export const loadChatMessages = () => {
-  const storedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
+  const storedMessages = localStorage.getItem('chat_messages');
   return storedMessages ? JSON.parse(storedMessages) : [];
 };
 
-// Fetch health data từ sensor
 export const fetchHealthData = async (): Promise<HealthData[]> => {
   try {
-    const response = await axios.get<ApiResponse>(API_ENDPOINT);
+    const sensorIp = await findSensorUrl();
+    if (!sensorIp) {
+      throw new Error('Không tìm thấy cảm biến');
+    }
+
+    const response = await axios.get<ApiResponse>(`http://${sensorIp}/data`);
     
     if (!response.data || typeof response.data.heartRate !== 'number') {
       throw new Error('Invalid data format received');
@@ -132,7 +155,6 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
 
     const { heartRate, spo2: bloodOxygen } = response.data;
 
-    // Chỉ xử lý dữ liệu hợp lệ
     if (isValidReading(heartRate, bloodOxygen)) {
       const data: HealthData = {
         heartRate,
@@ -142,7 +164,6 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
         oxygenLevels: Array(10).fill(bloodOxygen),
       };
 
-      // Cập nhật logs
       const currentLogs = loadLogs();
       const updatedLogs = updateCurrentHourLog(currentLogs, data);
       saveLogs(updatedLogs);
@@ -154,19 +175,14 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
     }
   } catch (error) {
     console.error('Error fetching health data:', error);
-    toast({
-      title: "Lỗi kết nối",
-      description: "Không thể kết nối với cảm biến. Vui lòng kiểm tra thiết bị.",
-      variant: "destructive",
-    });
-    return [];
+    throw error;
   }
 };
 
-export const getWaterRecommendation = async (
+const getWaterRecommendation = async (
   heartRate: number,
   bloodOxygen: number
-): Promise<WaterRecommendation> => {
+): Promise<{ recommendation: string; glassesCount: number }> => {
   let baseGlasses = 8;
   
   if (heartRate > 100) {
@@ -189,4 +205,3 @@ export const getWaterRecommendation = async (
     glassesCount: baseGlasses
   };
 };
-
