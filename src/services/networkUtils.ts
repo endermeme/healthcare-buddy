@@ -9,10 +9,11 @@ export const NETWORKS = [
   '192.168.4'
 ];
 
-export const DEFAULT_DEVICE_PORT = '15';
-
 export const generateIpAddresses = function* () {
   for (const network of NETWORKS) {
-    yield `${network}.${DEFAULT_DEVICE_PORT}`;
+    // Quét tất cả các địa chỉ từ .1 đến .254 trong mỗi dải mạng
+    for (let i = 1; i <= 254; i++) {
+      yield `${network}.${i}`;
+    }
   }
 };
