@@ -1,5 +1,11 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import { AppRegistry } from 'react-native';
+import App from './App';
 
-createRoot(document.getElementById("root")!).render(<App />);
+AppRegistry.registerComponent('main', () => App);
+
+// For web compatibility
+if (Platform.OS === 'web') {
+  AppRegistry.runApplication('main', {
+    rootTag: document.getElementById('root')
+  });
+}
