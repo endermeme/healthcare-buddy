@@ -1,38 +1,18 @@
 import axios from 'axios';
 import { toast } from '@/components/ui/use-toast';
-
-export interface HealthData {
-  heartRate: number;
-  bloodOxygen: number;
-  timestamp: string;
-  heartRates: number[];
-  oxygenLevels: number[];
-}
-
-interface ApiResponse {
-  heartRate: number;
-  spo2: number;
-}
-
-export interface HourlyLog {
-  hour: string;
-  isRecording: boolean;
-  lastRecordTime: string | null;
-  averageHeartRate: number;
-  averageBloodOxygen: number;
-  secondsData: HealthData[];
-}
-
-export const LOGS_STORAGE_KEY = 'health_logs';
+import { HealthData, ApiResponse, HourlyLog } from './types';
+import { generateIpAddresses } from './networkUtils';
+import { 
+  loadLogs, 
+  saveLogs, 
+  getCurrentRecording, 
+  setCurrentRecording,
+  saveChatMessage,
+  loadChatMessages,
+  LOGS_STORAGE_KEY
+} from './storageUtils';
 
 let currentSensorUrl: string | null = null;
-
-const generateIpAddresses = function* () {
-  const networks = ['192.168.1', '192.168.0', '10.10.0'];
-  for (const network of networks) {
-    yield `${network}.15`;
-  }
-};
 
 async function pingAddress(ip: string): Promise<boolean> {
   try {
@@ -71,24 +51,6 @@ const isValidReading = (heartRate: number, bloodOxygen: number): boolean => {
   return heartRate > 0 && heartRate < 220 && bloodOxygen > 0 && bloodOxygen <= 100;
 };
 
-export const loadLogs = (): HourlyLog[] => {
-  const storedLogs = localStorage.getItem(LOGS_STORAGE_KEY);
-  return storedLogs ? JSON.parse(storedLogs) : [];
-};
-
-export const saveLogs = (logs: HourlyLog[]) => {
-  localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
-};
-
-export const getCurrentRecording = (): { isRecording: boolean; currentHour: string | null } => {
-  const stored = localStorage.getItem('current_recording');
-  return stored ? JSON.parse(stored) : { isRecording: false, currentHour: null };
-};
-
-export const setCurrentRecording = (isRecording: boolean, currentHour: string | null) => {
-  localStorage.setItem('current_recording', JSON.stringify({ isRecording, currentHour }));
-};
-
 const calculateAverage = (numbers: number[]): number => {
   if (numbers.length === 0) return 0;
   const sum = numbers.reduce((a, b) => a + b, 0);
@@ -115,34 +77,16 @@ const updateCurrentHourLog = (logs: HourlyLog[], newData: HealthData): HourlyLog
     const newLogs = [...logs];
     newLogs[existingLogIndex] = updatedLog;
     return newLogs;
-  } else {
-    const newLog: HourlyLog = {
-      hour: hourString,
-      isRecording: true,
-      lastRecordTime: new Date().toISOString(),
-      averageHeartRate: newData.heartRate,
-      averageBloodOxygen: newData.bloodOxygen,
-      secondsData: [newData]
-    };
-    return [...logs, newLog];
   }
-};
 
-export const saveChatMessage = (message: any) => {
-  try {
-    const messages = loadChatMessages();
-    if (!messages.some(m => m.id === message.id)) {
-      messages.push(message);
-      localStorage.setItem('chat_messages', JSON.stringify(messages));
-    }
-  } catch (error) {
-    console.error('Error saving chat message:', error);
-  }
-};
-
-export const loadChatMessages = () => {
-  const storedMessages = localStorage.getItem('chat_messages');
-  return storedMessages ? JSON.parse(storedMessages) : [];
+  return [...logs, {
+    hour: hourString,
+    isRecording: true,
+    lastRecordTime: new Date().toISOString(),
+    averageHeartRate: newData.heartRate,
+    averageBloodOxygen: newData.bloodOxygen,
+    secondsData: [newData]
+  }];
 };
 
 export const fetchHealthData = async (): Promise<HealthData[]> => {
@@ -184,29 +128,12 @@ export const fetchHealthData = async (): Promise<HealthData[]> => {
   }
 };
 
-export const getWaterRecommendation = async (
-  heartRate: number,
-  bloodOxygen: number
-): Promise<{ recommendation: string; glassesCount: number }> => {
-  let baseGlasses = 8;
-  
-  if (heartRate > 100) {
-    baseGlasses += 2;
-  } else if (heartRate < 60) {
-    baseGlasses -= 1;
-  }
-  
-  if (bloodOxygen < 95) {
-    baseGlasses += 1;
-  }
-
-  let recommendation = "Hãy uống đủ nước để duy trì sức khỏe tốt.";
-  if (heartRate > 100 || bloodOxygen < 95) {
-    recommendation = "Bạn nên uống nhiều nước hơn để cải thiện các chỉ số sức khỏe.";
-  }
-
-  return {
-    recommendation,
-    glassesCount: baseGlasses
-  };
+export {
+  loadLogs,
+  saveLogs,
+  getCurrentRecording,
+  setCurrentRecording,
+  saveChatMessage,
+  loadChatMessages,
+  LOGS_STORAGE_KEY
 };
