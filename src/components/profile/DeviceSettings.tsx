@@ -1,13 +1,16 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { findSensorUrl } from "@/services/healthData";
+import { Loader2 } from "lucide-react";
 
 export const DeviceSettings = () => {
   const [deviceKey, setDeviceKey] = React.useState("");
   const [showWifiSetup, setShowWifiSetup] = React.useState(false);
   const [showNetworkChange, setShowNetworkChange] = React.useState(false);
+  const [isScanning, setIsScanning] = React.useState(false);
 
   React.useEffect(() => {
     const savedKey = localStorage.getItem('deviceKey');
@@ -18,18 +21,27 @@ export const DeviceSettings = () => {
 
   const handleSaveDeviceKey = () => {
     if (deviceKey.length !== 6 || isNaN(Number(deviceKey))) {
-      toast({
-        title: "Lỗi",
-        description: "Mã thiết bị phải là 6 chữ số",
-        variant: "destructive",
-      });
+      toast.error("Mã thiết bị phải là 6 chữ số");
       return;
     }
     localStorage.setItem('deviceKey', deviceKey);
-    toast({
-      title: "Đã lưu mã thiết bị",
-      description: "Mã thiết bị của bạn đã được lưu thành công",
-    });
+    toast.success("Đã lưu mã thiết bị thành công");
+  };
+
+  const handleScanDevice = async () => {
+    setIsScanning(true);
+    try {
+      const url = await findSensorUrl();
+      if (url) {
+        toast.success("Đã tìm thấy thiết bị tại địa chỉ: " + url);
+      } else {
+        toast.error("Không tìm thấy thiết bị trong mạng");
+      }
+    } catch (error) {
+      toast.error("Lỗi khi dò tìm thiết bị");
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   return (
@@ -66,6 +78,22 @@ export const DeviceSettings = () => {
           Thay đổi mạng
         </Button>
       </div>
+
+      <Button
+        variant="default"
+        onClick={handleScanDevice}
+        disabled={isScanning}
+        className="w-full"
+      >
+        {isScanning ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Đang dò thiết bị...
+          </>
+        ) : (
+          'Dò thiết bị'
+        )}
+      </Button>
 
       <div className="bg-gray-100 p-4 rounded-lg space-y-2 mt-2">
         <p className="text-sm text-gray-600">

@@ -44,7 +44,7 @@ async function pingAddress(ip: string): Promise<boolean> {
   }
 }
 
-async function findSensorUrl(): Promise<string | null> {
+export async function findSensorUrl(): Promise<string | null> {
   if (currentSensorUrl) {
     try {
       await axios.get(`http://${currentSensorUrl}/data`, { timeout: 1000 });
