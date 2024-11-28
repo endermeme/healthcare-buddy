@@ -37,7 +37,7 @@ let currentSensorUrl: string | null = null;
 
 async function pingAddress(ip: string): Promise<boolean> {
   try {
-    const response = await axios.get(`http://${ip}/data`, { timeout: 500 });
+    const response = await axios.get(`http://${ip}/data`, { timeout: 1000 });
     return response.status === 200;
   } catch {
     return false;
@@ -54,22 +54,8 @@ export async function findSensorUrl(): Promise<string | null> {
     }
   }
 
-  let scannedCount = 0;
   const ipGenerator = generateIpAddresses();
-  const startTime = Date.now();
-
   for (const ip of ipGenerator) {
-    scannedCount++;
-    
-    // Cập nhật thông báo mỗi 50 IP
-    if (scannedCount % 50 === 0) {
-      const timeElapsed = Math.floor((Date.now() - startTime) / 1000);
-      toast({
-        title: "Đang dò thiết bị",
-        description: `Đã quét ${scannedCount} địa chỉ IP (${timeElapsed}s)`,
-      });
-    }
-
     if (await pingAddress(ip)) {
       currentSensorUrl = ip;
       toast({
@@ -81,9 +67,9 @@ export async function findSensorUrl(): Promise<string | null> {
   }
 
   toast({
-    variant: "destructive",
+    variant: "destructive", 
     title: "Không tìm thấy thiết bị",
-    description: `Đã quét ${scannedCount} địa chỉ IP nhưng không tìm thấy thiết bị`,
+    description: "Không tìm thấy thiết bị trong mạng"
   });
   return null;
 }
