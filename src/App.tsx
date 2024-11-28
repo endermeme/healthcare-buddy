@@ -29,6 +29,7 @@ const AppContent = () => {
   const showBottomNav = location.pathname !== '/chat';
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   const [showSensorError, setShowSensorError] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   const { error } = useQuery({
     queryKey: ['healthData'],
@@ -38,13 +39,13 @@ const AppContent = () => {
     meta: {
       onError: () => {
         const now = Date.now();
-        if (now - lastNotificationTime >= 300000) { // 5 minutes
-          toast.error("Không tìm thấy cảm biến", {
+        if (isInitialLoad || now - lastNotificationTime >= 300000) { // Initial load or 5 minutes
+          toast.error("Lỗi kết nối", {
             duration: 3000,
           });
           setLastNotificationTime(now);
+          setShowSensorError(true);
         }
-        setShowSensorError(true);
       },
       onSuccess: () => {
         setShowSensorError(false);
@@ -52,14 +53,20 @@ const AppContent = () => {
     }
   });
 
+  useEffect(() => {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+    }
+  }, [isInitialLoad]);
+
   return (
     <div className={showBottomNav ? "pb-16" : ""}>
       {showSensorError && (
         <Alert 
           variant="destructive" 
-          className="fixed top-0 left-0 right-0 z-50 rounded-none flex items-center justify-between py-1.5"
+          className="fixed top-0 left-0 right-0 z-50 rounded-none flex items-center justify-between py-1"
         >
-          <span className="text-sm font-medium">Không tìm thấy cảm biến</span>
+          <span className="text-sm">Lỗi kết nối</span>
           <button 
             onClick={() => setShowSensorError(false)}
             className="p-1 hover:bg-destructive/10 rounded-full"

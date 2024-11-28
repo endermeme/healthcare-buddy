@@ -33,11 +33,11 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
           className={`mb-4 ${message.isUser ? 'text-right' : 'text-left'}`}
         >
           <div
-            className={`inline-block max-w-[80%] p-3 rounded-lg ${
-              message.isUser
-                ? 'bg-primary text-white'
-                : 'bg-gray-100'
-            }`}
+            className={`inline-block ${
+              message.isUser 
+                ? 'max-w-[80%] bg-primary text-white' 
+                : 'max-w-[90%] bg-gray-100'
+            } p-3 rounded-lg`}
           >
             {message.audioUrl ? (
               <AudioMessage
