@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
-import { format, isSameDay, isAfter } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { vi } from 'date-fns/locale';
 import { Heart, Activity } from 'lucide-react';
@@ -38,22 +38,6 @@ const History = () => {
     groups[date].push(log);
     return groups;
   }, {});
-
-  const getLogStatus = (log: HourlyLog) => {
-    const now = new Date();
-    const logEndTime = new Date(log.hour);
-    logEndTime.setHours(logEndTime.getHours() + 1);
-
-    if (isAfter(now, logEndTime)) {
-      return <span className="text-green-500">Đã hoàn tất</span>;
-    }
-    
-    return log.isRecording ? (
-      <span className="text-blue-500">Đang ghi...</span>
-    ) : (
-      <span className="text-green-500">Đã hoàn tất</span>
-    );
-  };
   
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -92,7 +76,17 @@ const History = () => {
                               { locale: vi }
                             )}
                           </span>
-                          {getLogStatus(log)}
+                          <span className="text-sm font-normal">
+                            {isSameDay(new Date(log.hour), new Date()) ? (
+                              log.isRecording ? (
+                                <span className="text-blue-500">Đang ghi...</span>
+                              ) : (
+                                <span className="text-green-500">Đã hoàn tất</span>
+                              )
+                            ) : (
+                              <span className="text-green-500">Đã hoàn tất</span>
+                            )}
+                          </span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-0">

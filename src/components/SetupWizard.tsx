@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, ArrowRight, X, Wifi, Settings, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, X, Wifi, Settings, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface SetupWizardProps {
   onClose: () => void;
@@ -74,16 +74,8 @@ export const SetupWizard = ({ onClose }: SetupWizardProps) => {
             </div>
             <h2 className="text-lg font-semibold text-center">Kiểm tra kết nối WiFi</h2>
             <p className="text-center text-gray-600">
-              Vui lòng kết nối với mạng WiFi của cảm biến:
+              Vui lòng kiểm tra thiết bị của bạn đã được kết nối với mạng WiFi chưa.
             </p>
-            <div className="bg-gray-100 p-4 rounded-lg space-y-2">
-              <p className="text-sm">
-                <span className="font-semibold">Tên mạng:</span> Cảm biến tim
-              </p>
-              <p className="text-sm">
-                <span className="font-semibold">Mật khẩu:</span> binhbinhthanh
-              </p>
-            </div>
           </div>
         );
       case 2:

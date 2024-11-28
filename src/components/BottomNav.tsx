@@ -1,12 +1,20 @@
-import { Home, MessageSquare, History, User } from 'lucide-react';
+import { Home, MessageSquare, History, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
 
 export const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleClick = (section: string) => {
+    if (section === 'posts') {
+      toast({
+        title: `Đang chuyển tới ${section}`,
+        description: "Tính năng này sẽ sớm ra mắt!",
+      });
+      return;
+    }
     navigate(section);
   };
 
@@ -35,11 +43,11 @@ export const BottomNav = () => {
           <History className="h-5 w-5" />
         </Button>
         <Button 
-          variant={location.pathname === '/profile' ? 'default' : 'ghost'}
-          size="icon"
-          onClick={() => handleClick('/profile')}
+          variant="ghost" 
+          size="icon" 
+          onClick={() => handleClick('posts')}
         >
-          <User className="h-5 w-5" />
+          <BookOpen className="h-5 w-5" />
         </Button>
       </div>
     </nav>

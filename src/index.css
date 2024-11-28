@@ -30,16 +30,3 @@
     @apply mb-4 rounded-full bg-primary-light p-4 text-primary;
   }
 }
-
-@keyframes wave {
-  0%, 100% {
-    transform: scaleY(0.5);
-  }
-  50% {
-    transform: scaleY(1);
-  }
-}
-
-.animate-wave {
-  animation: wave 1s ease-in-out infinite;
-}
