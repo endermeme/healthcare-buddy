@@ -7,6 +7,7 @@ export const BottomNav = () => {
   const route = useRoute();
 
   const handlePress = (routeName: string) => {
+    // @ts-ignore - This is a valid navigation call, but TypeScript doesn't know about the screen names
     navigation.navigate(routeName);
   };
 
@@ -22,7 +23,7 @@ export const BottomNav = () => {
       flexDirection: 'row',
       justifyContent: 'space-around',
       alignItems: 'center',
-      paddingVertical: 8,
+      padding: 8,
     }}>
       <Pressable 
         onPress={() => handlePress('Home')}

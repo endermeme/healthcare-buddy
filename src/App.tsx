@@ -1,4 +1,4 @@
-import { SafeAreaView, View, Platform } from 'react-native';
+import { SafeAreaView, View, Platform, Text, Pressable } from 'react-native';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -76,10 +76,10 @@ const AppContent = () => {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              paddingVertical: 4,
+              padding: 4,
             }}
           >
-            <Text style={{ fontSize: 14 }}>Lỗi kết nối</Text>
+            <Text>Lỗi kết nối</Text>
             <Pressable 
               onPress={() => setShowSensorError(false)}
               style={({ pressed }) => ({
