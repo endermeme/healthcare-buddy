@@ -54,7 +54,7 @@ export const ChatContainer = () => {
     try {
       const response = await axios({
         method: 'post',
-        url: 'http://service.aigate.app/v1/chat-messages',
+        url: 'https://api.dify.ai/v1/chat-messages',
         headers: {
           'Authorization': 'Bearer app-sVzMPqGDTYKCkCJCQToMs4G2',
           'Content-Type': 'application/json'
@@ -62,15 +62,20 @@ export const ChatContainer = () => {
         data: {
           inputs: metadata,
           query: text,
-          response_mode: "blocking",
-          conversation_id: "",
-          user: "abc-123"
+          user: "web-user",
+          response_mode: "streaming",
+          conversation_id: localStorage.getItem('conversation_id') || ""
         },
         timeout: 60000,
         validateStatus: (status) => status >= 200 && status < 500
       });
 
       if (response.data && (response.data.text || response.data.answer)) {
+        // Lưu conversation_id nếu có
+        if (response.data.conversation_id) {
+          localStorage.setItem('conversation_id', response.data.conversation_id);
+        }
+
         const aiMessage: Message = {
           id: `ai-${Date.now()}`,
           text: response.data.text || response.data.answer,
@@ -107,6 +112,7 @@ export const ChatContainer = () => {
   const handleClearChat = () => {
     setMessages([]);
     localStorage.removeItem('chat_messages');
+    localStorage.removeItem('conversation_id');
   };
 
   return (
